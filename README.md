@@ -8,7 +8,7 @@
 
 Placemate aims to provide a centralized, efficient solution for managing campus recruitment drives by connecting placement officers, students, and companies on a single platform.
 
-## ✨ Key Features
+## Key Features
 
 * **Role-Based Access**: The platform is designed with three distinct user roles to ensure a tailored experience for each stakeholder:
     * **Placement Officers**: Manage company listings, track drive progress, and generate analytics.
