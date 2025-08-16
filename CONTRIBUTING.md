@@ -119,3 +119,22 @@ We use GitHub's **Issues** to track bugs and tasks.
 - **Reporting a Bug:** If you find a bug, please check the existing issues to see if it has already been reported. If not, open a new issue and provide a clear, detailed description of the problem, including steps to reproduce it.  
 - **Requesting a Feature:** If you have an idea for a new feature, feel free to open an issue to discuss it.  
 - **Claiming a Task:** If you want to work on a task, assign yourself to an open issue to let others know you are working on it.
+
+---
+
+## ⚠️ Troubleshooting `git pull` Issues
+Sometimes, a simple `git pull` might fail with a message about "divergent branches" if there are new commits on the remote branch that you don't have. This means your local and remote branches have different histories.
+
+To fix this, use the `--rebase` option:
+
+```bash
+git pull origin dev --rebase
+```
+
+This command will automatically take your local commits and re-apply them on top of the latest commits from the remote branch, creating a clean, linear history.
+
+To avoid this in the future, you can set a global configuration to always use rebase for pulls:
+
+```bash
+git config --global pull.rebase true
+```
