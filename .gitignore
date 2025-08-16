@@ -1,0 +1,213 @@
+### General ###
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+~$*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug.log
+
+# Misc
+*.bak
+*.tmp
+*.pid
+*.seed
+*.pid.lock
+.env
+.env.local
+.env.*.local
+
+### Python/Django ###
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database
+*.sqlite3
+*.db
+
+# Django
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+media
+
+### Node/React ###
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+build/
+dist/
+
+# Serverless
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Webpack
+webpack-assets.json
+
+# Parcel
+.cache/
+.parcel-cache/
+
+### Flutter/Dart ###
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.fvm/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.dart.js
+*.info.json
+*.js.deps
+*.js.map
+*.precompiled.js
+
+# Android
+android/**/gradle-wrapper.jar
+android/.gradle/
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+android/app/build/
+android/build/
+
+# iOS
+ios/.generated/
+ios/Flutter/App.framework/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Podfile.lock
+ios/Pods/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/Runner.xcodeproj/xcuserdata/
+ios/Runner.xcworkspace/
+ios/Runner/Info.plist
+
+# Web
+web/.last_build_id
+
+# macOS
+macos/.symlinks/
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/ephemeral/
+macos/Pods/
+macos/Runner/Assets.xcassets
+macos/Runner/DerivedData/
+macos/Runner/Profile.sketch
+
+# Windows
+windows/.vs/
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugins.cmake
+windows/runner/flutter_window.cpp
+windows/runner/flutter_window.h
+windows/runner/utils.cpp
+windows/runner/utils.h
+windows/runner/Runner.vcxproj
+windows/runner/Runner.vcxproj.filters
+
+# Linux
+linux/.dart_tool/
+linux/flutter/ephemeral/
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugins.cmake
+
+### Firebase ###
+.firebase/
+.firebaserc
+
+### Visual Studio Code ###
+.history/
