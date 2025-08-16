@@ -2,7 +2,6 @@
 
 ### A platform to streamline and simplify the campus recruitment process.
 
----
 
 ## Our Mission
 
