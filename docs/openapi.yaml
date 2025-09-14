@@ -1,0 +1,902 @@
+openapi: 3.0.4
+info:
+  title: Placemate REST API
+  description: This API contract defines the endpoints for Placemate, a platform to manage the college placement process for students and administrators.
+  version: 1.0.0
+  contact:
+    email: api-support@placemate.com
+servers:
+  - url: /api
+    description: Development Server
+tags:
+  - name: Authentication
+    description: User registration, login, and password management.
+  - name: Students
+    description: Operations related to student profiles.
+  - name: Companies
+    description: Management of company records.
+  - name: Placement Drives
+    description: Management of placement drives.
+  - name: Jobs
+    description: Management of job postings within placement drives.
+  - name: Job Applications
+    description: Endpoints for students to apply for jobs and for admins to view applications.
+  - name: Interviews
+    description: Scheduling and viewing interviews.
+  - name: Placement Offers
+    description: Managing and responding to placement offers.
+  - name: Notifications
+    description: Broadcasting and viewing notifications.
+paths:
+  /auth/register/:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Creates a new user account for either a Student or a Placement Cell/Admin.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /auth/login/:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate a user
+      description: Authenticates a user with their email and password and returns a JWT access and refresh token pair.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Authentication successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+  /auth/refresh/:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Obtains a new access token using a valid refresh token.
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+      responses:
+        '200':
+          description: Access token refreshed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+  /auth/forgot-password/:
+    post:
+      tags:
+        - Authentication
+      summary: Request password reset OTP
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: OTP sent to the user's email.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /auth/reset-password/:
+    post:
+      tags:
+        - Authentication
+      summary: Reset password with OTP
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+      responses:
+        '200':
+          description: Password has been reset successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /students/me/:
+    get:
+      tags:
+        - Students
+      summary: Get current student profile
+      description: Retrieves the profile of the currently logged-in student.
+      operationId: getMyStudentProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Student profile retrieved successfully.
+        '401':
+          description: Unauthorized.
+    put:
+      tags:
+        - Students
+      summary: Update current student profile
+      description: Updates the profile of the currently logged-in student.
+      operationId: updateMyStudentProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentProfile'
+      responses:
+        '200':
+          description: Student profile updated successfully.
+        '401':
+          description: Unauthorized.
+  /students/:
+    get:
+      tags:
+        - Students
+      summary: List all students (Admin only)
+      description: "**Authorization:** Admin only. Retrieves a list of all student profiles."
+      operationId: listAllStudents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of students.
+        '403':
+          description: Forbidden.
+  /students/{id}/:
+    get:
+      tags:
+        - Students
+      summary: Get a specific student profile (Admin only)
+      description: "**Authorization:** Admin only. Retrieves the profile of a specific student by their ID."
+      operationId: getStudentById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The requested student profile.
+        '403':
+          description: Forbidden.
+        '404':
+          description: Student not found.
+  /companies/:
+    get:
+      tags:
+        - Companies
+      summary: List all companies
+      operationId: listCompanies
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of companies.
+    post:
+      tags:
+        - Companies
+      summary: Add a new company (Admin only)
+      description: "**Authorization:** Admin only. Adds a new company to the database."
+      operationId: createCompany
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+      responses:
+        '201':
+          description: Company created successfully.
+  /companies/{id}/:
+    get:
+      tags:
+        - Companies
+      summary: Get company details
+      operationId: getCompanyById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Company details retrieved.
+    put:
+      tags:
+        - Companies
+      summary: Update a company (Admin only)
+      description: "**Authorization:** Admin only. Updates the details of an existing company."
+      operationId: updateCompany
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+      responses:
+        '200':
+          description: Company updated successfully.
+  /placement-drives/:
+    get:
+      tags:
+        - Placement Drives
+      summary: List placement drives
+      operationId: listPlacementDrives
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of placement drives.
+    post:
+      tags:
+        - Placement Drives
+      summary: Create a new placement drive (Admin only)
+      description: "**Authorization:** Admin only. Creates a new placement drive."
+      operationId: createPlacementDrive
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlacementDrive'
+      responses:
+        '201':
+          description: Placement drive created successfully.
+  /placement-drives/{id}/:
+    get:
+      tags:
+        - Placement Drives
+      summary: Get placement drive details
+      operationId: getPlacementDriveById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Placement drive details retrieved.
+    put:
+      tags:
+        - Placement Drives
+      summary: Update a placement drive (Admin only)
+      description: "**Authorization:** Admin only. Updates an existing placement drive."
+      operationId: updatePlacementDrive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlacementDrive'
+      responses:
+        '200':
+          description: Placement drive updated successfully.
+  /placement-drives/{id}/companies/:
+    post:
+      tags:
+        - Placement Drives
+      summary: Assign a company to a drive (Admin only)
+      description: "**Authorization:** Admin only. Assigns an existing company to a specific placement drive."
+      operationId: assignCompanyToDrive
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company_id:
+                  type: integer
+      responses:
+        '200':
+          description: Company assigned successfully.
+  /jobs/:
+    get:
+      tags:
+        - Jobs
+      summary: List all jobs
+      operationId: listJobs
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of available jobs.
+    post:
+      tags:
+        - Jobs
+      summary: Create a new job posting (Admin only)
+      description: "**Authorization:** Admin only. Creates a new job posting."
+      operationId: createJob
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+      responses:
+        '201':
+          description: Job posting created successfully.
+  /jobs/{id}/:
+    get:
+      tags:
+        - Jobs
+      summary: Get job details
+      operationId: getJobById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job details retrieved.
+    put:
+      tags:
+        - Jobs
+      summary: Update a job posting (Admin only)
+      description: "**Authorization:** Admin only. Updates an existing job posting."
+      operationId: updateJob
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+      responses:
+        '200':
+          description: Job posting updated successfully.
+    delete:
+      tags:
+        - Jobs
+      summary: Delete a job posting (Admin only)
+      description: "**Authorization:** Admin only. Deletes a job posting."
+      operationId: deleteJob
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Job posting deleted successfully.
+  /job-applications/:
+    get:
+      tags:
+        - Job Applications
+      summary: List all job applications (Admin only)
+      description: "**Authorization:** Admin only. Retrieves a list of all job applications."
+      operationId: listAllJobApplications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of all job applications.
+    post:
+      tags:
+        - Job Applications
+      summary: Apply for a job (Student only)
+      description: "**Authorization:** Student only. Submits an application for a specific job."
+      operationId: createJobApplication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_id:
+                  type: integer
+      responses:
+        '201':
+          description: Application submitted successfully.
+  /job-applications/me/:
+    get:
+      tags:
+        - Job Applications
+      summary: List my applications (Student only)
+      description: "**Authorization:** Student only. Retrieves a list of all jobs the current student has applied for."
+      operationId: getMyJobApplications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of the student's applications.
+  /job-applications/{id}/:
+    get:
+      tags:
+        - Job Applications
+      summary: Get specific job application details
+      description: Retrieves details of a specific job application. Students can only view their own, while Admins can view any.
+      operationId: getJobApplicationById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application details retrieved.
+  /interviews/:
+    post:
+      tags:
+        - Interviews
+      summary: Schedule an interview (Admin only)
+      description: "**Authorization:** Admin only. Schedules a new interview for a job application."
+      operationId: scheduleInterview
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Interview'
+      responses:
+        '201':
+          description: Interview scheduled successfully.
+  /interviews/me/:
+    get:
+      tags:
+        - Interviews
+      summary: List my interviews (Student only)
+      description: "**Authorization:** Student only. Retrieves a list of interviews scheduled for the current student."
+      operationId: getMyInterviews
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of the student's interviews.
+  /interviews/{id}/:
+    get:
+      tags:
+        - Interviews
+      summary: Get interview details
+      operationId: getInterviewById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Interview details retrieved.
+    put:
+      tags:
+        - Interviews
+      summary: Update interview details (Admin only)
+      description: "**Authorization:** Admin only. Updates the details of a scheduled interview."
+      operationId: updateInterview
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Interview'
+      responses:
+        '200':
+          description: Interview updated successfully.
+  /offers/:
+    post:
+      tags:
+        - Placement Offers
+      summary: Create a placement offer (Admin only)
+      description: "**Authorization:** Admin only. Creates a new placement offer for a student."
+      operationId: createOffer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlacementOffer'
+      responses:
+        '201':
+          description: Offer created successfully.
+  /offers/me/:
+    get:
+      tags:
+        - Placement Offers
+      summary: List my offers (Student only)
+      description: "**Authorization:** Student only. Retrieves a list of placement offers for the current student."
+      operationId: getMyOffers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of the student's offers.
+  /offers/{id}/:
+    get:
+      tags:
+        - Placement Offers
+      summary: Get offer details
+      operationId: getOfferById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Offer details retrieved.
+  /offers/{id}/accept/:
+    put:
+      tags:
+        - Placement Offers
+      summary: Accept an offer (Student only)
+      description: "**Authorization:** Student only. Marks a placement offer as accepted."
+      operationId: acceptOffer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Offer accepted.
+  /offers/{id}/decline/:
+    put:
+      tags:
+        - Placement Offers
+      summary: Decline an offer (Student only)
+      description: "**Authorization:** Student only. Marks a placement offer as declined."
+      operationId: declineOffer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Offer declined.
+  /notifications/:
+    get:
+      tags:
+        - Notifications
+      summary: List my notifications
+      description: Retrieves a list of notifications for the currently logged-in user.
+      operationId: getMyNotifications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of notifications.
+    post:
+      tags:
+        - Notifications
+      summary: Create a notification (Admin only)
+      description: "**Authorization:** Admin only. Creates and broadcasts a notification to specific users or roles."
+      operationId: createNotification
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        '201':
+          description: Notification created and sent.
+  /notifications/{id}/read/:
+    put:
+      tags:
+        - Notifications
+      summary: Mark notification as read
+      description: Marks a specific notification as read for the current user.
+      operationId: markNotificationAsRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification marked as read.
+components:
+  schemas:
+    UserRegister:
+      type: object
+      required:
+        - email
+        - password
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          example: test@example.com
+        password:
+          type: string
+          format: password
+          example: Secret123
+        role:
+          type: string
+          enum: [Student, Admin]
+          example: Student
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: test@example.com
+        password:
+          type: string
+          format: password
+          example: Secret123
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: test@example.com
+        role:
+          type: string
+          enum: [Student, Admin]
+          example: Student
+    TokenPair:
+      type: object
+      properties:
+        access:
+          type: string
+          example: <jwt_access_token>
+        refresh:
+          type: string
+          example: <jwt_refresh_token>
+    RefreshToken:
+      type: object
+      properties:
+        refresh:
+          type: string
+          example: <jwt_refresh_token>
+    AccessToken:
+      type: object
+      properties:
+        access:
+          type: string
+          example: <new_jwt_access_token>
+    ResetPassword:
+      type: object
+      required:
+        - email
+        - otp
+        - new_password
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+          example: '123456'
+        new_password:
+          type: string
+          format: password
+          example: NewSecret123
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Operation successful
+    StudentProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        full_name:
+          type: string
+        resume_url:
+          type: string
+          format: uri
+        skills:
+          type: array
+          items:
+            type: string
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        website:
+          type: string
+          format: uri
+    PlacementDrive:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+    Job:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        drive_id:
+          type: integer
+        company_id:
+          type: integer
+    Interview:
+      type: object
+      properties:
+        id:
+          type: integer
+        application_id:
+          type: integer
+        scheduled_time:
+          type: string
+          format: date-time
+        location:
+          type: string
+    PlacementOffer:
+      type: object
+      properties:
+        id:
+          type: integer
+        application_id:
+          type: integer
+        offer_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [Pending, Accepted, Declined]
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
