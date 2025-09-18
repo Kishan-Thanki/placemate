@@ -211,3 +211,7 @@ linux/flutter/generated_plugins.cmake
 
 ### Visual Studio Code ###
 .history/
+
+# Virtualenv
+venv/
+backend/venv/
