@@ -1,0 +1,22 @@
+from django.db import models
+from django.conf import settings
+
+class Company(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
+    name = models.CharField(max_length=255, unique=True)
+    website_url = models.URLField(max_length=255, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    logo_url = models.URLField(max_length=255, null=True, blank=True)
+    year_founded = models.IntegerField(null=True, blank=True)
+    company_size = models.IntegerField(null=True, blank=True)
+    headquarters_address = models.TextField(null=True, blank=True)
+    headquarters_city = models.ForeignKey('core.City', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Companies"

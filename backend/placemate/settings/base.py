@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
@@ -19,6 +19,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Custom Apps
+    'apps.core',
+    'apps.users',
+    'apps.students',
+    'apps.companies',
+    'apps.placements',
+    'apps.jobs',
+    'apps.applications',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +65,7 @@ DATABASES = {
     "default": dj_database_url.parse(config("DATABASE_URL"))
 }
 
+AUTH_USER_MODEL = 'users.User'
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
