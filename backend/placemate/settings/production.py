@@ -1,7 +1,7 @@
 from .base import *
 
 DEBUG = False
-ALLOWED_HOSTS = ["placemate.onrender.com", "placemate.herokuapp.com"]
+ALLOWED_HOSTS = ["placemate-zzgd.onrender.com", "placemate.onrender.com", "placemate.herokuapp.com"]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",      
