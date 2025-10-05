@@ -9,5 +9,10 @@ DATABASES = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+# Local file storage for development
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Use local static and media files in development
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"

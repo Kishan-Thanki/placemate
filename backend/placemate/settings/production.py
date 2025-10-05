@@ -22,18 +22,21 @@ DATABASES = {
 }
 
 # -------------------------
-# CORS
+# CORS & Security
 # -------------------------
 CORS_ALLOWED_ORIGINS = [
-    "https://your-actual-frontend-domain.com",  
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://placemate-zzgd.onrender.com",
+    "https://placemate.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
 
-# -------------------------
-# Security
-# -------------------------
+# Security Settings
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = True
@@ -45,7 +48,7 @@ SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # -------------------------
-# Cloudinary Configuration
+# Cloudinary Configuration (MEDIA ONLY)
 # -------------------------
 CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME")
 CLOUDINARY_API_KEY = config("CLOUDINARY_API_KEY")
@@ -61,67 +64,14 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
     'API_KEY': CLOUDINARY_API_KEY,
     'API_SECRET': CLOUDINARY_API_SECRET,
-    'static_folder': 'static',
-    'media_folder': 'media',
-    'static_file_mimetypes': {
-        'txt': 'text/plain',
-        'html': 'text/html',
-        'css': 'text/css',
-        'js': 'application/javascript',
-        'json': 'application/json',
-        'xml': 'application/xml',
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'svg': 'image/svg+xml',
-    }
 }
 
-# -------------------------
-# File Storage
-# -------------------------
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 
-# -------------------------
-# Static Files Configuration 
-# -------------------------
-STATIC_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/static/'
-MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/media/'
+STATIC_URL = '/static/'
 
-STATIC_ROOT = BASE_DIR / "static_collected"  
-STATICFILES_DIRS = []  
-MEDIA_ROOT = None     
+MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/'
 
-# -------------------------
-# Static Files Finder
-# -------------------------
-STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-]
-
-# -------------------------
-# Logging
-# -------------------------
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
