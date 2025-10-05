@@ -56,4 +56,4 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_full_name(self):
         full_name = f"{self.first_name} {self.middle_name} {self.last_name}"
-        return " ".join(full_name.split()) 
+        return " ".join(full_name.split())
