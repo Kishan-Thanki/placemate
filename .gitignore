@@ -209,3 +209,6 @@ linux/flutter/generated_plugins.cmake
 
 ### Visual Studio Code ###
 .history/
+
+# In .gitignore
+static_collected/
