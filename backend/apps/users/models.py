@@ -1,27 +1,13 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-
-class Permission(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission
 
 class Role(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True, null=True)
-    permissions = models.ManyToManyField(Permission, through='RolePermission', blank=True)
+    permissions = models.ManyToManyField(Permission, blank=True)
 
     def __str__(self):
         return self.name
-
-class RolePermission(models.Model):
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ('role', 'permission')
 
 class UserManager(BaseUserManager):
     def create_user(self, email, phone_number, password=None, **extra_fields):
@@ -43,8 +29,13 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    secondary_email = models.EmailField(unique=True, null=True, blank=True)
     phone_number = models.CharField(max_length=20, unique=True)
+    
+    first_name = models.CharField(max_length=150, blank=True)
+    middle_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+
+    secondary_email = models.EmailField(unique=True, null=True, blank=True)
     alternate_phone = models.CharField(max_length=20, unique=True, null=True, blank=True)
     
     is_active = models.BooleanField(default=True)
@@ -53,7 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    roles = models.ManyToManyField(Role, through='UserRole', blank=True)
+    roles = models.ManyToManyField(Role, blank=True)
     
     objects = UserManager()
 
@@ -62,10 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-        
-class UserRole(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
-    class Meta:
-        unique_together = ('user', 'role')
+    def get_full_name(self):
+        full_name = f"{self.first_name} {self.middle_name} {self.last_name}"
+        return " ".join(full_name.split()) 

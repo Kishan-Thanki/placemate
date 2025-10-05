@@ -1,18 +1,26 @@
 from django.db import models
 from django.conf import settings
+from cloudinary.models import CloudinaryField
 
 class StudentProfile(models.Model):
-    GENDER_CHOICES = [('Male', 'Male'), ('Female', 'Female')]
+    GENDER_CHOICES = [
+        ('Male', 'Male'), 
+        ('Female', 'Female'), 
+        ('Other', 'Other'), 
+        ('Prefer not to say', 'Prefer not to say')
+    ]
     
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
     program = models.ForeignKey('core.Program', on_delete=models.SET_NULL, null=True)
-    enrollment_number = models.CharField(max_length=50, unique=True)
-    first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100, blank=True, null=True)
-    last_name = models.CharField(max_length=100)
+    enrollment_number = models.CharField(max_length=50, unique=True)    
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES, null=True, blank=True)
-    profile_picture_url = models.URLField(max_length=255, null=True, blank=True)
+    profile_picture = CloudinaryField(
+        'image',
+        folder='profile_pictures',
+        blank=True,
+        null=True
+    )
     
     address_line1 = models.CharField(max_length=255, null=True, blank=True)
     address_line2 = models.CharField(max_length=255, null=True, blank=True)
@@ -31,4 +39,4 @@ class StudentProfile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return self.user.get_full_name() or self.user.username

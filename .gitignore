@@ -82,11 +82,10 @@ coverage.xml
 # Jupyter
 .ipynb_checkpoints
 
-# Environments
-.env
-.venv
-env/
+# Virtual environments
+.venv/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
@@ -100,12 +99,13 @@ venv.bak/
 *.pyc
 local_settings.py
 db.sqlite3
-media
+media/                  # User-uploaded files (Cloudinary in prod)
+staticfiles/            # Collected static files (do not commit)
+static/.keep            # Optional placeholder for empty static folder
 
-### Node/React ###
-# Dependencies
+# Node/React
 node_modules/
-/.pnp
+.pnp
 .pnp.js
 
 # Testing
@@ -135,7 +135,6 @@ webpack-assets.json
 .parcel-cache/
 
 ### Flutter/Dart ###
-# Flutter/Dart
 .dart_tool/
 .packages
 .pub-cache/
@@ -153,7 +152,6 @@ build/
 # Android
 android/**/gradle-wrapper.jar
 android/.gradle/
-android/local.properties
 android/**/GeneratedPluginRegistrant.java
 android/app/build/
 android/build/
@@ -211,7 +209,3 @@ linux/flutter/generated_plugins.cmake
 
 ### Visual Studio Code ###
 .history/
-
-# Virtualenv
-venv/
-backend/venv/

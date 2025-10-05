@@ -1,12 +1,13 @@
 from django.db import models
 from django.conf import settings
+from cloudinary.models import CloudinaryField
 
 class Company(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
     name = models.CharField(max_length=255, unique=True)
     website_url = models.URLField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    logo_url = models.URLField(max_length=255, null=True, blank=True)
+    logo = CloudinaryField('image', folder='company_logos', blank=True, null=True)
     year_founded = models.IntegerField(null=True, blank=True)
     company_size = models.IntegerField(null=True, blank=True)
     headquarters_address = models.TextField(null=True, blank=True)
