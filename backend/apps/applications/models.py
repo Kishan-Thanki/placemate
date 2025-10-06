@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 class JobApplication(models.Model):
     STATUS_CHOICES = [
@@ -9,7 +10,7 @@ class JobApplication(models.Model):
     job = models.ForeignKey('jobs.Job', on_delete=models.CASCADE, related_name='applications')
     student = models.ForeignKey('students.StudentProfile', on_delete=models.CASCADE, related_name='job_applications')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Applied')
-    resume_url = models.URLField(max_length=255, null=True, blank=True)
+    resume = CloudinaryField('raw', folder='resumes', resource_type='raw', blank=True, null=True)
     applied_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

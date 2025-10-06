@@ -2,6 +2,7 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from apps.core.permissions import IsPlacementTeam 
 from rest_framework import generics, permissions, status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
@@ -12,11 +13,11 @@ User = get_user_model()
 
 class UserRegistrationView(generics.CreateAPIView):
     """
-    Public endpoint for new users to register.
+    Endpoint for Placement Team to register new users.
     """
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated, IsPlacementTeam]
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -31,22 +32,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
             refresh_token = response.data.get('refresh')
             is_secure = not settings.DEBUG
 
-            response.set_cookie(
-                'access_token', 
-                access_token, 
-                httponly=True, 
-                secure=is_secure, 
-                samesite='Lax',
-                max_age=60 * 15 
-            )
-            response.set_cookie(
-                'refresh_token', 
-                refresh_token, 
-                httponly=True, 
-                secure=is_secure, 
-                samesite='Lax',
-                max_age=60 * 60 * 24 * 7 
-            )
+            response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
+            response.set_cookie('refresh_token', refresh_token, httponly=True, secure=is_secure, samesite='Lax')
             
             response.data.pop('access', None)
             response.data.pop('refresh', None)
@@ -68,30 +55,19 @@ class LogoutView(APIView):
                 token = RefreshToken(refresh_token)
                 token.blacklist()
 
-            response = Response(
-                {"detail": "Successfully logged out."},
-                status=status.HTTP_205_RESET_CONTENT
-            )
+            response = Response({"detail": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
             response.delete_cookie('access_token')
             response.delete_cookie('refresh_token')
             
             return response
             
-        except TokenError:
-            return Response(
-                {"detail": "Invalid token."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as e:
-            return Response(
-                {"detail": "Error during logout."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        except (TokenError, Exception):
+            return Response({"detail": "Error during logout."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CurrentUserView(generics.RetrieveAPIView):
+class CurrentUserView(generics.RetrieveUpdateAPIView):
     """
-    Protected endpoint for a logged-in user to get their own details.
+    Protected endpoint for a logged-in user to GET or PATCH their own details.
     """
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]

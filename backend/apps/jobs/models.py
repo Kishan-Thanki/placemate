@@ -1,11 +1,12 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 class Job(models.Model):
     drive = models.ForeignKey('placements.CompanyDrive', on_delete=models.CASCADE, related_name='jobs')
     title = models.CharField(max_length=255)
     description_ug = models.TextField(null=True, blank=True)
     description_pg = models.TextField(null=True, blank=True)
-    job_pdf_url = models.URLField(max_length=255, null=True, blank=True)
+    job_pdf = CloudinaryField('raw', folder='job_descriptions', resource_type='raw', blank=True, null=True)
     
     min_ug_cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     min_pg_cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)

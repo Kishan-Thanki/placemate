@@ -24,6 +24,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'drf_yasg',
+    'health_check',
+    'health_check.db',
+    'django_rest_passwordreset',
 
     'apps.core.apps.CoreConfig',
     'apps.users.apps.UsersConfig',
@@ -38,6 +41,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  
+    'apps.core.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -91,6 +95,13 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'apps.core.exception_handler.custom_exception_handler',
+    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.StandardPagination',
+    'DEFAULT_RENDERER_CLASSES': (
+        'apps.core.renderers.StandardJSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer', 
+    ),
+
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -98,12 +109,8 @@ REST_FRAMEWORK = {
         'apps.users.authentication.CookieJWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',  
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    
     'PAGE_SIZE': 20,
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer', 
-    ),
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'
