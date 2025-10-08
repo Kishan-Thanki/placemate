@@ -1,114 +1,102 @@
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from rest_framework.pagination import PageNumberPagination
+"""
+Core Views for the Placemate Project.
 
-from apps.core.response import (
+This module contains reusable, project-wide view components, 
+including a BaseViewSet that standardizes API responses for all CRUD operations.
+"""
+from rest_framework import viewsets
+from .response import (
     SuccessResponse, CreatedResponse, NoContentResponse,
     NotFoundResponse, ValidationErrorResponse, ErrorResponse
 )
+from .pagination import StandardPagination
 
 class BaseViewSet(viewsets.ModelViewSet):
     """
-    Base ViewSet with standardized responses for all endpoints
+    A custom base ViewSet that overrides default DRF actions to return standardized, 
+    consistent API responses for all endpoints.
+
+    By inheriting from this class, 
+    other ViewSets automatically gain a consistent response structure for all CRUD (Create, Retrieve, Update, Delete) actions without needing to rewrite the logic.
     """
+    # Use the custom pagination class to ensure paginated lists
+    # match our standard response format.
     pagination_class = StandardPagination
     
     def list(self, request, *args, **kwargs):
-        """Standard list response"""
+        """
+        Handles GET requests for a list of objects.
+
+        Overrides the default `list` action to wrap the response in a standardized format, including handling pagination.
+        """
         try:
             queryset = self.filter_queryset(self.get_queryset())
             page = self.paginate_queryset(queryset)
             
+            # If the response is paginated, our custom paginator class will format it correctly.
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
             
+            # For non-paginated lists, wrap in a standard SuccessResponse.
             serializer = self.get_serializer(queryset, many=True)
             return SuccessResponse(data=serializer.data, message="Data retrieved successfully")
             
         except Exception as e:
+            # Fallback for any unexpected errors during list retrieval.
             return ErrorResponse(message=str(e))
     
     def retrieve(self, request, *args, **kwargs):
-        """Standard retrieve response"""
+        """
+        Handles GET requests for a single object by its ID/PK.
+
+        Overrides the default `retrieve` action to return a standard
+        SuccessResponse or a NotFoundResponse if the object doesn't exist.
+        """
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
             return SuccessResponse(data=serializer.data, message="Resource retrieved successfully")
-        except Exception as e:
-            return NotFoundResponse(message=str(e))
+        except Exception:
+            return NotFoundResponse()
     
     def create(self, request, *args, **kwargs):
-        """Standard create response"""
-        try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
-            
-            response_serializer = self.get_serializer(instance)
-            
-            return CreatedResponse(
-                data=response_serializer.data, 
-                message=f"{self.get_resource_name()} created successfully"
-            )
-            
-        except Exception as e:
-            return ValidationErrorResponse(
-                errors=serializer.errors if hasattr(serializer, 'errors') else {},
-                message=str(e)
-            )
+        """
+        Handles POST requests to create a new object.
+
+        Overrides the default `create` action to return a standard
+        CreatedResponse (201) on success or a ValidationErrorResponse on failure.
+        """
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ValidationErrorResponse(errors=serializer.errors)
+        
+        self.perform_create(serializer)
+        return CreatedResponse(data=serializer.data)
     
     def update(self, request, *args, **kwargs):
-        """Standard update response"""
-        try:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance, data=request.data, partial=False)
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
-            
-            response_serializer = self.get_serializer(instance)
-            return SuccessResponse(
-                data=response_serializer.data,
-                message=f"{self.get_resource_name()} updated successfully"
-            )
-            
-        except Exception as e:
-            return ValidationErrorResponse(
-                errors=serializer.errors if hasattr(serializer, 'errors') else {},
-                message=str(e)
-            )
-    
-    def partial_update(self, request, *args, **kwargs):
-        """Standard partial update response"""
-        try:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
-            
-            response_serializer = self.get_serializer(instance)
-            return SuccessResponse(
-                data=response_serializer.data,
-                message=f"{self.get_resource_name()} updated successfully"
-            )
-            
-        except Exception as e:
-            return ValidationErrorResponse(
-                errors=serializer.errors if hasattr(serializer, 'errors') else {},
-                message=str(e)
-            )
+        """
+        Handles PUT/PATCH requests to update an object.
+
+        This single method handles both full (PUT) and partial (PATCH) updates
+        and returns a standard SuccessResponse or ValidationErrorResponse.
+        """
+        instance = self.get_object()
+        # Use `partial=kwargs.get('partial', False)` to handle both PUT and PATCH.
+        serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
+        if not serializer.is_valid():
+            return ValidationErrorResponse(errors=serializer.errors)
+        
+        self.perform_update(serializer)
+        return SuccessResponse(data=serializer.data)
     
     def destroy(self, request, *args, **kwargs):
-        """Standard delete response"""
-        try:
-            instance = self.get_object()
-            self.perform_destroy(instance)
-            return NoContentResponse()
-        except Exception as e:
-            return ErrorResponse(message=str(e))
-    
-    def get_resource_name(self):
-        """Get resource name for response messages"""
-        return self.queryset.model._meta.verbose_name.title() if hasattr(self, 'queryset') else "Resource"
+        """
+        Handles DELETE requests to remove an object.
+
+        Overrides the default `destroy` action to return a standard
+        NoContentResponse (204) for successful deletions.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return NoContentResponse()

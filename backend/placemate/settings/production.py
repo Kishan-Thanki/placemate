@@ -1,62 +1,64 @@
+"""
+Settings for the Production Environment.
+
+This file imports the base settings and then overrides them with configurations that are optimized for a live, deployed server. 
+It prioritizes security, performance, and scalability.
+"""
 import cloudinary
 from .base import *
 import dj_database_url
 from decouple import config
 
+# --- Core Settings ---
+# Disables detailed error pages for security.
 DEBUG = False
 
+# A strict list of the allowed domain names for the live server.
 ALLOWED_HOSTS = [
     "placemate-zzgd.onrender.com",
-    "your-production-domain.com", 
+    "final-production-domain.com", 
 ]
 
-DATABASE_URL = config("DATABASE_URL")
+# --- Database ---
+# Connects to the production Supabase database using the URL from environment variables.
 DATABASES = {
-    "default": dj_database_url.parse(DATABASE_URL)
+    "default": dj_database_url.parse(config("DATABASE_URL"))
 }
 
+# --- CORS & Security ---
+# A strict list of the frontend domains that are allowed to make API requests.
 CORS_ALLOWED_ORIGINS = [
-    "https://your-frontend-domain.com",  
-    "https://www.your-frontend-domain.com",
+    "https://final-frontend-domain.com", 
+    "https://www.final-frontend-domain.com",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False  
-CORS_ALLOW_CREDENTIALS = True
-
+# A list of trusted origins for CSRF protection.
 CSRF_TRUSTED_ORIGINS = [
     "https://placemate-zzgd.onrender.com",
-    "https://your-frontend-domain.com",  
+    "https://final-frontend-domain.com",  
 ]
 
-SECURE_SSL_REDIRECT = True
+# --- Production Security Headers ---
+# Enforce secure cookies and HTTPS.
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000  
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-cloudinary.config(
-    cloud_name=config("CLOUDINARY_CLOUD_NAME"),
-    api_key=config("CLOUDINARY_API_KEY"),
-    api_secret=config("CLOUDINARY_API_SECRET")
-)
-
+# --- File Storage ---
+# This line OVERRIDES the base setting and activates Cloudinary for all
+# user-uploaded media files in the production environment.
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+# --- Email ---
+# Overrides the base setting to use a real SMTP service (Gmail) for sending emails in production.
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@yourdomain.com')
-
-REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
-    'rest_framework.renderers.JSONRenderer',
-)
-
-SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=15)
-SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(days=1)
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')

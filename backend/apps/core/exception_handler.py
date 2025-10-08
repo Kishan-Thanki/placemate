@@ -1,45 +1,66 @@
+"""
+Custom API Exception Handler for the Placemate Project.
+
+This module provides a centralized function to intercept all exceptions raised by the Django REST Framework and the application. 
+Its primary purpose is to ensure that all API error responses are consistent by mapping different exception types to our custom, 
+standardized ErrorResponse classes from `response.py`.
+"""
 import traceback
 from django.http import Http404
 from django.conf import settings
 from django.db import IntegrityError
-from rest_framework.response import Response
-from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework.views import exception_handler as drf_exception_handler
 from rest_framework.exceptions import ValidationError as DRFValidationError, NotAuthenticated, PermissionDenied, Throttled
-from .exceptions import (
-    BaseAPIException, ValidationException, AuthenticationException,
-    PermissionException, NotFoundException, ThrottledException,
-    InternalServerException, DatabaseException
+from .response import (
+    ValidationErrorResponse, UnauthorizedResponse, ForbiddenResponse,
+    NotFoundResponse, ServerErrorResponse
 )
 
 def custom_exception_handler(exc, context):
-    if isinstance(exc, BaseAPIException):
-        return Response(exc.detail, status=exc.status_code)
-    
+    """
+    Handles all exceptions for the API, returning a standardized error response.
+
+    This function is registered in the DRF settings ('EXCEPTION_HANDLER').
+    It inspects the type of the raw exception and returns an instance of the appropriate custom ErrorResponse subclass.
+
+    Args:
+        exc (Exception): The exception instance that was raised.
+        context (dict): A dictionary containing the view that raised the exception.
+
+    Returns:
+        ErrorResponse: An instance of a custom error response class.
+    """
+    # Handle DRF's validation errors by creating a ValidationErrorResponse.
     if isinstance(exc, DRFValidationError):
-        return Response(ValidationException(errors=exc.detail).detail, status=exc.status_code)
+        return ValidationErrorResponse(errors=exc.detail)
     
+    # Handle errors where a user is not logged in.
     if isinstance(exc, NotAuthenticated):
-        return Response(AuthenticationException().detail, status=exc.status_code)
+        return UnauthorizedResponse()
         
+    # Handle errors where a logged-in user does not have permission.
     if isinstance(exc, PermissionDenied):
-        return Response(PermissionException().detail, status=exc.status_code)
+        return ForbiddenResponse()
         
+    # Handle errors where a user has exceeded their request rate limit.
     if isinstance(exc, Throttled):
-        return Response(ThrottledException(detail=str(exc.detail)).detail, status=exc.status_code)
+        return ForbiddenResponse(message=str(exc.detail))
 
+    # Handle Django's standard 404 error when an object is not found.
     if isinstance(exc, Http404):
-        return Response(NotFoundException().detail, status=exc.status_code)
+        return NotFoundResponse()
         
+    # Handle database integrity errors (e.g., unique constraint violations).
     if isinstance(exc, IntegrityError):
-        return Response(DatabaseException(detail="Database constraint violation.").detail, status=exc.status_code)
+        return ServerErrorResponse(message="Database constraint violation.")
 
+    # --- Fallback for any other unexpected exception ---
+    # This ensures a generic but structured 500 error is always returned.
+
+    # In DEBUG mode, provide a detailed error message and traceback for easier debugging.
     if settings.DEBUG:
-        detail = f"{exc.__class__.__name__}: {str(exc)}"
+        message = f"{exc.__class__.__name__}: {str(exc)}"
         traceback_info = traceback.format_exc()
-        response_data = InternalServerException(detail=detail).detail
-        response_data['error']['traceback'] = traceback_info
+        return ServerErrorResponse(message=message, traceback=traceback_info)
     else:
-        response_data = InternalServerException().detail
-        
-    return Response(response_data, status=500)
+        # In production, provide a generic, user-friendly error message to avoid exposing sensitive system information.
+        return ServerErrorResponse()

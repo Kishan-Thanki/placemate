@@ -1,39 +1,31 @@
+"""
+Settings for the Local Development Environment.
+
+This file imports the base settings and then overrides specific configurations for a fast and convenient local development experience.
+"""
 from .base import *
 import dj_database_url
 from decouple import config
 
+# --- Core Settings ---
+# Enables detailed error pages for easy debugging.
 DEBUG = True
 
+# Allows requests from localhost and the local network.
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "0.0.0.0"]
 
-DATABASE_URL = config("DATABASE_URL", default="postgresql://postgres:postgres@localhost:5432/placemate_db")
+# --- Database ---
+# Connects to the local PostgreSQL database using the URL from the .env file.
 DATABASES = {
-    "default": dj_database_url.parse(DATABASE_URL)
+    "default": dj_database_url.parse(config("DATABASE_URL", default="postgresql://user:pass@localhost/dbname"))
 }
 
+# --- CORS ---
+# A permissive CORS policy for local development, allowing any origin
+# to make requests. This is convenient for running a local frontend.
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000", 
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
 
-SECURE_SSL_REDIRECT = False
+# --- Security ---
+# Disable HTTPS and secure cookie settings for local HTTP development.
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
-SECURE_BROWSER_XSS_FILTER = False
-SECURE_CONTENT_TYPE_NOSNIFF = False
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
-    'rest_framework.renderers.JSONRenderer',
-    'rest_framework.renderers.BrowsableAPIRenderer',
-)
-
-SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=60)
-SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'] = timedelta(days=7)
