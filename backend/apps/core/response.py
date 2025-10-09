@@ -116,5 +116,5 @@ class ConflictResponse(ErrorResponse):
 
 class ServerErrorResponse(ErrorResponse):
     """A response for an unexpected server error (HTTP 500 Internal Server Error)."""
-    def __init__(self, message: str = "Internal server error"):
-        super().__init__(message=message, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def __init__(self, message: str = "Internal server error", **kwargs):
+        super().__init__(message=message, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, **kwargs)
