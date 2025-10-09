@@ -13,7 +13,7 @@ print("loading production...")
 
 # --- Core Settings ---
 # Disables detailed error pages for security.
-DEBUG = True
+DEBUG = False
 
 # A strict list of the allowed domain names for the live server.
 ALLOWED_HOSTS = [
