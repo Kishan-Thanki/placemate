@@ -9,10 +9,19 @@ import traceback
 from django.http import Http404
 from django.conf import settings
 from django.db import IntegrityError
-from rest_framework.exceptions import ValidationError as DRFValidationError, NotAuthenticated, PermissionDenied, Throttled
+from rest_framework.exceptions import (
+    AuthenticationFailed,
+    ValidationError as DRFValidationError, 
+    NotAuthenticated, 
+    PermissionDenied, 
+    Throttled
+)
 from .response import (
-    ValidationErrorResponse, UnauthorizedResponse, ForbiddenResponse,
-    NotFoundResponse, ServerErrorResponse
+    ValidationErrorResponse, 
+    UnauthorizedResponse, 
+    ForbiddenResponse,
+    NotFoundResponse, 
+    ServerErrorResponse
 )
 
 def custom_exception_handler(exc, context):
@@ -20,7 +29,8 @@ def custom_exception_handler(exc, context):
     Handles all exceptions for the API, returning a standardized error response.
 
     This function is registered in the DRF settings ('EXCEPTION_HANDLER').
-    It inspects the type of the raw exception and returns an instance of the appropriate custom ErrorResponse subclass.
+    It inspects the type of the raw exception and returns an instance of the
+    appropriate custom ErrorResponse subclass from `response.py`.
 
     Args:
         exc (Exception): The exception instance that was raised.
@@ -29,11 +39,15 @@ def custom_exception_handler(exc, context):
     Returns:
         ErrorResponse: An instance of a custom error response class.
     """
-    # Handle DRF's validation errors by creating a ValidationErrorResponse.
+    # Handle failed login attempts (wrong password).
+    if isinstance(exc, AuthenticationFailed):
+        return UnauthorizedResponse(message=exc.detail)
+    
+    # Handle DRF's validation errors (e.g., from a serializer).
     if isinstance(exc, DRFValidationError):
         return ValidationErrorResponse(errors=exc.detail)
     
-    # Handle errors where a user is not logged in.
+    # Handle errors where a user is not logged in at all.
     if isinstance(exc, NotAuthenticated):
         return UnauthorizedResponse()
         
@@ -58,7 +72,7 @@ def custom_exception_handler(exc, context):
 
     # In DEBUG mode, provide a detailed error message and traceback for easier debugging.
     if settings.DEBUG:
-        message = f"{exc.__class__.__name__}: {str(exc)}"
+        message = f"Unhandled Exception: {exc.__class__.__name__}: {str(exc)}"
         traceback_info = traceback.format_exc()
         return ServerErrorResponse(message=message, traceback=traceback_info)
     else:
