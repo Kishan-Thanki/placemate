@@ -39,7 +39,7 @@ class IsPlacementTeam(permissions.BasePermission):
     A view-level permission to only allow placement team members to access an endpoint.
 
     This rule checks if the logged-in user is authenticated and has a role that
-    is part of the placement team (e.g., "Placement Head" or "Placement Student Member").
+    is part of the placement team (e.g., "Admin" or "Student Placement Cell").
     """
     def has_permission(self, request, view):
         # First, ensure the user is logged in.
@@ -49,5 +49,5 @@ class IsPlacementTeam(permissions.BasePermission):
         # Check if the user's roles set has any intersection with the list of placement team roles. 
         # The `__in` lookup is an efficient way to do this.
         return request.user.roles.filter(
-            name__in=['Placement Head', 'Placement Student Member']
+            name__in=['Admin', 'Student Placement Cell']
         ).exists()
