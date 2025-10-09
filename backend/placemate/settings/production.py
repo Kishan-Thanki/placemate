@@ -9,13 +9,15 @@ from .base import *
 import dj_database_url
 from decouple import config
 
+print("loading production...")
+
 # --- Core Settings ---
 # Disables detailed error pages for security.
-DEBUG = False
+DEBUG = True
 
 # A strict list of the allowed domain names for the live server.
 ALLOWED_HOSTS = [
-    "placemate-zzgd.onrender.com",
+    ".onrender.com",
     "final-production-domain.com", 
 ]
 

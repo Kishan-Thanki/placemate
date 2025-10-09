@@ -5,11 +5,11 @@ This module contains reusable, project-wide view components,
 including a BaseViewSet that standardizes API responses for all CRUD operations.
 """
 from rest_framework import viewsets
+from .pagination import StandardPagination
 from .response import (
     SuccessResponse, CreatedResponse, NoContentResponse,
     NotFoundResponse, ValidationErrorResponse, ErrorResponse
 )
-from .pagination import StandardPagination
 
 class BaseViewSet(viewsets.ModelViewSet):
     """
@@ -22,6 +22,7 @@ class BaseViewSet(viewsets.ModelViewSet):
     # Use the custom pagination class to ensure paginated lists
     # match our standard response format.
     pagination_class = StandardPagination
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
     
     def list(self, request, *args, **kwargs):
         """
@@ -76,19 +77,23 @@ class BaseViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         """
-        Handles PUT/PATCH requests to update an object.
+        Handles PATCH requests to update an object.
 
-        This single method handles both full (PUT) and partial (PATCH) updates
-        and returns a standard SuccessResponse or ValidationErrorResponse.
+        This method is called for PATCH requests.
         """
+        # The get_object() method will raise an Http404 if the object is not found,
+        # which our global exception handler will catch and format.
         instance = self.get_object()
-        # Use `partial=kwargs.get('partial', False)` to handle both PUT and PATCH.
-        serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
-        if not serializer.is_valid():
-            return ValidationErrorResponse(errors=serializer.errors)
-        
+
+        # We set partial=True because only PATCH requests are allowed.
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        # `raise_exception=True` automatically triggers our global exception
+        # handler on any validation errors, returning a standardized response.
+        serializer.is_valid(raise_exception=True)
+
         self.perform_update(serializer)
-        return SuccessResponse(data=serializer.data)
+        return SuccessResponse(data=serializer.data, message="Resource updated successfully.")
     
     def destroy(self, request, *args, **kwargs):
         """

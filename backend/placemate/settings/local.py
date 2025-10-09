@@ -7,6 +7,8 @@ from .base import *
 import dj_database_url
 from decouple import config
 
+print("loading local...")
+
 # --- Core Settings ---
 # Enables detailed error pages for easy debugging.
 DEBUG = True
