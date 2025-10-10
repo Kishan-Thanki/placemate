@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { LayoutDashboard, Building2, CalendarDays, Users, Plus, FileText, Briefcase, ChevronLeft, ChevronRight, Moon, Sun } from 'lucide-react';
 
@@ -8,6 +9,7 @@ import { LayoutDashboard, Building2, CalendarDays, Users, Plus, FileText, Briefc
  */
 export function Sidebar({ isOpen, onClose }) {
   const { isDark, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
 
@@ -61,7 +63,7 @@ export function Sidebar({ isOpen, onClose }) {
       id: 'register-student',
       name: 'Register Student',
       icon: <Users size={18} />,
-      href: '/admin/students/new',
+      href: '/admin/students/register',
     },
     {
       id: 'basic-details',
@@ -79,8 +81,8 @@ export function Sidebar({ isOpen, onClose }) {
 
   const handleItemClick = (itemId, href) => {
     setActiveItem(itemId);
-    // Handle navigation here (you can use React Router)
-    console.log(`Navigate to: ${href}`);
+    // Navigate using React Router
+    if (href) navigate(href);
     
     // Close sidebar on mobile after selection
     if (window.innerWidth < 1024) {

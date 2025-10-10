@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import logoUrl from '../../assets/placemate.png';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '../ui';
@@ -12,7 +13,7 @@ export function Navbar({ onMenuClick }) {
   const { isDark } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
 
   // Mock notifications (replace with real data later)
   const notifications = [
@@ -70,25 +71,25 @@ export function Navbar({ onMenuClick }) {
             {/* Top nav tabs */}
             <div className="hidden lg:flex items-center space-x-6">
               {[
-                { id: 'dashboard', label: 'Dashboard', href: '/admin' },
-                { id: 'companies', label: 'Companies', href: '/admin/companies' },
-                { id: 'drives', label: 'Drives', href: '/admin/drives' },
-                { id: 'students', label: 'Students', href: '/admin/students' },
+                { id: 'dashboard', label: 'Dashboard', to: '/admin', end: true },
+                { id: 'companies', label: 'Companies', to: '/admin/companies' },
+                { id: 'drives', label: 'Drives', to: '/admin/drives' },
+                { id: 'students', label: 'Students', to: '/admin/students' },
               ].map(item => (
-                <a
+                <NavLink
                   key={item.id}
-                  href={item.href}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `
                     text-sm font-medium pb-1 border-b-2 transition-colors
-                    ${activeTab === item.id
+                    ${isActive
                       ? (isDark ? 'text-blue-400 border-blue-400' : 'text-blue-600 border-blue-600')
                       : (isDark ? 'text-gray-300 border-transparent hover:text-white' : 'text-gray-600 border-transparent hover:text-gray-900')
                     }
                   `}
                 >
                   {item.label}
-                </a>
+                </NavLink>
               ))}
             </div>
 

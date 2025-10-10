@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout, PageContainer, Section } from '../../components/layout';
 import { StatCard, StatsGrid, Button } from '../../components/ui';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -9,6 +10,7 @@ import { useTheme } from '../../contexts/ThemeContext';
  */
 export function AdminDashboard() {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
 
   // Mock data matching the screenshot
   const stats = [
@@ -107,6 +109,13 @@ export function AdminDashboard() {
     },
   ];
 
+  const handleQuickAction = (actionId) => {
+    if (actionId === 'register-student') {
+      navigate('/admin/students/register');
+    }
+    // Future: add navigations for other actions when routes are ready
+  };
+
   // Mock chart data for placement trends (we'll create a simple visual representation)
   const PlacementTrendChart = () => (
     <div className={`
@@ -199,6 +208,7 @@ export function AdminDashboard() {
                 variant={action.variant}
                 className="flex-col h-20 space-y-1"
                 leftIcon={action.icon}
+                onClick={() => handleQuickAction(action.id)}
               >
                 <span className="text-xs text-center leading-tight">
                   {action.label}
