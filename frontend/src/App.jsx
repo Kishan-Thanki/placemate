@@ -5,6 +5,8 @@ import StudentRegistration from "./components/StudentRegistration";
 import RegisteredStudent from "./components/RegisteredStudent";
 import RegisterCellMember from "./components/RegisterCellMember";
 import AddDrive from "./components/AddDrive";
+import JobDriveForm from "./components/JobDriveForm";
+import StudentDetails from "./components/StudentDetails";
 
 export default function App() {
   return (
@@ -17,8 +19,11 @@ export default function App() {
             <Route path="/student-registration" element={<StudentRegistration />} />
             <Route path="/spc" element={<RegisterCellMember />} />
             <Route path="/add-drive/basic-details" element={<AddDrive />} />
-            <Route path="/add-drive/job-details" element={<div>Job Details Page</div>} />
+            <Route path="/add-drive/job-details" element={<JobDriveForm />} />
             <Route path="/registered-students" element={<RegisteredStudent />} />
+            <Route path="/student-details" element={<StudentDetails />} />
+            <Route path="/companies" element={<div>Companies Page</div>} />
+            <Route path="/dashboard" element={<div>Dashboard Page</div>} />
             <Route path="/applications-status" element={<div>Applications Status Page</div>} />
           </Routes>
         </div>

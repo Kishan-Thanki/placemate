@@ -61,23 +61,9 @@ export default function RegisterCellMember() {
         />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
-        <button style={{ 
-          padding: '0.5rem 1.5rem', 
-          backgroundColor: '#f3f4f6', 
-          color: '#374151', 
-          border: '1px solid #d1d5db', 
-          borderRadius: '0.5rem',
-          cursor: 'pointer'
-        }}>Cancel</button>
-        <button style={{ 
-          padding: '0.5rem 1.5rem', 
-          backgroundColor: '#1f2937', 
-          color: 'white', 
-          border: 'none', 
-          borderRadius: '0.5rem',
-          cursor: 'pointer'
-        }}>Add Member</button>
+      <div className="form-actions">
+        <button type="button" className="btn btn-secondary">Cancel</button>
+        <button type="submit" className="btn btn-primary">Add Member</button>
       </div>
     </div>
   );
@@ -85,31 +71,14 @@ export default function RegisterCellMember() {
 
 function Input({ label, placeholder, required, type = "text", defaultValue }) {
   return (
-    <div>
-      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
-        {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
+    <div className="form-field">
+      <label>
+        {label} {required && <span className="required">*</span>}
       </label>
       <input 
         type={type} 
         placeholder={placeholder} 
         defaultValue={defaultValue}
-        style={{
-          width: '100%',
-          border: '1px solid #d1d5db',
-          borderRadius: '0.5rem',
-          padding: '0.5rem 0.75rem',
-          fontSize: '0.875rem',
-          outline: 'none',
-          transition: 'all 0.2s ease'
-        }}
-        onFocus={(e) => {
-          e.target.style.borderColor = '#9ca3af';
-          e.target.style.boxShadow = '0 0 0 3px rgba(209, 213, 219, 0.3)';
-        }}
-        onBlur={(e) => {
-          e.target.style.borderColor = '#d1d5db';
-          e.target.style.boxShadow = 'none';
-        }}
       />
     </div>
   );
@@ -117,29 +86,11 @@ function Input({ label, placeholder, required, type = "text", defaultValue }) {
 
 function Select({ label, required, options }) {
   return (
-    <div>
-      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
-        {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
+    <div className="form-field">
+      <label>
+        {label} {required && <span className="required">*</span>}
       </label>
-      <select
-        style={{
-          width: '100%',
-          border: '1px solid #d1d5db',
-          borderRadius: '0.5rem',
-          padding: '0.5rem 0.75rem',
-          fontSize: '0.875rem',
-          outline: 'none',
-          transition: 'all 0.2s ease'
-        }}
-        onFocus={(e) => {
-          e.target.style.borderColor = '#9ca3af';
-          e.target.style.boxShadow = '0 0 0 3px rgba(209, 213, 219, 0.3)';
-        }}
-        onBlur={(e) => {
-          e.target.style.borderColor = '#d1d5db';
-          e.target.style.boxShadow = 'none';
-        }}
-      >
+      <select>
         <option value="">Select {label}</option>
         {options.map((opt, i) => (
           <option key={i}>{opt}</option>
@@ -151,31 +102,11 @@ function Select({ label, required, options }) {
 
 function Textarea({ label, placeholder }) {
   return (
-    <div style={{ gridColumn: 'span 3' }}>
-      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
-        {label}
-      </label>
+    <div className="form-field textarea-full">
+      <label>{label}</label>
       <textarea 
         rows={3} 
         placeholder={placeholder}
-        style={{
-          width: '100%',
-          border: '1px solid #d1d5db',
-          borderRadius: '0.5rem',
-          padding: '0.5rem 0.75rem',
-          fontSize: '0.875rem',
-          outline: 'none',
-          resize: 'none',
-          transition: 'all 0.2s ease'
-        }}
-        onFocus={(e) => {
-          e.target.style.borderColor = '#9ca3af';
-          e.target.style.boxShadow = '0 0 0 3px rgba(209, 213, 219, 0.3)';
-        }}
-        onBlur={(e) => {
-          e.target.style.borderColor = '#d1d5db';
-          e.target.style.boxShadow = 'none';
-        }}
       ></textarea>
     </div>
   );

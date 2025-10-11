@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Eye, Edit, Trash2, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function RegisteredStudent() {
-  const [students] = useState([
+  const navigate = useNavigate();
+  const [students, setStudents] = useState([
     { id: 1, enroll: "2021001", name: "John Doe", batch: "2020-2026", course: "M.Sc IT", email: "john.doe@example.com", status: "Placed" },
     { id: 2, enroll: "2021002", name: "Jane Smith", batch: "2020-2022", course: "B.Sc IT", email: "jane.smith@example.com", status: "Internship" },
     { id: 3, enroll: "2021003", name: "Michael Brown", batch: "2019-2021", course: "Diploma in Information Technology", email: "michael.brown@example.com", status: "Not Placed" },
@@ -44,15 +46,17 @@ export default function RegisteredStudent() {
   };
 
   const handleView = (student) => {
-    // View student details
+    navigate(`/student-details/${student.id}`);
   };
 
   const handleEdit = (student) => {
-    // Edit student details
+    // Edit functionality
   };
 
   const handleDelete = (student) => {
-    // Delete student
+    if (window.confirm(`Are you sure you want to delete ${student.name}?`)) {
+      setStudents(students.filter(s => s.id !== student.id));
+    }
   };
 
   const getStatusClass = (status) => {

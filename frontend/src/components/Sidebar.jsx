@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import {
+  LayoutDashboard,
   Building2,
+  UserCog,
   CalendarPlus,
   UserPlus,
   FileText,
@@ -8,6 +10,7 @@ import {
   ChevronRight,
   GraduationCap,
   Users,
+  UserCheck,
   Briefcase,
   Menu,
   X
@@ -49,10 +52,16 @@ export default function Sidebar() {
       
       <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
       <div className="logo">
-        <span>🌟 Logo</span>
+        <span>PlaceMate</span>
       </div>
 
       <nav>
+        <SidebarLink
+          icon={<LayoutDashboard size={18} />}
+          text="Dashboard"
+          link="/dashboard"
+          onLinkClick={closeMobileMenu}
+        />
         <SidebarLink
           icon={<Building2 size={18} />}
           text="Companies"
@@ -60,22 +69,22 @@ export default function Sidebar() {
           onLinkClick={closeMobileMenu}
         />
         <SidebarLink
-          icon={<Building2 size={18} />}
-          text="SPC"
+          icon={<UserCog size={18} />}
+          text="Cell Member"
           link="/spc"
           onLinkClick={closeMobileMenu}
         />
 
         <ExpandableSidebarLink
           icon={<CalendarPlus size={18} />}
-          text="Add Drive"
+          text="Drive"
           itemKey="add-drive"
           isExpanded={expandedItems['add-drive']}
           onToggle={toggleExpanded}
           onLinkClick={closeMobileMenu}
           subItems={[
             { icon: <FileText size={16} />, text: "Basic Details", link: "/add-drive/basic-details" },
-            { icon: <FileText size={16} />, text: "Job Details", link: "/add-drive/job-details" }
+            { icon: <Briefcase size={16} />, text: "Job Details", link: "/add-drive/job-details" }
           ]}
         />
 
@@ -88,7 +97,7 @@ export default function Sidebar() {
           onLinkClick={closeMobileMenu}
           subItems={[
             {
-              icon: <GraduationCap size={16} />,
+              icon: <UserPlus size={16} />,
               text: "Student Manual Registrations",
               link: "/student-registration" 
             },
@@ -96,6 +105,11 @@ export default function Sidebar() {
               icon: <Users size={16} />,
               text: "Registered Students",
               link: "/registered-students" 
+            },
+            {
+              icon: <UserCheck size={16} />,
+              text: "Student Details",
+              link: "/student-details" 
             },
             { icon: <Briefcase size={16} />, text: "Applications Status", link: "/applications-status" }
           ]}
