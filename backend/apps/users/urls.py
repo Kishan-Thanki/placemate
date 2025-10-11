@@ -1,23 +1,24 @@
 """
 URL Configuration for the Users App.
-
-This file defines the URL patterns for endpoints that are specific to the
-'users' resource, such as user registration and fetching the current user's
-profile details.
-
-These URLs are included under the `/api/v1/users/` prefix by the main API router.
 """
-from django.urls import path
-from .views import UserRegistrationView, CurrentUserView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import UserRegistrationView, CurrentUserView, UserViewSet
+
+# A router automatically generates the standard URLs for a ViewSet.
+router = DefaultRouter()
+router.register(r'manage', UserViewSet, basename='user-manage')
 
 urlpatterns = [
-    # Defines the endpoint for new user registration.
-    # Maps POST requests to the UserRegistrationView.
-    # URL: /api/v1/users/register/
+    # --- Specialized Action Endpoints ---
     path('register/', UserRegistrationView.as_view(), name='user-register'),
-
-    # Defines the endpoint for a logged-in user to get or update their own profile.
-    # Maps GET and PATCH requests to the CurrentUserView.
-    # URL: /api/v1/users/me/
     path('me/', CurrentUserView.as_view(), name='current-user'),
+    
+    # --- Administrative CRUD Endpoints ---
+    # This includes the router-generated URLs for the UserViewSet.
+    # It will create endpoints like:
+    #   - GET /api/v1/users/manage/ (List all users)
+    #   - GET /api/v1/users/manage/{id}/ (Retrieve a specific user)
+    #   - PATCH /api/v1/users/manage/{id}/ (Update a specific user)
+    path('', include(router.urls)),
 ]

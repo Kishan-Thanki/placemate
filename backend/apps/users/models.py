@@ -1,3 +1,5 @@
+import string
+import secrets
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission
 
@@ -26,6 +28,35 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, phone_number, password, **extra_fields)
+    
+    def make_random_password(self, length=12, include_symbols=True, exclude_similar=True):
+        uppercase = string.ascii_uppercase
+        lowercase = string.ascii_lowercase
+        digits = string.digits
+        symbols = "!@#$%^&*" if include_symbols else ""
+        
+        if exclude_similar:
+            uppercase = uppercase.replace('O', '').replace('I', '')
+            lowercase = lowercase.replace('l', '')
+            digits = digits.replace('0', '').replace('1', '')
+        
+        password_parts = [
+            secrets.choice(uppercase),
+            secrets.choice(lowercase),
+            secrets.choice(digits),
+        ]
+        
+        if include_symbols:
+            password_parts.append(secrets.choice(symbols))
+            remaining_length = length - 4
+        else:
+            remaining_length = length - 3
+        
+        all_chars = uppercase + lowercase + digits + symbols
+        password_parts.extend(secrets.choice(all_chars) for _ in range(remaining_length))
+        
+        secrets.SystemRandom().shuffle(password_parts)
+        return ''.join(password_parts)
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
