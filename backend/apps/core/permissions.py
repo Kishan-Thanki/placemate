@@ -3,6 +3,18 @@ Custom API Permission Classes for the Placemate Project.
 
 This module defines a set of custom, reusable permission classes that can be applied to API views to enforce specific business logic and access control rules.
 These classes work in conjunction with Django's built-in authentication and the project's Role-Based Access Control (RBAC) system.
+
+PERMISSION HIERARCHY:
+====================
+1. IsOwnerOrReadOnly    : Object-level ownership (students edit own data)
+2. IsPlacementTeam      : Role-based access (Admin + Student Placement Cell)
+3. IsAdminRole          : Strict admin-only access (Admin role required)
+
+USAGE EXAMPLES:
+==============
+@permission_classes([IsAuthenticated, IsOwnerOrReadOnly])  # Student profile
+@permission_classes([IsAuthenticated, IsPlacementTeam])    # Placement operations  
+@permission_classes([IsAuthenticated, IsAdminRole])        # User registration
 """
 from rest_framework import permissions
 
@@ -13,7 +25,12 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     This rule grants read-only access (GET, HEAD, OPTIONS) to any authenticated user, 
     but restricts write access (POST, PUT, PATCH, DELETE) to the user who is directly associated with the object.
 
-    It assumes the object has a `user` attribute that links to a User instance.
+    USAGE: Student profiles, company drives, user-specific data
+    ACCESS: Read - any authenticated user, Write - object owner only
+    
+    SUPPORTED OBJECT STRUCTURES:
+    - obj.user == request.user (direct ownership)
+    - obj.company.user == request.user (company ownership)
     """
     def has_object_permission(self, request, view, obj):
         # SAFE_METHODS are read-only methods (GET, HEAD, OPTIONS) that do not modify the data. 
@@ -26,8 +43,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if hasattr(obj, 'user'):
             return obj.user == request.user
         
-        # This is a fallback for models like CompanyDrive that are linked to a Company,
-        # which is in turn linked to a user.
+        # fallback
         if hasattr(obj, 'company') and hasattr(obj.company, 'user'):
              return obj.company.user == request.user
 
@@ -36,18 +52,30 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 class IsPlacementTeam(permissions.BasePermission):
     """
-    A view-level permission to only allow placement team members to access an endpoint.
-
-    This rule checks if the logged-in user is authenticated and has a role that
-    is part of the placement team (e.g., "Admin" or "Student Placement Cell").
+    Allows access to users who are part of the placement team.
+    
+    USAGE: General placement operations, student management, drive coordination
+    ACCESS: Users with 'Admin' OR 'Student Placement Cell' roles
+    
+    ROLES: ['Admin', 'Student Placement Cell']
     """
     def has_permission(self, request, view):
-        # First, ensure the user is logged in.
         if not (request.user and request.user.is_authenticated):
             return False
-        
-        # Check if the user's roles set has any intersection with the list of placement team roles. 
-        # The `__in` lookup is an efficient way to do this.
         return request.user.roles.filter(
             name__in=['Admin', 'Student Placement Cell']
         ).exists()
+
+class IsAdminRole(permissions.BasePermission):
+    """
+    Custom permission to only allow users with the 'Admin' role.
+    
+    USAGE: Top-level administrative actions, user registration, system configuration
+    ACCESS: Users with 'Admin' role only (most restrictive)
+    
+    ROLES: ['Admin']
+    """
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        return request.user.roles.filter(name='Admin').exists()
