@@ -107,7 +107,7 @@ static/.keep            # Optional placeholder for empty static folder
 node_modules/
 .pnp
 .pnp.js
-
+package-lock.json
 # Testing
 /coverage
 
