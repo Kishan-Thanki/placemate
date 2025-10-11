@@ -1,29 +1,22 @@
-from rest_framework import serializers
 from .models import Company
-from users.models import User
-from django.db import transaction
-from django.utils.crypto import get_random_string
+from rest_framework import serializers 
 
-class UserCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['email', 'phone_number','secondary_email', 'alternate_phone']
+class CompanySerializer(serializers.ModelSerializer):
+    company_size_display = serializers.CharField(
+        source='get_company_size_display', 
+        read_only=True
+    )
 
-
-class CompanyCreateSerializer(serializers.ModelSerializer):
-    user = UserCreateSerializer()
-
+    headquarters_city_name = serializers.SerializerMethodField(read_only=True)    
     class Meta:
         model = Company
-        fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at']
+        fields = [
+            'id', 'name', 'email', 'phone_number', 'website_url', 
+            'description', 'logo', 'year_founded', 'company_size',
+            'company_size_display', 'headquarters_address', 
+            'headquarters_city','headquarters_city_name', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
-    def create(self, validated_data):
-        
-        try:
-            password = get_random_string(12) 
-            # user = User.objects.create_user(**user_data)
-            # # company = Company.objects.create(user=user, **validated_data)
-            # return company
-        except Exception as e:
-            raise serializers.ValidationError({"user": str(e)})
+    def get_headquarters_city_name(self, obj):
+        return obj.headquarters_city.name if obj.headquarters_city else None 
