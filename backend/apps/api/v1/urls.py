@@ -36,6 +36,7 @@ urlpatterns = [
     # --- Application-Specific Endpoints ---
     # Includes: /register/, /me/, /manage/ (CRUD operations for admins)
     path('users/', include('apps.users.urls')),
+    path('companies/', include('apps.companies.urls')),
     
     # Password reset workflow: request, confirm, validate endpoints
     path('password-reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
