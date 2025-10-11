@@ -1,33 +1,85 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Sidebar from "./components/Sidebar";
-import StudentRegistration from "./components/StudentRegistration";
-import RegisteredStudent from "./components/RegisteredStudent";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import Home from "./pages/Home";
+import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { StudentRegistration } from "./pages/admin/StudentRegistration";
+import { RegisteredStudents } from "./pages/admin/RegisteredStudents";
 import RegisterCellMember from "./components/RegisterCellMember";
-import AddDrive from "./components/AddDrive";
-import JobDriveForm from "./components/JobDriveForm";
-import StudentDetails from "./components/StudentDetails";
+import AddDrive from "./pages/admin/AddDrive";
+import JobDriveForm from "./pages/admin/JobDriveForm";
+import StudentDetails from "./pages/admin/StudentDetails";
+import { DashboardLayout, PageContainer } from "./components/layout";
 
 export default function App() {
   return (
     <Router>
-      <div className="app-container">
-        <Sidebar />
-        <div className="main-content">
+      <ThemeProvider>
+        <div className="min-h-screen">
           <Routes>
-            <Route path="/" element={<StudentRegistration />} />
-            <Route path="/student-registration" element={<StudentRegistration />} />
-            <Route path="/spc" element={<RegisterCellMember />} />
-            <Route path="/add-drive/basic-details" element={<AddDrive />} />
-            <Route path="/add-drive/job-details" element={<JobDriveForm />} />
-            <Route path="/registered-students" element={<RegisteredStudent />} />
-            <Route path="/student-details" element={<StudentDetails />} />
-            <Route path="/companies" element={<div>Companies Page</div>} />
-            <Route path="/dashboard" element={<div>Dashboard Page</div>} />
-            <Route path="/applications-status" element={<div>Applications Status Page</div>} />
+            {/* Landing */}
+            <Route path="/" element={<Home />} />
+            {/* Admin */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            {/* Admin students */}
+            <Route path="/admin/students/register" element={<StudentRegistration />} />
+            <Route path="/admin/students" element={<RegisteredStudents />} />
+
+            {/* Admin drives */}
+            <Route
+              path="/admin/new"
+              element={
+                <DashboardLayout title="Add Drive">
+                  <PageContainer>
+                    <AddDrive />
+                  </PageContainer>
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/admin/jobdrive"
+              element={
+                <DashboardLayout title="Job Drive">
+                  <PageContainer>
+                    <JobDriveForm />
+                  </PageContainer>
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/admin/studentdetails"
+              element={
+                <DashboardLayout title="Student Detail">
+                  <PageContainer>
+                    <StudentDetails />
+                  </PageContainer>
+                </DashboardLayout>
+              }
+            />
+            
+
+            {/* Admin companies */}
+            <Route path="/admin/companies" element={<div className="p-6">Companies Page</div>} />
+
+            {/* Admin applications */}
+            <Route path="/admin/applications" element={<div className="p-6">Applications Page</div>} />
+
+            {/* Admin SPC - Register Cell Member */}
+            <Route
+              path="/admin/spc"
+              element={
+                <DashboardLayout title="Register Cell Member">
+                  <PageContainer>
+                    <RegisterCellMember />
+                  </PageContainer>
+                </DashboardLayout>
+              }
+            />
+            {/* Fallback to Home for any unknown route */}
+            <Route path="*" element={<Home />} />
           </Routes>
         </div>
-      </div>
+      </ThemeProvider>
     </Router>
   );
 }

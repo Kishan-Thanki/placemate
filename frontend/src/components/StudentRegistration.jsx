@@ -220,8 +220,8 @@ export default function StudentRegistration() {
             onChange={(e) => handleInputChange('package', e.target.value)}
           />
           
-          <div className="form-actions">
-            <button type="submit" className="btn btn-primary">
+          <div style={{ textAlign: 'center', marginTop: '2.5rem', gridColumn: 'span 3' }}>
+            <button type="submit">
               Register Student
             </button>
           </div>
@@ -233,26 +233,30 @@ export default function StudentRegistration() {
 
 function Input({ label, placeholder, required, type = "text", value, onChange, error }) {
   return (
-    <div className="form-field">
-      <label>
-        {label} {required && <span className="required">*</span>}
+    <div>
+      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+        {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
       </label>
       <input
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={error ? 'error' : ''}
+        style={{ 
+          borderColor: error ? '#ef4444' : '#d1d5db',
+          borderWidth: '1px',
+          borderStyle: 'solid'
+        }}
       />
-      {error && <span className="error-message">{error}</span>}
+      {error && <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>{error}</span>}
     </div>
   );
 }
 
 function Textarea({ label, placeholder, value, onChange }) {
   return (
-    <div className="form-field textarea-full">
-      <label>{label}</label>
+    <div className="textarea-full">
+      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>{label}</label>
       <textarea
         rows={2}
         placeholder={placeholder}
@@ -265,21 +269,25 @@ function Textarea({ label, placeholder, value, onChange }) {
 
 function Select({ label, required, options, value, onChange, error }) {
   return (
-    <div className="form-field">
-      <label>
-        {label} {required && <span className="required">*</span>}
+    <div>
+      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+        {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
       </label>
       <select
         value={value}
         onChange={onChange}
-        className={error ? 'error' : ''}
+        style={{ 
+          borderColor: error ? '#ef4444' : '#d1d5db',
+          borderWidth: '1px',
+          borderStyle: 'solid'
+        }}
       >
         <option value="">Select {label}</option>
         {options.map((opt, i) => (
           <option key={i} value={opt}>{opt}</option>
         ))}
       </select>
-      {error && <span className="error-message">{error}</span>}
+      {error && <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>{error}</span>}
     </div>
   );
 }

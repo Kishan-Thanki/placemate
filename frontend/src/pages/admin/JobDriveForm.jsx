@@ -66,10 +66,9 @@ const JobDriveForm = () => {
     if (validateForm()) {
       const basicDetails = JSON.parse(localStorage.getItem('driveBasicDetails') || '{}');
       
-      const completeDriveData = {
-        ...basicDetails,
-        jobs: jobs
-      };
+      // Drive data prepared for submission
+      // TODO: Submit driveData to backend API
+      console.log('Drive data:', { ...basicDetails, jobs });
       
       // Drive created successfully
       
