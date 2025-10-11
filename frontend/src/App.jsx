@@ -1,8 +1,10 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import StudentRegistration from "./StudentRegistration";
-import RegisteredStudents from "./RegisteredStudent";
+import Sidebar from "./components/Sidebar";
+import StudentRegistration from "./components/StudentRegistration";
+import RegisteredStudent from "./components/RegisteredStudent";
+import RegisterCellMember from "./components/RegisterCellMember";
+import AddDrive from "./components/AddDrive";
 
 export default function App() {
   return (
@@ -13,10 +15,10 @@ export default function App() {
           <Routes>
             <Route path="/" element={<StudentRegistration />} />
             <Route path="/student-registration" element={<StudentRegistration />} />
-            <Route path="/companies" element={<div>Companies Page</div>} />
-            <Route path="/add-drive/basic-details" element={<div>Add Drive - Basic Details Page</div>} />
-            <Route path="/add-drive/job-details" element={<div>Add Drive - Job Details Page</div>} />
-            <Route path="/registered-students" element={<RegisteredStudents />} />
+            <Route path="/spc" element={<RegisterCellMember />} />
+            <Route path="/add-drive/basic-details" element={<AddDrive />} />
+            <Route path="/add-drive/job-details" element={<div>Job Details Page</div>} />
+            <Route path="/registered-students" element={<RegisteredStudent />} />
             <Route path="/applications-status" element={<div>Applications Status Page</div>} />
           </Routes>
         </div>

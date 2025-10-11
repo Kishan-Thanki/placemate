@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Eye, Edit, Trash2, Search } from "lucide-react";
 
-export default function RegisteredStudents() {
+export default function RegisteredStudent() {
   const [students] = useState([
     { id: 1, enroll: "2021001", name: "John Doe", batch: "2020-2026", course: "M.Sc IT", email: "john.doe@example.com", status: "Placed" },
     { id: 2, enroll: "2021002", name: "Jane Smith", batch: "2020-2022", course: "B.Sc IT", email: "jane.smith@example.com", status: "Internship" },
@@ -44,17 +44,15 @@ export default function RegisteredStudents() {
   };
 
   const handleView = (student) => {
-    alert(`Viewing details for ${student.name} (${student.enroll})`);
+    // View student details
   };
 
   const handleEdit = (student) => {
-    alert(`Editing ${student.name} (${student.enroll})`);
+    // Edit student details
   };
 
   const handleDelete = (student) => {
-    if (window.confirm(`Are you sure you want to delete ${student.name} (${student.enroll})?`)) {
-      alert(`${student.name} deleted successfully!`);
-    }
+    // Delete student
   };
 
   const getStatusClass = (status) => {

@@ -61,9 +61,6 @@ export default function StudentRegistration() {
     e.preventDefault();
     
     if (validateForm()) {
-      console.log('Form submitted:', formData);
-      alert('Student registered successfully!');
-      
       setFormData({
         firstName: '',
         middleName: '',

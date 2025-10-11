@@ -14,8 +14,8 @@ import { Link } from "react-router-dom";
 
 export default function Sidebar() {
   const [expandedItems, setExpandedItems] = useState({
-    'add-drive': true,
-    'students': true
+    'add-drive': false,
+    'students': false
   });
 
   const toggleExpanded = (itemKey) => {
@@ -36,6 +36,11 @@ export default function Sidebar() {
           icon={<Building2 size={18} />}
           text="Companies"
           link="/companies"
+        />
+        <SidebarLink
+          icon={<Building2 size={18} />}
+          text="SPC"
+          link="/spc"
         />
 
         <ExpandableSidebarLink

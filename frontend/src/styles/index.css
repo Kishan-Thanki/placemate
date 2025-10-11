@@ -316,3 +316,109 @@ button:hover {
 .actions svg:hover {
   color: #111827;
 }
+
+
+.add-drive-page {
+  font-family: "Inter", sans-serif;
+  padding: 2rem 3rem;
+  background-color: #fafafa;
+  min-height: 100vh;
+  color: #333;
+}
+
+.header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.header p {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.form-section {
+  max-width: 1000px;
+  margin: auto;
+}
+
+.form-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1.8rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #5b3cc4;
+  margin-bottom: 1.2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+}
+
+.form-field label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  color: #333;
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: #6b4ce6;
+  box-shadow: 0 0 0 3px rgba(107, 76, 230, 0.15);
+}
+
+.required {
+  color: #ef4444;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.cancel-btn,
+.next-btn {
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+}
+
+.cancel-btn {
+  background: #f4f4f4;
+  color: #555;
+}
+
+.next-btn {
+  background: #5b3cc4;
+  color: white;
+}
+
+.next-btn:hover {
+  background: #4a32a5;
+}
