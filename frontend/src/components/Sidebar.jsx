@@ -8,7 +8,9 @@ import {
   ChevronRight,
   GraduationCap,
   Users,
-  Briefcase
+  Briefcase,
+  Menu,
+  X
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -17,6 +19,8 @@ export default function Sidebar() {
     'add-drive': false,
     'students': false
   });
+  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleExpanded = (itemKey) => {
     setExpandedItems(prev => ({
@@ -25,8 +29,25 @@ export default function Sidebar() {
     }));
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <aside className="sidebar">
+    <>
+      <button 
+        className="mobile-menu-btn" 
+        onClick={toggleMobileMenu}
+        aria-label="Toggle menu"
+      >
+        {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+      
+      <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
       <div className="logo">
         <span>🌟 Logo</span>
       </div>
@@ -36,11 +57,13 @@ export default function Sidebar() {
           icon={<Building2 size={18} />}
           text="Companies"
           link="/companies"
+          onLinkClick={closeMobileMenu}
         />
         <SidebarLink
           icon={<Building2 size={18} />}
           text="SPC"
           link="/spc"
+          onLinkClick={closeMobileMenu}
         />
 
         <ExpandableSidebarLink
@@ -49,6 +72,7 @@ export default function Sidebar() {
           itemKey="add-drive"
           isExpanded={expandedItems['add-drive']}
           onToggle={toggleExpanded}
+          onLinkClick={closeMobileMenu}
           subItems={[
             { icon: <FileText size={16} />, text: "Basic Details", link: "/add-drive/basic-details" },
             { icon: <FileText size={16} />, text: "Job Details", link: "/add-drive/job-details" }
@@ -61,6 +85,7 @@ export default function Sidebar() {
           itemKey="students"
           isExpanded={expandedItems['students']}
           onToggle={toggleExpanded}
+          onLinkClick={closeMobileMenu}
           subItems={[
             {
               icon: <GraduationCap size={16} />,
@@ -77,13 +102,14 @@ export default function Sidebar() {
         />
       </nav>
     </aside>
+    </>
   );
 }
 
-function SidebarLink({ icon, text, link }) {
+function SidebarLink({ icon, text, link, onLinkClick }) {
   if (link) {
     return (
-      <Link to={link} className="sidebar-link">
+      <Link to={link} className="sidebar-link" onClick={onLinkClick}>
         {icon}
         <span>{text}</span>
       </Link>
@@ -97,7 +123,7 @@ function SidebarLink({ icon, text, link }) {
   );
 }
 
-function ExpandableSidebarLink({ icon, text, itemKey, isExpanded, onToggle, subItems }) {
+function ExpandableSidebarLink({ icon, text, itemKey, isExpanded, onToggle, subItems, onLinkClick }) {
   return (
     <div>
       <div
@@ -114,7 +140,7 @@ function ExpandableSidebarLink({ icon, text, itemKey, isExpanded, onToggle, subI
         <div className="sub-items">
           {subItems.map((subItem, index) => (
             subItem.link ? (
-              <Link key={index} to={subItem.link} className="sidebar-link sub-item">
+              <Link key={index} to={subItem.link} className="sidebar-link sub-item" onClick={onLinkClick}>
                 {subItem.icon}
                 <span>{subItem.text}</span>
               </Link>

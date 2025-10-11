@@ -21,6 +21,47 @@ body, html, #root {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+/* Mobile menu button */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  background: #1f2937;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+/* Mobile sidebar */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  .sidebar {
+    width: 100%;
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar .logo {
+    padding: 1rem;
+  }
+  
+  .sidebar nav {
+    padding: 0.5rem;
+  }
 }
 
 .sidebar .logo {
@@ -96,6 +137,15 @@ body, html, #root {
   margin-left: 16rem;
   flex: 1;
   padding: 2rem;
+  transition: margin-left 0.3s ease;
+}
+
+/* Mobile main content */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
 }
 
 .registration-form {
@@ -105,6 +155,15 @@ body, html, #root {
   padding: 2rem;
   max-width: 72rem;
   margin: 0 auto;
+}
+
+/* Mobile registration form */
+@media (max-width: 768px) {
+  .registration-form {
+    padding: 1rem;
+    margin: 0;
+    border-radius: 0.5rem;
+  }
 }
 
 .registration-form h2 {
@@ -122,6 +181,14 @@ body, html, #root {
   border: 1px solid #e5e7eb;
   border-radius: 1rem;
   padding: 1.5rem;
+}
+
+/* Mobile form section (general) */
+@media (max-width: 768px) {
+  .form-section {
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
 }
 
 .form-section h3 {
@@ -161,12 +228,31 @@ textarea {
   gap: 1.25rem;
 }
 
+/* Tablet and desktop form grid */
 @media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
   .form-grid {
     grid-template-columns: repeat(3, 1fr);
   }
   .textarea-full {
     grid-column: span 3;
+  }
+}
+
+/* Mobile form adjustments */
+@media (max-width: 767px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .textarea-full {
+    grid-column: span 1;
   }
 }
 
@@ -177,10 +263,21 @@ button {
   border-radius: 0.5rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
 }
 
 button:hover {
   background-color: #111827;
+}
+
+/* Mobile button improvements */
+@media (max-width: 768px) {
+  button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    min-height: 44px; /* Touch-friendly minimum size */
+  }
 }
 
 .registered-students-page {
@@ -201,12 +298,36 @@ button:hover {
   margin-bottom: 1.5rem;
 }
 
+/* Mobile registered students page */
+@media (max-width: 768px) {
+  .registered-students-page {
+    padding: 1rem;
+  }
+  
+  .registered-students-page h2 {
+    font-size: 1.25rem;
+  }
+}
+
 .filter-bar {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 1rem;
+}
+
+/* Mobile filter bar */
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  
+  .filter-bar > * {
+    width: 100%;
+  }
 }
 
 .search-box {
@@ -254,6 +375,23 @@ button:hover {
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile table */
+@media (max-width: 768px) {
+  .students-table {
+    font-size: 0.875rem;
+  }
+  
+  .students-table th,
+  .students-table td {
+    padding: 8px 12px;
+  }
+  
+  .students-table th:nth-child(n+4),
+  .students-table td:nth-child(n+4) {
+    display: none;
+  }
 }
 
 .students-table th,
@@ -326,6 +464,13 @@ button:hover {
   color: #333;
 }
 
+/* Mobile add-drive page */
+@media (max-width: 768px) {
+  .add-drive-page {
+    padding: 1rem;
+  }
+}
+
 .header h2 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -343,6 +488,14 @@ button:hover {
   margin: auto;
 }
 
+/* Mobile form section */
+@media (max-width: 768px) {
+  .form-section {
+    margin: 0;
+    padding: 0;
+  }
+}
+
 .form-card {
   background: #fff;
   border: 1px solid #eee;
@@ -350,6 +503,14 @@ button:hover {
   padding: 1.8rem;
   margin-bottom: 2rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* Mobile form card */
+@media (max-width: 768px) {
+  .form-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
 }
 
 .section-title {
@@ -398,6 +559,18 @@ button:hover {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+}
+
+/* Mobile form actions */
+@media (max-width: 768px) {
+  .form-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .form-actions button {
+    width: 100%;
+  }
 }
 
 .cancel-btn,
