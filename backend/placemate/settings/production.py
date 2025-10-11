@@ -17,7 +17,9 @@ DEBUG = False
 
 # A strict list of the allowed domain names for the live server.
 ALLOWED_HOSTS = [
-    ".onrender.com",
+    ".onrender.com", 
+    "localhost",
+    "127.0.0.1",
     "final-production-domain.com", 
 ]
 
@@ -30,13 +32,17 @@ DATABASES = {
 # --- CORS & Security ---
 # A strict list of the frontend domains that are allowed to make API requests.
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  
+    "http://127.0.0.1:3000", 
     "https://final-frontend-domain.com", 
     "https://www.final-frontend-domain.com",
 ]
 
 # A list of trusted origins for CSRF protection.
 CSRF_TRUSTED_ORIGINS = [
-    "https://placemate-zzgd.onrender.com",
+    "http://localhost:3000",  
+    "http://127.0.0.1:3000",  
+    "https://placemate-zzgd.onrender.com", 
     "https://final-frontend-domain.com",  
 ]
 
@@ -45,7 +51,7 @@ CSRF_TRUSTED_ORIGINS = [
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000  
+SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
