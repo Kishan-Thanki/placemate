@@ -18,5 +18,7 @@ urlpatterns = [
     
     # --- Application-Specific Endpoints ---
     path('users/', include('apps.users.urls')),
+    path('companies/', include('apps.companies.urls')),
+
     path('password-reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
 ]
