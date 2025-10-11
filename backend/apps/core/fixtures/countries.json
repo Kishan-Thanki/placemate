@@ -1,0 +1,142 @@
+[
+    {
+        "model": "core.country",
+        "pk": 1,
+        "fields": {
+            "name": "India"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 2,
+        "fields": {
+            "name": "United States"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 3,
+        "fields": {
+            "name": "China"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 4,
+        "fields": {
+            "name": "United Kingdom"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 5,
+        "fields": {
+            "name": "Canada"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 6,
+        "fields": {
+            "name": "Australia"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 7,
+        "fields": {
+            "name": "Germany"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 8,
+        "fields": {
+            "name": "France"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 9,
+        "fields": {
+            "name": "Japan"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 10,
+        "fields": {
+            "name": "Brazil"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 11,
+        "fields": {
+            "name": "South Africa"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 12,
+        "fields": {
+            "name": "Russia"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 13,
+        "fields": {
+            "name": "Mexico"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 14,
+        "fields": {
+            "name": "Indonesia"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 15,
+        "fields": {
+            "name": "Italy"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 16,
+        "fields": {
+            "name": "South Korea"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 17,
+        "fields": {
+            "name": "Saudi Arabia"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 18,
+        "fields": {
+            "name": "Argentina"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 19,
+        "fields": {
+            "name": "Nigeria"
+        }
+    },
+    {
+        "model": "core.country",
+        "pk": 20,
+        "fields": {
+            "name": "Spain"
+        }
+    }
+]

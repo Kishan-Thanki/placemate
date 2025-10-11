@@ -1,0 +1,482 @@
+[
+    {
+        "model": "core.city",
+        "pk": 1,
+        "fields": {
+            "name": "Visakhapatnam",
+            "state": 1
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 2,
+        "fields": {
+            "name": "Vijayawada",
+            "state": 1
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 3,
+        "fields": {
+            "name": "Itanagar",
+            "state": 2
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 4,
+        "fields": {
+            "name": "Guwahati",
+            "state": 3
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 5,
+        "fields": {
+            "name": "Patna",
+            "state": 4
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 6,
+        "fields": {
+            "name": "Raipur",
+            "state": 5
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 7,
+        "fields": {
+            "name": "Panaji",
+            "state": 6
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 8,
+        "fields": {
+            "name": "Ahmedabad",
+            "state": 7
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 9,
+        "fields": {
+            "name": "Surat",
+            "state": 7
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 10,
+        "fields": {
+            "name": "Vadodara",
+            "state": 7
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 11,
+        "fields": {
+            "name": "Faridabad",
+            "state": 8
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 12,
+        "fields": {
+            "name": "Gurugram",
+            "state": 8
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 13,
+        "fields": {
+            "name": "Shimla",
+            "state": 9
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 14,
+        "fields": {
+            "name": "Ranchi",
+            "state": 10
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 15,
+        "fields": {
+            "name": "Jamshedpur",
+            "state": 10
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 16,
+        "fields": {
+            "name": "Bengaluru",
+            "state": 11
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 17,
+        "fields": {
+            "name": "Mysuru",
+            "state": 11
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 18,
+        "fields": {
+            "name": "Kochi",
+            "state": 12
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 19,
+        "fields": {
+            "name": "Thiruvananthapuram",
+            "state": 12
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 20,
+        "fields": {
+            "name": "Bhopal",
+            "state": 13
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 21,
+        "fields": {
+            "name": "Indore",
+            "state": 13
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 22,
+        "fields": {
+            "name": "Mumbai",
+            "state": 14
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 23,
+        "fields": {
+            "name": "Pune",
+            "state": 14
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 24,
+        "fields": {
+            "name": "Nagpur",
+            "state": 14
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 25,
+        "fields": {
+            "name": "Imphal",
+            "state": 15
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 26,
+        "fields": {
+            "name": "Shillong",
+            "state": 16
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 27,
+        "fields": {
+            "name": "Aizawl",
+            "state": 17
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 28,
+        "fields": {
+            "name": "Kohima",
+            "state": 18
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 29,
+        "fields": {
+            "name": "Bhubaneswar",
+            "state": 19
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 30,
+        "fields": {
+            "name": "Cuttack",
+            "state": 19
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 31,
+        "fields": {
+            "name": "Ludhiana",
+            "state": 20
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 32,
+        "fields": {
+            "name": "Amritsar",
+            "state": 20
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 33,
+        "fields": {
+            "name": "Jaipur",
+            "state": 21
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 34,
+        "fields": {
+            "name": "Jodhpur",
+            "state": 21
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 35,
+        "fields": {
+            "name": "Udaipur",
+            "state": 21
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 36,
+        "fields": {
+            "name": "Gangtok",
+            "state": 22
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 37,
+        "fields": {
+            "name": "Chennai",
+            "state": 23
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 38,
+        "fields": {
+            "name": "Coimbatore",
+            "state": 23
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 39,
+        "fields": {
+            "name": "Madurai",
+            "state": 23
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 40,
+        "fields": {
+            "name": "Hyderabad",
+            "state": 24
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 41,
+        "fields": {
+            "name": "Warangal",
+            "state": 24
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 42,
+        "fields": {
+            "name": "Agartala",
+            "state": 25
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 43,
+        "fields": {
+            "name": "Lucknow",
+            "state": 26
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 44,
+        "fields": {
+            "name": "Kanpur",
+            "state": 26
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 45,
+        "fields": {
+            "name": "Agra",
+            "state": 26
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 46,
+        "fields": {
+            "name": "Varanasi",
+            "state": 26
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 47,
+        "fields": {
+            "name": "Dehradun",
+            "state": 27
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 48,
+        "fields": {
+            "name": "Haridwar",
+            "state": 27
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 49,
+        "fields": {
+            "name": "Kolkata",
+            "state": 28
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 50,
+        "fields": {
+            "name": "Howrah",
+            "state": 28
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 51,
+        "fields": {
+            "name": "Port Blair",
+            "state": 29
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 52,
+        "fields": {
+            "name": "Chandigarh",
+            "state": 30
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 53,
+        "fields": {
+            "name": "Daman",
+            "state": 31
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 54,
+        "fields": {
+            "name": "Silvassa",
+            "state": 31
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 55,
+        "fields": {
+            "name": "New Delhi",
+            "state": 32
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 56,
+        "fields": {
+            "name": "Srinagar",
+            "state": 33
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 57,
+        "fields": {
+            "name": "Jammu",
+            "state": 33
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 58,
+        "fields": {
+            "name": "Leh",
+            "state": 34
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 59,
+        "fields": {
+            "name": "Kavaratti",
+            "state": 35
+        }
+    },
+    {
+        "model": "core.city",
+        "pk": 60,
+        "fields": {
+            "name": "Puducherry",
+            "state": 36
+        }
+    }
+]

@@ -1,0 +1,170 @@
+[
+    {
+        "model": "core.program",
+        "pk": 1,
+        "fields": {
+            "name": "Information and Communication Technology",
+            "abbreviation": "ICT",
+            "degree_level": "UG",
+            "duration_years": 4,
+            "is_active": true,
+            "degree": 1
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 2,
+        "fields": {
+            "name": "ICT with minor in Computational Science",
+            "abbreviation": "ICT (CS Minor)",
+            "degree_level": "UG",
+            "duration_years": 4,
+            "is_active": true,
+            "degree": 2
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 3,
+        "fields": {
+            "name": "Mathematics and Computing",
+            "abbreviation": "MnC",
+            "degree_level": "UG",
+            "duration_years": 4,
+            "is_active": true,
+            "degree": 1
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 4,
+        "fields": {
+            "name": "Electronics and VLSI Design",
+            "abbreviation": "EVD",
+            "degree_level": "UG",
+            "duration_years": 4,
+            "is_active": true,
+            "degree": 1
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 5,
+        "fields": {
+            "name": "ICT (Machine Learning)",
+            "abbreviation": "M.Tech. ICT-ML",
+            "degree_level": "PG",
+            "duration_years": 2,
+            "is_active": true,
+            "degree": 3
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 6,
+        "fields": {
+            "name": "ICT (Software Systems)",
+            "abbreviation": "M.Tech. ICT-SS",
+            "degree_level": "PG",
+            "duration_years": 2,
+            "is_active": true,
+            "degree": 3
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 7,
+        "fields": {
+            "name": "ICT (VLSI and Embedded systems)",
+            "abbreviation": "M.Tech. ICT-VLSI",
+            "degree_level": "PG",
+            "duration_years": 2,
+            "is_active": true,
+            "degree": 3
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 8,
+        "fields": {
+            "name": "Information Technology",
+            "abbreviation": "M.Sc. IT",
+            "degree_level": "PG",
+            "duration_years": 2,
+            "is_active": true,
+            "degree": 4
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 9,
+        "fields": {
+            "name": "Agriculture Analytics",
+            "abbreviation": "M.Sc. AA",
+            "degree_level": "PG",
+            "duration_years": 2,
+            "is_active": true,
+            "degree": 4
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 10,
+        "fields": {
+            "name": "Data Science",
+            "abbreviation": "M.Sc. DS",
+            "degree_level": "PG",
+            "duration_years": 2,
+            "is_active": true,
+            "degree": 4
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 11,
+        "fields": {
+            "name": "Communication Design",
+            "abbreviation": "M.Des. CD",
+            "degree_level": "PG",
+            "duration_years": 2,
+            "is_active": true,
+            "degree": 5
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 12,
+        "fields": {
+            "name": "Intelligent User Experience Design",
+            "abbreviation": "M.Des. IUxD",
+            "degree_level": "PG",
+            "duration_years": 2,
+            "is_active": true,
+            "degree": 5
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 13,
+        "fields": {
+            "name": "Doctor of Philosophy (Regular)",
+            "abbreviation": "Ph.D. Regular",
+            "degree_level": "Doctorate",
+            "duration_years": 5,
+            "is_active": true,
+            "degree": 6
+        }
+    },
+    {
+        "model": "core.program",
+        "pk": 14,
+        "fields": {
+            "name": "Doctor of Philosophy (Rolling)",
+            "abbreviation": "Ph.D. Rolling",
+            "degree_level": "Doctorate",
+            "duration_years": 5,
+            "is_active": true,
+            "degree": 6
+        }
+    }
+]
