@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Placemate</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
+
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px;">
+        <tr>
+            <td style="background-color: #222222; padding: 20px; text-align: center; color: #ffffff; font-size: 24px; font-weight: bold;">
+                Welcome to Placemate!
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 30px 20px;">
+                <h2 style="color: #333333;">Your Account Has Been Created</h2>
+                <p style="color: #555555; line-height: 1.6;">Hello {{ first_name }},</p>
+                <p style="color: #555555; line-height: 1.6;">
+                    An administrator has created an account for you on the Placemate platform. You can now log in using the following temporary credentials:
+                </p>
+
+                <table width="100%" border="0" cellspacing="0" cellpadding="10" style="margin: 20px 0; background-color: #f9f9f9; border: 1px solid #eeeeee; border-radius: 5px;">
+                    <tr>
+                        <td style="color: #555555; width: 100px;"><strong>Email:</strong></td>
+                        <td style="color: #333333; font-weight: bold;">{{ email }}</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #555555; width: 100px;"><strong>Password:</strong></td>
+                        <td style="color: #333333; font-weight: bold;">{{ password }}</td>
+                    </tr>
+                </table>
+
+                <p style="color: #c0392b; font-weight: bold; line-height: 1.6;">
+                    For your security, please log in and change your password immediately.
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td style="background-color: #f4f4f4; padding: 15px; text-align: center; color: #999999; font-size: 12px;">
+                &copy; 2025 Placemate. All rights reserved.
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
