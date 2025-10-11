@@ -11,6 +11,9 @@ import RegisterCellMember from "./components/RegisterCellMember";
 import AddDrive from "./components/AddDrive";
 import { DashboardLayout, PageContainer } from "./components/layout";
 import RegisterCompany from "./pages/admin/RegisterCompany";
+import LoginPage from "./pages/auth/LoginPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 export default function App() {
   return (
@@ -18,6 +21,10 @@ export default function App() {
       <ThemeProvider>
         <div className="min-h-screen">
           <Routes>
+            {/* Auth */}
+            <Route path="/auth/login" element={<LoginPage />} />
+            <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
+            <Route path="/auth/reset" element={<ResetPasswordPage />} /> 
             {/* Landing */}
             <Route path="/" element={<Home />} />
             {/* Admin */}
