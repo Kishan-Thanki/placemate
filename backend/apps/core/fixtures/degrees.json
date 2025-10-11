@@ -1,0 +1,50 @@
+[
+    {
+        "model": "core.degree",
+        "pk": 1,
+        "fields": {
+            "name": "Bachelor of Technology",
+            "abbreviation": "B.Tech."
+        }
+    },
+    {
+        "model": "core.degree",
+        "pk": 2,
+        "fields": {
+            "name": "Bachelor of Technology (Honours)",
+            "abbreviation": "B.Tech. (Hons)"
+        }
+    },
+    {
+        "model": "core.degree",
+        "pk": 3,
+        "fields": {
+            "name": "Master of Technology",
+            "abbreviation": "M.Tech."
+        }
+    },
+    {
+        "model": "core.degree",
+        "pk": 4,
+        "fields": {
+            "name": "Master of Science",
+            "abbreviation": "M.Sc."
+        }
+    },
+    {
+        "model": "core.degree",
+        "pk": 5,
+        "fields": {
+            "name": "Master of Design",
+            "abbreviation": "M.Des."
+        }
+    },
+    {
+        "model": "core.degree",
+        "pk": 6,
+        "fields": {
+            "name": "Doctor of Philosophy",
+            "abbreviation": "Ph.D."
+        }
+    }
+]
