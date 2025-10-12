@@ -41,6 +41,19 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['first_name'] = user.first_name
         token['roles'] = [role.name for role in user.roles.all()]
         return token
+    
+class LoginRoleSerializer(serializers.ModelSerializer):
+    """A lightweight serializer that only shows the role's name."""
+    class Meta:
+        model = Role
+        fields = ['name']
+
+class LoginUserSerializer(serializers.ModelSerializer):
+    """A specialized, lightweight serializer for the login response body."""
+    roles = LoginRoleSerializer(many=True, read_only=True)
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'roles']
 
 class PermissionSerializer(serializers.ModelSerializer):
     """

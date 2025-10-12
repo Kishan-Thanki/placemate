@@ -34,7 +34,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.core.response import SuccessResponse, NoContentResponse
-from .serializers import UserRegistrationSerializer, UserSerializer, MyTokenObtainPairSerializer
+from .serializers import UserRegistrationSerializer, UserSerializer, MyTokenObtainPairSerializer, LoginUserSerializer
 
 User = get_user_model()
 
@@ -93,15 +93,25 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
-            access_token = response.data.get('access')
-            refresh_token = response.data.get('refresh')
-            is_secure = not settings.DEBUG
-            response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
-            response.set_cookie('refresh_token', refresh_token, httponly=True, secure=is_secure, samesite='Lax')
-            success_response = SuccessResponse(message="Login successful.")
-            response.data = success_response.data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.user
+        
+        user_serializer = LoginUserSerializer(user)
+
+        access_token = serializer.validated_data.get('access')
+        refresh_token = serializer.validated_data.get('refresh')
+        
+        response = SuccessResponse(
+            data=user_serializer.data,
+            message="Login successful."
+        )
+        
+        is_secure = not settings.DEBUG
+        response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
+        response.set_cookie('refresh_token', refresh_token, httponly=True, secure=is_secure, samesite='Lax')
+            
         return response
     
 class MyTokenRefreshView(APIView):
