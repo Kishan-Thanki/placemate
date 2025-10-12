@@ -34,7 +34,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.core.response import SuccessResponse, NoContentResponse
-from .serializers import UserRegistrationSerializer, UserSerializer, MyTokenObtainPairSerializer
+from .serializers import UserRegistrationSerializer, UserSerializer, MyTokenObtainPairSerializer, LoginUserSerializer
 
 User = get_user_model()
 
@@ -94,17 +94,14 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
-        
-        access_token = serializer.validated_data.get('access')
-        refresh_token = serializer.validated_data.get('refresh')
         user = serializer.user
         
-        user_serializer = UserSerializer(user)
+        user_serializer = LoginUserSerializer(user)
+
+        access_token = serializer.validated_data.get('access')
+        refresh_token = serializer.validated_data.get('refresh')
         
         response = SuccessResponse(
             data=user_serializer.data,
