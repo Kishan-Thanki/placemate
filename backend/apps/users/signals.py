@@ -59,7 +59,7 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
     # Build the full, dynamic reset URL. 
     # This combines the base URL of your frontend application (from settings.FRONTEND_URL) with the path to the
     # password reset page and the unique token.
-    reset_url = f"{settings.FRONTEND_URL}/reset-password/{reset_password_token.key}/"
+    reset_url = f"{settings.FRONTEND_URL}/auth/reset/{reset_password_token.key}/"
 
     # This 'context' dictionary contains the dynamic data that will be injected into the HTML email template. 
     # This allows for personalized emails.
