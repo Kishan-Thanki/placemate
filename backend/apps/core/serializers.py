@@ -40,25 +40,3 @@ class ProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = Program
         fields = ['id', 'name', 'abbreviation', 'degree', 'degree_level']
-
-
-# Lightweight serializers for cascading dropdowns (optimized responses)
-class LightStateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = State
-        fields = ['id', 'name']
-
-class LightCitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = City
-        fields = ['id', 'name']
-
-class LightProgramSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Program
-        fields = ['id', 'name', 'abbreviation']
-
-class LightDegreeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Degree
-        fields = ['id', 'name', 'abbreviation']
