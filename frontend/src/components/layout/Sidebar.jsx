@@ -23,33 +23,7 @@ export function Sidebar({ isOpen, onClose }) {
     localStorage.setItem('placemate-sidebar-collapsed', String(collapsed));
   }, [collapsed]);
 
-  // Navigation items as shown in the screenshot
-  const navigationItems = [
-    {
-      id: 'dashboard',
-      name: 'Dashboard',
-      icon: <LayoutDashboard size={18} />,
-      href: '/admin',
-    },
-    {
-      id: 'companies',
-      name: 'Companies',
-      icon: <Building2 size={18} />,
-      href: '/admin/companies',
-    },
-    {
-      id: 'drives',
-      name: 'Drives',
-      icon: <CalendarDays size={18} />,
-      href: '/admin/drives',
-    },
-    {
-      id: 'students',
-      name: 'Students',
-      icon: <Users size={18} />,
-      href: '/admin/students',
-    },
-  ];
+  // Main navigation removed per request; we keep only Quick Actions to avoid duplicating navbar
 
   // Additional menu items (sub-navigation from the screenshot)
   const quickActions = [
@@ -60,22 +34,34 @@ export function Sidebar({ isOpen, onClose }) {
       href: '/admin/drives/new',
     },
     {
+      id: 'register-company',
+      name: 'Register Company',
+      icon: <Building2 size={18} />,
+      href: '/admin/companies/register',
+    },
+    {
       id: 'register-student',
       name: 'Register Student',
       icon: <Users size={18} />,
       href: '/admin/students/register',
     },
     {
+      id: 'register-cell-member',
+      name: 'Register Cell Member',
+      icon: <Users size={18} />,
+      href: '/admin/spc',
+    },
+    {
       id: 'basic-details',
       name: 'Basic Details',
       icon: <FileText size={18} />,
-      href: '/admin/settings/basic',
+      href: '/admin/drives/new',
     },
     {
       id: 'job-details',
       name: 'Job Details',
       icon: <Briefcase size={18} />,
-      href: '/admin/jobs',
+      href: '/admin/drives/new',
     },
   ];
 
@@ -138,40 +124,9 @@ export function Sidebar({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation container - only Quick Actions */}
           <nav className={`flex-1 ${collapsed ? 'px-2' : 'px-4'} py-6 space-y-2`}>
-            {/* Main Navigation */}
             <div>
-              {!collapsed && (
-                <h3 className={`px-3 text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Navigation
-                </h3>
-              )}
-              
-              {navigationItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleItemClick(item.id, item.href)}
-                  className={`
-                    w-full flex items-center ${collapsed ? 'justify-center' : 'px-3'} py-2.5 rounded-lg text-sm font-medium transition-colors
-                    ${activeItem === item.id
-                      ? isDark
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                      : isDark
-                        ? 'text-gray-300 hover:text-white hover:bg-gray-700'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }
-                  `}
-                >
-                  <span className={`${collapsed ? '' : 'mr-3'}`}>{item.icon}</span>
-                  {!collapsed && item.name}
-                </button>
-              ))}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="pt-6">
               {!collapsed && (
                 <h3 className={`px-3 text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   Quick Actions

@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout, PageContainer, Section } from '../../components/layout';
 import { Button, Card } from '../../components/ui';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Eye, Edit, Trash2, Search } from 'lucide-react';
 
 export function RegisteredStudents() {
+  const navigate = useNavigate();
   const { isDark } = useTheme();
   const [students] = useState([
     { id: 1, enroll: '2021001', name: 'John Doe', batch: '2020-2026', course: 'M.Sc IT', email: 'john.doe@example.com', status: 'Placed' },
@@ -107,7 +109,7 @@ export function RegisteredStudents() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <button className={`${isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`} title="View"><Eye size={16} /></button>
+                        <button className={`${isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`} title="View" onClick={() => navigate('/admin/students/details')}><Eye size={16} /></button>
                         <button className={`${isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`} title="Edit"><Edit size={16} /></button>
                         <button className={`${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}`} title="Delete"><Trash2 size={16} /></button>
                       </div>
