@@ -189,3 +189,17 @@ class LookupAPI(APIView):
                 
         except Exception as e:
             return ErrorResponse(message=str(e))
+        
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+
+def get_csrf_token(request):
+    """Get CSRF token for frontend"""
+    return JsonResponse({'csrfToken': get_token(request)})
+
+def check_auth_status(request):
+    """Check if user is authenticated"""
+    return JsonResponse({
+        'authenticated': request.user.is_authenticated,
+        'user': str(request.user) if request.user.is_authenticated else None
+    })
