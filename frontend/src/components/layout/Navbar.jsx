@@ -73,7 +73,7 @@ export function Navbar({ onMenuClick }) {
               {[
                 { id: 'dashboard', label: 'Dashboard', to: '/admin', end: true },
                 { id: 'companies', label: 'Companies', to: '/admin/companies' },
-                { id: 'drives', label: 'Drives', to: '/admin/drives' },
+                { id: 'drives', label: 'Drives', to: '/admin/drives/new' },
                 { id: 'students', label: 'Students', to: '/admin/students' },
               ].map(item => (
                 <NavLink
