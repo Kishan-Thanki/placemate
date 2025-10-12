@@ -93,15 +93,28 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
-            access_token = response.data.get('access')
-            refresh_token = response.data.get('refresh')
-            is_secure = not settings.DEBUG
-            response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
-            response.set_cookie('refresh_token', refresh_token, httponly=True, secure=is_secure, samesite='Lax')
-            success_response = SuccessResponse(message="Login successful.")
-            response.data = success_response.data
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+        
+        access_token = serializer.validated_data.get('access')
+        refresh_token = serializer.validated_data.get('refresh')
+        user = serializer.user
+        
+        user_serializer = UserSerializer(user)
+        
+        response = SuccessResponse(
+            data=user_serializer.data,
+            message="Login successful."
+        )
+        
+        is_secure = not settings.DEBUG
+        response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
+        response.set_cookie('refresh_token', refresh_token, httponly=True, secure=is_secure, samesite='Lax')
+            
         return response
     
 class MyTokenRefreshView(APIView):
