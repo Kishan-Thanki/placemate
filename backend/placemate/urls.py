@@ -46,7 +46,6 @@ urlpatterns = [
     # Includes the URLs from the `django-health-check` library. 
     # This creates the `/health/` endpoint that monitoring services (like Render) can use to verify that the application is running and healthy.
     path('health', include('health_check.urls')),   
-    path('health/', include('health_check.urls')),  
 
     # 4. API Documentation Endpoints
     # These paths serve the auto-generated API documentation in two different user-friendly formats.
