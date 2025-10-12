@@ -16,6 +16,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
+from apps.core.views import HealthCheckView
 
 # --- API Documentation Setup (drf-yasg) ---
 # This configures the metadata for the auto-generated API documentation.
@@ -45,7 +46,8 @@ urlpatterns = [
     # 3. Health Check Endpoint
     # Includes the URLs from the `django-health-check` library. 
     # This creates the `/health/` endpoint that monitoring services (like Render) can use to verify that the application is running and healthy.
-    path('health/', include('health_check.urls')),
+    path('health', include('health_check.urls')),   
+    path('health/', include('health_check.urls')),  
 
     # 4. API Documentation Endpoints
     # These paths serve the auto-generated API documentation in two different user-friendly formats.
