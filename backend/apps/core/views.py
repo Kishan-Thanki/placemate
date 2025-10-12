@@ -189,18 +189,3 @@ class LookupAPI(APIView):
                 
         except Exception as e:
             return ErrorResponse(message=str(e))
-        
-from django.conf import settings
-from django.http import JsonResponse
-
-def debug_email_config(request):
-    config = {
-        'EMAIL_BACKEND': getattr(settings, 'EMAIL_BACKEND', 'Not set'),
-        'EMAIL_HOST': getattr(settings, 'EMAIL_HOST', 'Not set'),
-        'EMAIL_PORT': getattr(settings, 'EMAIL_PORT', 'Not set'),
-        'EMAIL_USE_TLS': getattr(settings, 'EMAIL_USE_TLS', 'Not set'),
-        'EMAIL_HOST_USER': getattr(settings, 'EMAIL_HOST_USER', 'Not set'),
-        'EMAIL_HOST_PASSWORD_SET': bool(getattr(settings, 'EMAIL_HOST_PASSWORD', None)),
-        'DEFAULT_FROM_EMAIL': getattr(settings, 'DEFAULT_FROM_EMAIL', 'Not set'),
-    }
-    return JsonResponse(config)
