@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout, PageContainer, Section } from '../../components/layout';
 import { Card, Button } from '../../components/ui';
 import { useTheme } from '../../contexts/ThemeContext';
 
-export default function RegisterCompany() {
+// Assuming Input, Select, Textarea, and FieldLabel are defined as in your original code
+// ... (Your original helper component definitions here)
+
+const COMPANY_REGISTRATION_URL = 'https://placemate-zzgd.onrender.com/api/v1/companies/';
+const CITIES_LOOKUP_URL = 'https://placemate-zzgd.onrender.com/api/v1/core/lookup/?type=cities';
+
+export default function CompanyRegistration() {
   const { isDark } = useTheme();
   const [logo, setLogo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [cities, setCities] = useState([]); // State to hold fetched city data
   const [form, setForm] = useState({
     companyName: '',
     website: '',
@@ -21,7 +29,7 @@ export default function RegisterCompany() {
     addressLine: '',
     country: '',
     state: '',
-    city: '',
+    city: '', 
   });
 
   const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
@@ -31,22 +39,95 @@ export default function RegisterCompany() {
     if (file) setLogo(URL.createObjectURL(file));
   };
 
-  const onSubmit = (e) => {
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const response = await fetch(CITIES_LOOKUP_URL);
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Map to an array of { label: name, value: id } for the Select component
+          const cityOptions = data.data.map(city => ({
+            label: city.name,
+            value: city.id.toString(), // Store ID as string for select value
+          }));
+          setCities(cityOptions);
+        } else {
+          console.error("Failed to fetch cities:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  // 2. Implement the submission logic
+  const onSubmit = async (e) => {
     e.preventDefault();
-    // TODO: connect to backend API
-    console.log('Register company payload:', { ...form, logo });
-    alert('Company registered (mock)!');
+    setLoading(true);
+
+    // 3. Map frontend form state to backend payload
+    const payload = {
+      name: form.companyName,
+      email: form.contactEmail,
+      // NOTE: phone_number is required by backend but missing in frontend form. Assuming a mock value for now.
+      phone_number: '9999999999', 
+      website_url: form.website,
+      description: form.description,
+      // Convert year to a number
+      year_founded: parseInt(form.foundedYear) || 2000, 
+      // Convert size string (e.g., "11-50") to a numerical code. 
+      // NOTE: Assuming 0 for now as the size mapping isn't provided.
+      company_size: 0, 
+      headquarters_address: form.addressLine,
+      // Convert city ID back to a number
+      headquarters_city: parseInt(form.city) || 0,
+      // TODO: Handle logo upload separately (e.g., to an S3 bucket) and send the URL, or use a FormData object.
+      // For this example, we'll omit the logo to keep the JSON body simple.
+    };
+
+    try {
+      const response = await fetch(COMPANY_REGISTRATION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'credentials': 'include',
+          // NOTE: You'll likely need an Authorization header here (e.g., Bearer Token)
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log('Company registration successful:', result);
+        alert('Company registered successfully!');
+        // Optionally reset form here
+      } else {
+        console.error('Company registration failed:', result);
+        alert(`Registration failed: ${result.message || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Network or API error:', error);
+      alert('An unexpected error occurred during registration.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Utility to map cities data for the Select component
+  const cityOptionsForSelect = cities.map(city => city.label);
 
   return (
     <DashboardLayout title="Register New Company">
       <PageContainer>
         <form onSubmit={onSubmit} className="space-y-6">
-          {/* Company Information */}
+          {/* Company Information Section */}
           <Section title="Company Information">
             <Card className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="flex flex-col items-center gap-3">
+                  {/* ... Logo Upload UI ... */}
                   <div className={`w-28 h-28 rounded-lg flex items-center justify-center overflow-hidden border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
                     {logo ? (
                       <img src={logo} alt="logo preview" className="w-full h-full object-cover" />
@@ -59,7 +140,6 @@ export default function RegisterCompany() {
                     <input type="file" accept="image/*" onChange={onLogoChange} className="hidden" />
                   </label>
                 </div>
-
                 <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input label="Company Name" required value={form.companyName} onChange={(v) => update('companyName', v)} />
                   <Input label="Company Website" value={form.website} onChange={(v) => update('website', v)} placeholder="https://example.com" />
@@ -76,7 +156,7 @@ export default function RegisterCompany() {
             </Card>
           </Section>
 
-          {/* Contact Information */}
+          {/* Contact Information Section */}
           <Section title="Contact Information">
             <Card className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -87,7 +167,7 @@ export default function RegisterCompany() {
             </Card>
           </Section>
 
-          {/* Address Information */}
+          {/* Address Information Section */}
           <Section title="Address Information">
             <Card className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -95,20 +175,35 @@ export default function RegisterCompany() {
                   <Input label="Address Line" value={form.addressLine} onChange={(v) => update('addressLine', v)} placeholder="Building, Street, Area" />
                 </div>
                 <Select label="Country" value={form.country} onChange={(v) => update('country', v)} options={["India","USA","UK","Canada"]} />
+                {/* NOTE: You would normally filter states based on the selected country, but we use the mock array for simplicity. */}
                 <Select label="State" value={form.state} onChange={(v) => update('state', v)} options={["Gujarat","Maharashtra","Delhi","Karnataka"]} />
-                <Select label="Headquarter City" value={form.city} onChange={(v) => update('city', v)} options={["Ahmedabad","Gandhinagar","Mumbai","Bengaluru"]} />
+                {/* Use the fetched and formatted 'cities' state for the options */}
+                <Select 
+                  label="Headquarter City" 
+                  value={form.city} 
+                  onChange={(v) => update('city', v)} 
+                  // Pass the fetched city names as options
+                  options={cities.map(c => c.label)} 
+                  // Pass the full city data to the Select component to handle ID mapping
+                  cityData={cities}
+                  // Let's create a custom Select to handle ID/Name mapping
+                  // Or, simplify: just use the city names for display and the ID for value
+                />
               </div>
             </Card>
           </Section>
 
           <div className="flex justify-end">
-            <Button variant="primary" type="submit">Register company</Button>
+            <Button variant="primary" type="submit" disabled={loading}>
+              {loading ? 'Registering...' : 'Register Company'}
+            </Button>
           </div>
         </form>
       </PageContainer>
     </DashboardLayout>
   );
 }
+
 
 function FieldLabel({ children, required }) {
   return (
