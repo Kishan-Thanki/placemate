@@ -109,8 +109,26 @@ class MyTokenObtainPairView(TokenObtainPairView):
         )
         
         is_secure = not settings.DEBUG
-        response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
-        response.set_cookie('refresh_token', refresh_token, httponly=True, secure=is_secure, samesite='Lax')
+        # Dynamic domain handling
+        cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+        samesite = 'None' if is_secure else 'Lax'
+        
+        response.set_cookie(
+            'access_token', 
+            access_token, 
+            httponly=True, 
+            secure=is_secure, 
+            samesite=samesite,
+            domain=cookie_domain
+        )
+        response.set_cookie(
+            'refresh_token', 
+            refresh_token, 
+            httponly=True, 
+            secure=is_secure, 
+            samesite=samesite,
+            domain=cookie_domain
+        )
             
         return response
     
@@ -157,8 +175,26 @@ class MyTokenRefreshView(APIView):
             response = SuccessResponse(message="Token refreshed successfully.")
             
             is_secure = not settings.DEBUG
-            response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
-            response.set_cookie('refresh_token', new_refresh_token, httponly=True, secure=is_secure, samesite='Lax')
+            # Dynamic domain handling
+            cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+            samesite = 'None' if is_secure else 'Lax'
+            
+            response.set_cookie(
+                'access_token', 
+                access_token, 
+                httponly=True, 
+                secure=is_secure, 
+                samesite=samesite,
+                domain=cookie_domain
+            )
+            response.set_cookie(
+                'refresh_token', 
+                new_refresh_token, 
+                httponly=True, 
+                secure=is_secure, 
+                samesite=samesite,
+                domain=cookie_domain
+            )
             
             return response
             
@@ -194,8 +230,11 @@ class LogoutView(APIView):
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             response = NoContentResponse(message="Logout successful.")
-            response.delete_cookie('access_token')
-            response.delete_cookie('refresh_token')
+            
+            # Dynamic domain handling for cookie deletion
+            cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+            response.delete_cookie('access_token', domain=cookie_domain)
+            response.delete_cookie('refresh_token', domain=cookie_domain)
             return response
         except Exception:
             raise
