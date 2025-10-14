@@ -109,9 +109,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
         )
         
         is_secure = not settings.DEBUG
-        # Dynamic domain handling
-        cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-        samesite = 'None' if is_secure else 'Lax'
+        cookie_domain = None  
+        samesite = 'Lax'  
         
         response.set_cookie(
             'access_token', 
@@ -175,9 +174,8 @@ class MyTokenRefreshView(APIView):
             response = SuccessResponse(message="Token refreshed successfully.")
             
             is_secure = not settings.DEBUG
-            # Dynamic domain handling
-            cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-            samesite = 'None' if is_secure else 'Lax'
+            cookie_domain = None  
+            samesite = 'Lax'  
             
             response.set_cookie(
                 'access_token', 
@@ -189,7 +187,7 @@ class MyTokenRefreshView(APIView):
             )
             response.set_cookie(
                 'refresh_token', 
-                new_refresh_token, 
+                refresh_token, 
                 httponly=True, 
                 secure=is_secure, 
                 samesite=samesite,
