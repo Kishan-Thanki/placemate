@@ -172,10 +172,10 @@ class MyTokenRefreshView(APIView):
             new_refresh_token = str(token)
 
             response = SuccessResponse(message="Token refreshed successfully.")
-            
+
             is_secure = not settings.DEBUG
             cookie_domain = None  
-            samesite = 'Lax'  
+            samesite = 'Lax' 
             
             response.set_cookie(
                 'access_token', 
@@ -187,7 +187,7 @@ class MyTokenRefreshView(APIView):
             )
             response.set_cookie(
                 'refresh_token', 
-                refresh_token, 
+                new_refresh_token, 
                 httponly=True, 
                 secure=is_secure, 
                 samesite=samesite,
