@@ -277,3 +277,54 @@ class UserViewSet(BaseViewSet):
     def get_queryset(self):
         """Returns a list of all users, ordered by name."""
         return self.queryset.order_by('first_name', 'last_name')
+    
+class DebugAuthView(APIView):
+    """
+    Temporary debug view to diagnose authentication issues.
+    Shows what cookies are received and whether CookieJWTAuthentication works.
+    
+    USAGE:
+    ------
+    - Call this endpoint after login to see if cookies are properly received
+    - Check if CookieJWTAuthentication can validate the token
+    - Remove this view after debugging is complete
+    
+    RESPONSE:
+    --------
+    - 200: Authentication successful with user details
+    - 401: Authentication failed with reason
+    """
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    
+    def get(self, request):
+        from apps.users.authentication import CookieJWTAuthentication
+        
+        print("=== DEBUG AUTH ===")
+        print("Cookies:", request.COOKIES)
+        print("Access token exists:", bool(request.COOKIES.get('access_token')))
+        
+        # Test authentication
+        auth = CookieJWTAuthentication()
+        result = auth.authenticate(request)
+        print("Authentication result:", result)
+        
+        if result:
+            user, token = result
+            return SuccessResponse(
+                data={
+                    "authenticated": True, 
+                    "user": user.email,
+                    "token_type": type(token).__name__
+                },
+                message="Authentication successful"
+            )
+        else:
+            return SuccessResponse(
+                data={
+                    "authenticated": False,
+                    "reason": "CookieJWTAuthentication returned None"
+                },
+                message="Authentication failed",
+                status=401
+            )

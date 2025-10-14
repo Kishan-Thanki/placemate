@@ -3,7 +3,7 @@ URL Configuration for the Users App.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserRegistrationView, CurrentUserView, UserViewSet
+from .views import UserRegistrationView, CurrentUserView, UserViewSet, DebugAuthView
 
 # A router automatically generates the standard URLs for a ViewSet.
 router = DefaultRouter()
@@ -21,4 +21,6 @@ urlpatterns = [
     #   - GET /api/v1/users/manage/{id}/ (Retrieve a specific user)
     #   - PATCH /api/v1/users/manage/{id}/ (Update a specific user)
     path('', include(router.urls)),
+
+    path('api/v1/debug-auth/', DebugAuthView.as_view(), name='debug-auth'),
 ]

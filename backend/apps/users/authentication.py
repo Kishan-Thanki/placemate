@@ -33,9 +33,15 @@ class CookieJWTAuthentication(JWTAuthentication):
         if not access_token:
             return None
 
-        # If a token is found, use the parent class's logic to validate it.
-        # This checks the token's signature, expiration, and other claims.
-        validated_token = self.get_validated_token(access_token)
+        try:
+            # If a token is found, use the parent class's logic to validate it.
+            # This checks the token's signature, expiration, and other claims.
+            validated_token = self.get_validated_token(access_token)
 
-        # If the token is valid, use the parent class's logic to fetch the user associated with this token from the database.
-        return self.get_user(validated_token), validated_token
+            # If the token is valid, use the parent class's logic to fetch the user associated with this token from the database.
+            return self.get_user(validated_token), validated_token
+            
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Cookie authentication failed: {e}")
+            return None
