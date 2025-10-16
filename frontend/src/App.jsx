@@ -10,10 +10,14 @@ import JobDriveForm from "./pages/admin/JobDriveForm";
 import RegisterCellMember from "./components/RegisterCellMember";
 import AddDrive from "./components/AddDrive";
 import { DashboardLayout, PageContainer } from "./components/layout";
-import RegisterCompany from "./pages/admin/RegisterCompany";
+import CompanyRegistration from "./pages/admin/CompanyRegistration";
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import {StudentDashboard} from "./pages/student/StudentDashboard";
+import { StudentDrives } from "./pages/student/StudentDrives";
+import CompaniesList from "./pages/admin/company/CompaniesList";
+import { CompanyDrives } from "./pages/admin/drive/DrivesList";
 
 export default function App() {
   return (
@@ -36,6 +40,12 @@ export default function App() {
 
             {/* Admin drives */}
             <Route
+              path="/admin/drives"
+              element={
+                <CompanyDrives/>
+              }
+            />
+            <Route
               path="/admin/drives/new"
               element={
                 <DashboardLayout title="Add Drive">
@@ -45,12 +55,13 @@ export default function App() {
                 </DashboardLayout>
               }
             />
+
             <Route path="/admin/drives/new/jobs" element={<JobDriveForm />} />
             
 
             {/* Admin companies */}
-            <Route path="/admin/companies" element={<div className="p-6">Companies Page</div>} />
-            <Route path="/admin/companies/register" element={<RegisterCompany />} />
+            <Route path="/admin/companies" element={<CompaniesList/>} />
+            <Route path="/admin/companies/register" element={<CompanyRegistration />} />
 
             {/* Admin applications */}
             <Route path="/admin/applications" element={<div className="p-6">Applications Page</div>} />
@@ -66,6 +77,11 @@ export default function App() {
                 </DashboardLayout>
               }
             />
+            {/* Student routes */}
+            <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/student/drives" element={<StudentDrives />} />
+            <Route path="/student/applications" element={<StudentDashboard />} />
+            <Route path="/student/profile" element={<StudentDashboard />} />
             {/* Fallback to Home for any unknown route */}
             <Route path="*" element={<Home />} />
           </Routes>
