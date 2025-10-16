@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'health_check',
     'health_check.db',
     'django_rest_passwordreset',
+    'anymail',
 
     # Custom Apps
     'apps.core.apps.CoreConfig',
@@ -191,8 +192,11 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # --- Email ---
 # Default to printing emails to the console for development.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+ANYMAIL = {
+    "BREVO_API_KEY": config("BREVO_API_KEY"),  # stored in Render env
+}
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL') 
 # --- Frontend Configuration ---
 # The base URL for your frontend application. 
 # This is used to construct absolute URLs in emails (e.g., for password reset links).
