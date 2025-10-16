@@ -207,13 +207,14 @@ class LogoutView(APIView):
     - Always clears cookies to ensure client-side cleanup
     - Returns 204 regardless of token blacklist success
     
-    NOTE:
+    NOTe:
     -----
     Access tokens remain valid until expiration since they're stateless.
     Refresh token blacklisting prevents obtaining new access tokens.
     """
-    permission_classes = [permissions.IsAuthenticated]
     
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request):
         try:
             refresh_token = request.COOKIES.get('refresh_token')
@@ -221,17 +222,13 @@ class LogoutView(APIView):
                 token = RefreshToken(refresh_token)
                 token.blacklist()
         except Exception:
-            # Continue with cookie deletion even if blacklisting fails
             pass
-        finally:
-            # Always clear cookies to ensure client-side cleanup
-            response = NoContentResponse(message="Logout successful.")
-            is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
-            samesite = 'None' if is_secure else 'Lax'
-            
-            response.delete_cookie('access_token', secure=is_secure, samesite=samesite)
-            response.delete_cookie('refresh_token', secure=is_secure, samesite=samesite)
-            return response
+        
+        response = NoContentResponse(message="Logout successful.")
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+        
+        return response
 
 
 class CurrentUserView(generics.RetrieveUpdateAPIView):
