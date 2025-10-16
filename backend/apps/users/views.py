@@ -22,6 +22,7 @@ SECURITY FEATURES:
 - Role-based access control (IsAdminRole permission)
 - Token blacklisting on logout
 - Secure cookie settings (HTTPS in production)
+- Environment-aware SameSite cookie policies
 """
 
 from django.conf import settings
@@ -32,11 +33,12 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.core.response import SuccessResponse, NoContentResponse
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .serializers import UserRegistrationSerializer, UserSerializer, MyTokenObtainPairSerializer, LoginUserSerializer
 
 User = get_user_model()
+
 
 class UserRegistrationView(generics.CreateAPIView):
     """
@@ -66,29 +68,22 @@ class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminRole]
 
+
 class MyTokenObtainPairView(TokenObtainPairView):
     """
-    Handles user login, uses the custom serializer to add roles to the token,
-    and sets JWTs in secure, HTTP-only cookies.
+    Custom token obtain view that sets JWT tokens in HTTP-only cookies.
     
-    AUTHENTICATION FLOW:
-    --------------------
-    1. User provides email/password credentials
-    2. Custom serializer adds roles and first_name to token payload
-    3. Tokens set as HTTP-only cookies for automatic inclusion in requests
-    4. Returns standardized success response
+    SECURITY FEATURES:
+    ------------------
+    - HttpOnly cookies prevent XSS attacks
+    - Secure cookies in production (HTTPS only)
+    - Environment-aware SameSite policy
+    - No domain restriction for broader compatibility
     
-    COOKIE SECURITY:
+    COOKIE SETTINGS:
     ----------------
-    - HTTP-only: Prevents XSS attacks from accessing tokens
-    - Secure: Only sent over HTTPS in production
-    - SameSite=Lax: CSRF protection while allowing navigation
-    - No client-side token storage required
-    
-    RESPONSE:
-    --------
-    - 200: Login successful, tokens in cookies
-    - 401: Invalid credentials or inactive account
+    Production: Secure=True, SameSite='None'
+    Development: Secure=False, SameSite='Lax'
     """
     serializer_class = MyTokenObtainPairSerializer
 
@@ -97,7 +92,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.user
-        
         user_serializer = LoginUserSerializer(user)
 
         access_token = serializer.validated_data.get('access')
@@ -108,12 +102,28 @@ class MyTokenObtainPairView(TokenObtainPairView):
             message="Login successful."
         )
         
-        is_secure = not settings.DEBUG
-        response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
-        response.set_cookie('refresh_token', refresh_token, httponly=True, secure=is_secure, samesite='Lax')
+        # Environment-aware security settings
+        is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
+        samesite = 'None' if is_secure else 'Lax'
+        
+        response.set_cookie(
+            'access_token', 
+            access_token, 
+            httponly=True, 
+            secure=is_secure, 
+            samesite=samesite
+        )
+        response.set_cookie(
+            'refresh_token', 
+            refresh_token, 
+            httponly=True, 
+            secure=is_secure, 
+            samesite=samesite
+        )
             
         return response
-    
+
+
 class MyTokenRefreshView(APIView):
     """
     Custom view to refresh tokens. 
@@ -125,13 +135,14 @@ class MyTokenRefreshView(APIView):
     - Automatically rotates refresh tokens if configured
     - Returns new tokens in HTTP-only cookies
     - Handles token blacklisting and validation
+    - Environment-aware cookie security settings
     
     WORKFLOW:
     ---------
     1. Extract refresh_token from HTTP-only cookie
     2. Validate and refresh the token
     3. Generate new access token (and refresh token if rotation enabled)
-    4. Set new tokens in cookies
+    4. Set new tokens in cookies with proper security settings
     5. Return success response
     
     ERROR HANDLING:
@@ -151,19 +162,34 @@ class MyTokenRefreshView(APIView):
         try:
             token = RefreshToken(refresh_token)
             access_token = str(token.access_token)
-            
             new_refresh_token = str(token)
 
             response = SuccessResponse(message="Token refreshed successfully.")
+
+            # Environment-aware security settings
+            is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
+            samesite = 'None' if is_secure else 'Lax'
             
-            is_secure = not settings.DEBUG
-            response.set_cookie('access_token', access_token, httponly=True, secure=is_secure, samesite='Lax')
-            response.set_cookie('refresh_token', new_refresh_token, httponly=True, secure=is_secure, samesite='Lax')
+            response.set_cookie(
+                'access_token', 
+                access_token, 
+                httponly=True, 
+                secure=is_secure, 
+                samesite=samesite
+            )
+            response.set_cookie(
+                'refresh_token', 
+                new_refresh_token, 
+                httponly=True, 
+                secure=is_secure, 
+                samesite=samesite
+            )
             
             return response
             
         except TokenError as e:
             raise InvalidToken(e.args[0])
+
 
 class LogoutView(APIView):
     """
@@ -181,24 +207,32 @@ class LogoutView(APIView):
     - Always clears cookies to ensure client-side cleanup
     - Returns 204 regardless of token blacklist success
     
-    NOTe:
+    NOTE:
     -----
     Access tokens remain valid until expiration since they're stateless.
     Refresh token blacklisting prevents obtaining new access tokens.
     """
     permission_classes = [permissions.IsAuthenticated]
+    
     def post(self, request):
         try:
             refresh_token = request.COOKIES.get('refresh_token')
             if refresh_token:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
-            response = NoContentResponse(message="Logout successful.")
-            response.delete_cookie('access_token')
-            response.delete_cookie('refresh_token')
-            return response
         except Exception:
-            raise
+            # Continue with cookie deletion even if blacklisting fails
+            pass
+        finally:
+            # Always clear cookies to ensure client-side cleanup
+            response = NoContentResponse(message="Logout successful.")
+            is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
+            samesite = 'None' if is_secure else 'Lax'
+            
+            response.delete_cookie('access_token', secure=is_secure, samesite=samesite)
+            response.delete_cookie('refresh_token', secure=is_secure, samesite=samesite)
+            return response
+
 
 class CurrentUserView(generics.RetrieveUpdateAPIView):
     """
@@ -225,7 +259,7 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
     """
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get', 'patch', 'head', 'options']  # Restrict to safe methods
+    http_method_names = ['get', 'patch', 'head', 'options']
     
     def get_object(self):
         return self.request.user
@@ -241,7 +275,8 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return SuccessResponse(data=serializer.data, message="Profile updated successfully.")
-    
+
+
 class UserViewSet(BaseViewSet):
     """
     An administrative endpoint for managing all users in the system.

@@ -54,6 +54,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://www.final-frontend-domain.com",
 ]
 
+# Add these CORS settings:
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
 # A list of trusted origins for CSRF protection.
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
