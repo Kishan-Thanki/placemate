@@ -3,7 +3,7 @@ URL Configuration for the Users App.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserRegistrationView, CurrentUserView, UserViewSet, DebugAuthView
+from .views import UserRegistrationView, CurrentUserView, UserViewSet
 
 # A router automatically generates the standard URLs for a ViewSet.
 router = DefaultRouter()
