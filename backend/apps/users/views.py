@@ -31,9 +31,10 @@ from apps.core.permissions import IsAdminRole
 from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
+from apps.users.authentication import CookieJWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.core.response import SuccessResponse, NoContentResponse
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .serializers import UserRegistrationSerializer, UserSerializer, MyTokenObtainPairSerializer, LoginUserSerializer
 
 User = get_user_model()
@@ -316,40 +317,22 @@ class DebugAuthView(APIView):
     """
     Temporary debug view to diagnose authentication issues.
     Shows what cookies are received and whether CookieJWTAuthentication works.
-    
-    USAGE:
-    ------
-    - Call this endpoint after login to see if cookies are properly received
-    - Check if CookieJWTAuthentication can validate the token
-    - Remove this view after debugging is complete
-    
-    RESPONSE:
-    --------
-    - 200: Authentication successful with user details
-    - 401: Authentication failed with reason
     """
-    authentication_classes = []
+    authentication_classes = [CookieJWTAuthentication]  # ← ADD THIS LINE
     permission_classes = [permissions.AllowAny]
     
     def get(self, request):
-        from apps.users.authentication import CookieJWTAuthentication
-        
         print("=== DEBUG AUTH ===")
         print("Cookies:", request.COOKIES)
         print("Access token exists:", bool(request.COOKIES.get('access_token')))
         
-        # Test authentication
-        auth = CookieJWTAuthentication()
-        result = auth.authenticate(request)
-        print("Authentication result:", result)
-        
-        if result:
-            user, token = result
+        # The request should already be authenticated by CookieJWTAuthentication
+        if request.user.is_authenticated:
             return SuccessResponse(
                 data={
                     "authenticated": True, 
-                    "user": user.email,
-                    "token_type": type(token).__name__
+                    "user": request.user.email,
+                    "user_object": str(request.user)
                 },
                 message="Authentication successful"
             )
@@ -357,7 +340,8 @@ class DebugAuthView(APIView):
             return SuccessResponse(
                 data={
                     "authenticated": False,
-                    "reason": "CookieJWTAuthentication returned None"
+                    "reason": "User not authenticated",
+                    "cookies_received": dict(request.COOKIES)
                 },
                 message="Authentication failed",
                 status=401
