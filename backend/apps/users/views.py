@@ -39,6 +39,7 @@ from .serializers import UserRegistrationSerializer, UserSerializer, MyTokenObta
 
 User = get_user_model()
 
+
 class UserRegistrationView(generics.CreateAPIView):
     """
     An endpoint for Admins to register new non-student users (e.g., other Admins).
@@ -67,6 +68,7 @@ class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminRole]
 
+
 class MyTokenObtainPairView(TokenObtainPairView):
     """
     Custom token obtain view that sets JWT tokens in HTTP-only cookies.
@@ -83,6 +85,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
     Production: Secure=True, SameSite='None'
     Development: Secure=False, SameSite='Lax'
     """
+    serializer_class = MyTokenObtainPairSerializer
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -98,10 +102,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
             message="Login successful."
         )
         
-        # ✅ SECURE: Use proper settings for environment
+        # Environment-aware security settings
         is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
-        
-        # ✅ SECURE: Proper SameSite for environment
         samesite = 'None' if is_secure else 'Lax'
         
         response.set_cookie(
@@ -109,20 +111,19 @@ class MyTokenObtainPairView(TokenObtainPairView):
             access_token, 
             httponly=True, 
             secure=is_secure, 
-            samesite=samesite,
-            # No domain parameter for broader compatibility
+            samesite=samesite
         )
         response.set_cookie(
             'refresh_token', 
             refresh_token, 
             httponly=True, 
             secure=is_secure, 
-            samesite=samesite,
-            # No domain parameter for broader compatibility
+            samesite=samesite
         )
             
         return response
-    
+
+
 class MyTokenRefreshView(APIView):
     """
     Custom view to refresh tokens. 
@@ -161,12 +162,11 @@ class MyTokenRefreshView(APIView):
         try:
             token = RefreshToken(refresh_token)
             access_token = str(token.access_token)
-            
             new_refresh_token = str(token)
 
             response = SuccessResponse(message="Token refreshed successfully.")
 
-            # ✅ SECURE: Use proper settings for environment
+            # Environment-aware security settings
             is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
             samesite = 'None' if is_secure else 'Lax'
             
@@ -176,7 +176,6 @@ class MyTokenRefreshView(APIView):
                 httponly=True, 
                 secure=is_secure, 
                 samesite=samesite
-                # No domain parameter
             )
             response.set_cookie(
                 'refresh_token', 
@@ -184,13 +183,13 @@ class MyTokenRefreshView(APIView):
                 httponly=True, 
                 secure=is_secure, 
                 samesite=samesite
-                # No domain parameter
             )
             
             return response
             
         except TokenError as e:
             raise InvalidToken(e.args[0])
+
 
 class LogoutView(APIView):
     """
@@ -221,18 +220,11 @@ class LogoutView(APIView):
             if refresh_token:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
-            response = NoContentResponse(message="Logout successful.")
-            
-            # ✅ SECURE: Remove domain parameter for deletion
-            # Use same security settings as creation for proper deletion
-            is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
-            samesite = 'None' if is_secure else 'Lax'
-            
-            response.delete_cookie('access_token', secure=is_secure, samesite=samesite)
-            response.delete_cookie('refresh_token', secure=is_secure, samesite=samesite)
-            return response
         except Exception:
-            # ✅ SECURE: Always clear cookies even if blacklisting fails
+            # Continue with cookie deletion even if blacklisting fails
+            pass
+        finally:
+            # Always clear cookies to ensure client-side cleanup
             response = NoContentResponse(message="Logout successful.")
             is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
             samesite = 'None' if is_secure else 'Lax'
@@ -240,6 +232,7 @@ class LogoutView(APIView):
             response.delete_cookie('access_token', secure=is_secure, samesite=samesite)
             response.delete_cookie('refresh_token', secure=is_secure, samesite=samesite)
             return response
+
 
 class CurrentUserView(generics.RetrieveUpdateAPIView):
     """
@@ -266,7 +259,7 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
     """
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get', 'patch', 'head', 'options']  # Restrict to safe methods
+    http_method_names = ['get', 'patch', 'head', 'options']
     
     def get_object(self):
         return self.request.user
@@ -282,7 +275,8 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return SuccessResponse(data=serializer.data, message="Profile updated successfully.")
-    
+
+
 class UserViewSet(BaseViewSet):
     """
     An administrative endpoint for managing all users in the system.
