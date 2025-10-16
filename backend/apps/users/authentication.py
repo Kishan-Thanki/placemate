@@ -1,3 +1,12 @@
+"""
+Custom Authentication Classes for the Placemate Project.
+
+This module contains custom authentication backends that extend the functionality
+of Django REST Framework and Simple JWT to meet the project's specific security requirements, 
+such as handling JWTs from secure cookies.
+"""
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 class CookieJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
         print("🔐 CookieJWTAuthentication called")
