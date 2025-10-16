@@ -21,6 +21,4 @@ urlpatterns = [
     #   - GET /api/v1/users/manage/{id}/ (Retrieve a specific user)
     #   - PATCH /api/v1/users/manage/{id}/ (Update a specific user)
     path('', include(router.urls)),
-
-    path('debug-auth/', DebugAuthView.as_view(), name='debug-auth'),
 ]

@@ -22,6 +22,7 @@ SECURITY FEATURES:
 - Role-based access control (IsAdminRole permission)
 - Token blacklisting on logout
 - Secure cookie settings (HTTPS in production)
+- Environment-aware SameSite cookie policies
 """
 
 from django.conf import settings
@@ -31,7 +32,6 @@ from apps.core.permissions import IsAdminRole
 from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
-from apps.users.authentication import CookieJWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.core.response import SuccessResponse, NoContentResponse
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -69,36 +69,25 @@ class UserRegistrationView(generics.CreateAPIView):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     """
-    Handles user login, uses the custom serializer to add roles to the token,
-    and sets JWTs in secure, HTTP-only cookies.
+    Custom token obtain view that sets JWT tokens in HTTP-only cookies.
     
-    AUTHENTICATION FLOW:
-    --------------------
-    1. User provides email/password credentials
-    2. Custom serializer adds roles and first_name to token payload
-    3. Tokens set as HTTP-only cookies for automatic inclusion in requests
-    4. Returns standardized success response
+    SECURITY FEATURES:
+    ------------------
+    - HttpOnly cookies prevent XSS attacks
+    - Secure cookies in production (HTTPS only)
+    - Environment-aware SameSite policy
+    - No domain restriction for broader compatibility
     
-    COOKIE SECURITY:
+    COOKIE SETTINGS:
     ----------------
-    - HTTP-only: Prevents XSS attacks from accessing tokens
-    - Secure: Only sent over HTTPS in production
-    - SameSite=Lax: CSRF protection while allowing navigation
-    - No client-side token storage required
-    
-    RESPONSE:
-    --------
-    - 200: Login successful, tokens in cookies
-    - 401: Invalid credentials or inactive account
+    Production: Secure=True, SameSite='None'
+    Development: Secure=False, SameSite='Lax'
     """
-    serializer_class = MyTokenObtainPairSerializer
-
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         user = serializer.user
-        
         user_serializer = LoginUserSerializer(user)
 
         access_token = serializer.validated_data.get('access')
@@ -109,24 +98,27 @@ class MyTokenObtainPairView(TokenObtainPairView):
             message="Login successful."
         )
         
-        is_secure = not settings.DEBUG
+        # ✅ SECURE: Use proper settings for environment
+        is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
         
-        # FIXED: Remove domain parameter completely
+        # ✅ SECURE: Proper SameSite for environment
+        samesite = 'None' if is_secure else 'Lax'
+        
         response.set_cookie(
             'access_token', 
             access_token, 
             httponly=True, 
             secure=is_secure, 
-            samesite='Lax'
-            # No domain parameter
+            samesite=samesite,
+            # No domain parameter for broader compatibility
         )
         response.set_cookie(
             'refresh_token', 
             refresh_token, 
             httponly=True, 
             secure=is_secure, 
-            samesite='Lax'
-            # No domain parameter
+            samesite=samesite,
+            # No domain parameter for broader compatibility
         )
             
         return response
@@ -142,13 +134,14 @@ class MyTokenRefreshView(APIView):
     - Automatically rotates refresh tokens if configured
     - Returns new tokens in HTTP-only cookies
     - Handles token blacklisting and validation
+    - Environment-aware cookie security settings
     
     WORKFLOW:
     ---------
     1. Extract refresh_token from HTTP-only cookie
     2. Validate and refresh the token
     3. Generate new access token (and refresh token if rotation enabled)
-    4. Set new tokens in cookies
+    4. Set new tokens in cookies with proper security settings
     5. Return success response
     
     ERROR HANDLING:
@@ -173,15 +166,16 @@ class MyTokenRefreshView(APIView):
 
             response = SuccessResponse(message="Token refreshed successfully.")
 
-            is_secure = not settings.DEBUG
+            # ✅ SECURE: Use proper settings for environment
+            is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
+            samesite = 'None' if is_secure else 'Lax'
             
-            # FIXED: Remove domain parameter completely
             response.set_cookie(
                 'access_token', 
                 access_token, 
                 httponly=True, 
                 secure=is_secure, 
-                samesite='Lax'
+                samesite=samesite
                 # No domain parameter
             )
             response.set_cookie(
@@ -189,7 +183,7 @@ class MyTokenRefreshView(APIView):
                 new_refresh_token, 
                 httponly=True, 
                 secure=is_secure, 
-                samesite='Lax'
+                samesite=samesite
                 # No domain parameter
             )
             
@@ -214,12 +208,13 @@ class LogoutView(APIView):
     - Always clears cookies to ensure client-side cleanup
     - Returns 204 regardless of token blacklist success
     
-    NOTe:
+    NOTE:
     -----
     Access tokens remain valid until expiration since they're stateless.
     Refresh token blacklisting prevents obtaining new access tokens.
     """
     permission_classes = [permissions.IsAuthenticated]
+    
     def post(self, request):
         try:
             refresh_token = request.COOKIES.get('refresh_token')
@@ -228,12 +223,23 @@ class LogoutView(APIView):
                 token.blacklist()
             response = NoContentResponse(message="Logout successful.")
             
-            # FIXED: Remove domain parameter for deletion too
-            response.delete_cookie('access_token')
-            response.delete_cookie('refresh_token')
+            # ✅ SECURE: Remove domain parameter for deletion
+            # Use same security settings as creation for proper deletion
+            is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
+            samesite = 'None' if is_secure else 'Lax'
+            
+            response.delete_cookie('access_token', secure=is_secure, samesite=samesite)
+            response.delete_cookie('refresh_token', secure=is_secure, samesite=samesite)
             return response
         except Exception:
-            raise
+            # ✅ SECURE: Always clear cookies even if blacklisting fails
+            response = NoContentResponse(message="Logout successful.")
+            is_secure = getattr(settings, 'SESSION_COOKIE_SECURE', not settings.DEBUG)
+            samesite = 'None' if is_secure else 'Lax'
+            
+            response.delete_cookie('access_token', secure=is_secure, samesite=samesite)
+            response.delete_cookie('refresh_token', secure=is_secure, samesite=samesite)
+            return response
 
 class CurrentUserView(generics.RetrieveUpdateAPIView):
     """
@@ -312,37 +318,3 @@ class UserViewSet(BaseViewSet):
     def get_queryset(self):
         """Returns a list of all users, ordered by name."""
         return self.queryset.order_by('first_name', 'last_name')
-    
-class DebugAuthView(APIView):
-    """
-    Temporary debug view to diagnose authentication issues.
-    Shows what cookies are received and whether CookieJWTAuthentication works.
-    """
-    authentication_classes = [CookieJWTAuthentication]  # ← ADD THIS LINE
-    permission_classes = [permissions.AllowAny]
-    
-    def get(self, request):
-        print("=== DEBUG AUTH ===")
-        print("Cookies:", request.COOKIES)
-        print("Access token exists:", bool(request.COOKIES.get('access_token')))
-        
-        # The request should already be authenticated by CookieJWTAuthentication
-        if request.user.is_authenticated:
-            return SuccessResponse(
-                data={
-                    "authenticated": True, 
-                    "user": request.user.email,
-                    "user_object": str(request.user)
-                },
-                message="Authentication successful"
-            )
-        else:
-            return SuccessResponse(
-                data={
-                    "authenticated": False,
-                    "reason": "User not authenticated",
-                    "cookies_received": dict(request.COOKIES)
-                },
-                message="Authentication failed",
-                status=401
-            )
