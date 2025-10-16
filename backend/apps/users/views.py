@@ -109,24 +109,23 @@ class MyTokenObtainPairView(TokenObtainPairView):
         )
         
         is_secure = not settings.DEBUG
-        cookie_domain = None  
-        samesite = 'Lax'  
         
+        # FIXED: Remove domain parameter completely
         response.set_cookie(
             'access_token', 
             access_token, 
             httponly=True, 
             secure=is_secure, 
-            samesite=samesite,
-            domain=cookie_domain
+            samesite='Lax'
+            # No domain parameter
         )
         response.set_cookie(
             'refresh_token', 
             refresh_token, 
             httponly=True, 
             secure=is_secure, 
-            samesite=samesite,
-            domain=cookie_domain
+            samesite='Lax'
+            # No domain parameter
         )
             
         return response
@@ -174,24 +173,23 @@ class MyTokenRefreshView(APIView):
             response = SuccessResponse(message="Token refreshed successfully.")
 
             is_secure = not settings.DEBUG
-            cookie_domain = None  
-            samesite = 'Lax' 
             
+            # FIXED: Remove domain parameter completely
             response.set_cookie(
                 'access_token', 
                 access_token, 
                 httponly=True, 
                 secure=is_secure, 
-                samesite=samesite,
-                domain=cookie_domain
+                samesite='Lax'
+                # No domain parameter
             )
             response.set_cookie(
                 'refresh_token', 
                 new_refresh_token, 
                 httponly=True, 
                 secure=is_secure, 
-                samesite=samesite,
-                domain=cookie_domain
+                samesite='Lax'
+                # No domain parameter
             )
             
             return response
@@ -229,10 +227,9 @@ class LogoutView(APIView):
                 token.blacklist()
             response = NoContentResponse(message="Logout successful.")
             
-            # Dynamic domain handling for cookie deletion
-            cookie_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-            response.delete_cookie('access_token', domain=cookie_domain)
-            response.delete_cookie('refresh_token', domain=cookie_domain)
+            # FIXED: Remove domain parameter for deletion too
+            response.delete_cookie('access_token')
+            response.delete_cookie('refresh_token')
             return response
         except Exception:
             raise
