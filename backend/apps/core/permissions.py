@@ -7,8 +7,10 @@ These classes work in conjunction with Django's built-in authentication and the 
 PERMISSION HIERARCHY:
 ====================
 1. IsOwnerOrReadOnly    : Object-level ownership (students edit own data)
-2. IsPlacementTeam      : Role-based access (Admin + Student Placement Cell)
-3. IsAdminRole          : Strict admin-only access (Admin role required)
+2. IsStudentRole        : Student-specific access
+3. IsPlacementTeam      : Role-based access (Admin + Student Placement Cell)
+4. IsAdminRole          : Strict admin-only access (Admin role required)
+5. IsAdminOrPlacementTeamRole : Combined admin/placement team access
 
 USAGE EXAMPLES:
 ==============
@@ -50,6 +52,21 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return False
 
 
+class IsStudentRole(permissions.BasePermission):
+    """
+    Custom permission to only allow users with the 'Student' role.
+    
+    USAGE: Student-specific operations, profile access
+    ACCESS: Users with 'Student' role only
+    
+    ROLES: ['Student']
+    """
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        return request.user.roles.filter(name='Student').exists()
+
+
 class IsPlacementTeam(permissions.BasePermission):
     """
     Allows access to users who are part of the placement team.
@@ -66,6 +83,7 @@ class IsPlacementTeam(permissions.BasePermission):
             name__in=['Admin', 'Student Placement Cell']
         ).exists()
 
+
 class IsAdminRole(permissions.BasePermission):
     """
     Custom permission to only allow users with the 'Admin' role.
@@ -79,3 +97,20 @@ class IsAdminRole(permissions.BasePermission):
         if not (request.user and request.user.is_authenticated):
             return False
         return request.user.roles.filter(name='Admin').exists()
+
+
+class IsAdminOrPlacementTeamRole(permissions.BasePermission):
+    """
+    Allows access to users with either Admin OR Placement Team roles.
+    
+    USAGE: Administrative student management, placement operations
+    ACCESS: Users with 'Admin' OR 'Student Placement Cell' roles
+    
+    ROLES: ['Admin', 'Student Placement Cell']
+    """
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        return request.user.roles.filter(
+            name__in=['Admin', 'Student Placement Cell']
+        ).exists()

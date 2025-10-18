@@ -2,15 +2,20 @@
 API URL Configuration for Version 1 (v1)
 
 This file acts as the central router for all API endpoints under the `/api/v1/` prefix.
-It consolidates global endpoints (like authentication) and includes URL patterns from various application-specific files.
+It consolidates global endpoints (like authentication) and includes URL patterns
+from various application-specific files.
 
 AUTHENTICATION ENDPOINTS:
-- POST /api/v1/token/          : User login, returns JWT tokens in HTTP-only cookies
-- POST /api/v1/token/refresh/  : Refresh access token using refresh token
-- POST /api/v1/logout/         : Logout user, blacklist refresh token, clear cookies
+- POST /api/v1/token/            : User login, returns JWT tokens in HTTP-only cookies
+- POST /api/v1/token/refresh/    : Refresh access token using refresh token
+- POST /api/v1/logout/           : Logout user, blacklist refresh token, clear cookies
+- POST /api/v1/auth/select-role/ : Role selection for multi-role users
 
 APPLICATION ENDPOINTS:
 - /api/v1/users/               : User management (registration, profile, admin operations)
+- /api/v1/students/            : Student registration and profile management
+- /api/v1/companies/           : Company profile management
+- /api/v1/core/                : Core lookup data (countries, degrees, etc.)
 - /api/v1/password-reset/      : Password reset workflow (via django_rest_passwordreset)
 
 SECURITY NOTES:
@@ -19,23 +24,19 @@ SECURITY NOTES:
 - All endpoints except token obtain/refresh require authentication
 """
 from django.urls import path, include
-from apps.users.views import MyTokenObtainPairView, MyTokenRefreshView, LogoutView
+from apps.users.views import LoginView, LoginRoleView, MyTokenRefreshView, LogoutView
 
 # A list of URL patterns that Django will use to route incoming requests.
 urlpatterns = [
     # --- Global Authentication Endpoints ---
-    # Handles user login, sets access_token and refresh_token in cookies
-    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    
-    # Generates new access token using valid refresh token from cookies
+    path('token/', LoginView.as_view(), name='token_obtain_pair'),  
+    path('auth/select-role/', LoginRoleView.as_view(), name='select_role'),  
     path('token/refresh/', MyTokenRefreshView.as_view(), name='token_refresh'),
-    
-    # Logs out user by blacklisting refresh token and clearing auth cookies
     path('logout/', LogoutView.as_view(), name='logout'),
     
     # --- Application-Specific Endpoints ---
-    # Includes: /register/, /me/, /manage/ (CRUD operations for admins)
     path('users/', include('apps.users.urls')),
+    path('students/', include('apps.students.urls')),
     path('companies/', include('apps.companies.urls')),
     path('core/', include('apps.core.urls')),
     
