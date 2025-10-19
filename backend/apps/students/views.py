@@ -9,12 +9,13 @@ VIEW ARCHITECTURE:
 Student Management Views:
 - StudentRegistrationView: Admin-only student creation with auto profile
 - StudentProfileView: Student profile retrieval and updates  
-- StudentViewSet: Administrative student management (list, retrieve, update)
+- StudentViewSet: Administrative student management with action-based permissions
 - MarkAsPlacedView: Specialized endpoint for placement status
 
 SECURITY FEATURES:
 =================
-- Role-based access control using proper permission classes
+- Role-based access control with action-based permissions
+- JWT + Database hybrid security validation
 - Atomic transactions for data consistency
 - Background email processing
 - Standardized API responses
@@ -24,7 +25,9 @@ PERMISSION SUMMARY:
 ==================
 - StudentRegistrationView: [IsAuthenticated, IsAdminRole]
 - StudentProfileView: [IsAuthenticated, IsStudentRole, IsOwnerOrReadOnly]  
-- StudentViewSet: [IsAuthenticated, IsAdminOrPlacementTeamRole]
+- StudentViewSet: 
+  - list/retrieve: [IsAuthenticated, IsPlacementTeam]
+  - update/partial_update: [IsAuthenticated, IsAdminRole]
 - MarkAsPlacedView: [IsAuthenticated, IsAdminRole]
 """
 
@@ -40,7 +43,7 @@ from apps.core.permissions import (
     IsOwnerOrReadOnly, 
     IsStudentRole,
     IsAdminRole,
-    IsAdminOrPlacementTeamRole
+    IsPlacementTeam
 )
 
 from .serializers import (
@@ -63,9 +66,6 @@ class StudentRegistrationView(generics.CreateAPIView):
     """
     An endpoint for Admins to register new Student accounts with profiles.
     
-    Creates both User and StudentProfile in a single atomic transaction with
-    automatic role assignment and welcome email.
-    
     PERMISSIONS:
     ------------
     - IsAuthenticated: User must be logged in
@@ -79,14 +79,6 @@ class StudentRegistrationView(generics.CreateAPIView):
     4. StudentProfile created and linked to user
     5. Welcome email sent asynchronously with credentials
     6. Returns 201 Created with student data (password excluded)
-    
-    SECURITY NOTES:
-    --------------
-    - Only Admins can create student accounts
-    - 'Student' role assigned automatically (no privilege escalation)
-    - Password never exposed in API responses
-    - Email sent in background to prevent timing attacks
-    - Atomic transaction ensures data consistency
     """
     
     serializer_class = StudentRegistrationSerializer
@@ -130,11 +122,6 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
     ------------------
     - GET /api/v1/students/me/: Retrieve current student profile
     - PATCH /api/v1/students/me/: Update student profile (partial updates allowed)
-    
-    FIELD RESTRICTIONS:
-    -------------------
-    - Read-only: user, enrollment_number, program, is_placed (set during registration/admin)
-    - Updatable: personal details, academic info, contact information
     
     SECURITY:
     ---------
@@ -193,37 +180,57 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
 class StudentViewSet(BaseViewSet):
     """
     An administrative endpoint for managing all students in the system.
-    Provides list, retrieve, and update actions for Admins and Placement Team.
+    Provides different access levels based on user role and action type.
     
-    PERMISSIONS:
-    ------------
-    - IsAuthenticated: User must be logged in
-    - IsAdminOrPlacementTeamRole: User must have Admin OR Student Placement Cell role
+    PERMISSIONS (Action-Based):
+    ---------------------------
+    - LIST (GET /students/profiles/): 
+        [IsAuthenticated, IsPlacementTeam] - View student list
+    
+    - RETRIEVE (GET /students/profiles/{id}/): 
+        [IsAuthenticated, IsPlacementTeam] - View student details
+    
+    - UPDATE (PATCH /students/profiles/{id}/): 
+        [IsAuthenticated, IsAdminRole] - Modify student data (Admin only)
     
     AVAILABLE ENDPOINTS:
     --------------------
     - GET /api/v1/students/profiles/: List all students (paginated)
     - GET /api/v1/students/profiles/{user_id}/: Retrieve specific student
-    - PATCH /api/v1/students/profiles/{user_id}/: Update student details
-    
-    DATA INCLUDED:
-    --------------
-    - Complete student details with nested user information
-    - Academic performance and placement status
-    - Prefetched related objects for performance
+    - PATCH /api/v1/students/profiles/{user_id}/: Update student details (Admin only)
     
     SECURITY:
     ---------
+    - Placement Team can only view students (read-only access)
+    - Admin can view and modify students (full access)
+    - Students cannot access this viewset (handled by permissions)
     - Inherits from BaseViewSet for standardized response formatting
-    - Admin or Placement Team role required for all operations
-    - No student deletion (maintains historical records)
-    - Data isolation: Students can only see their own data
     """
     
     queryset = StudentProfile.objects.all().select_related(
         'user', 'program', 'city', 'program__degree'
     )
-    permission_classes = [permissions.IsAuthenticated, IsAdminOrPlacementTeamRole]
+    permission_classes = [permissions.IsAuthenticated]  # Base authentication only
+    
+    def get_permissions(self):
+        """
+        Action-based permissions for fine-grained access control:
+        
+        - Placement Team: Can LIST and RETRIEVE students (read-only)
+        - Admin: Can LIST, RETRIEVE, and UPDATE students (full access)
+        - Students: Cannot access any actions in this viewset
+        """
+        if self.action in ['list', 'retrieve']:
+            # Placement Team and Admin can view students
+            permission_classes = [IsPlacementTeam]
+        elif self.action in ['update', 'partial_update']:
+            # Only Admin can update student profiles
+            permission_classes = [IsAdminRole]
+        else:
+            # Default to most restrictive (Admin only for other actions)
+            permission_classes = [IsAdminRole]
+        
+        return [permission() for permission in permission_classes]
     
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
@@ -233,12 +240,12 @@ class StudentViewSet(BaseViewSet):
     
     def get_queryset(self):
         """
-        Returns optimized queryset with data isolation.
+        Returns optimized queryset with data isolation and filtering.
         
         SECURITY:
         ---------
         - Admins and Placement Team see all students
-        - Students see only their own profile (handled by permissions)
+        - Students cannot access this viewset (handled by permissions)
         """
         queryset = self.queryset.order_by('user__first_name', 'user__last_name')
         
@@ -265,7 +272,7 @@ class StudentViewSet(BaseViewSet):
         return queryset
     
     def list(self, request, *args, **kwargs):
-        """List students with optimized data for admin views."""
+        """List students with optimized data for admin/placement views."""
         queryset = self.filter_queryset(self.get_queryset())
         
         # Basic list view doesn't need all details
@@ -278,6 +285,20 @@ class StudentViewSet(BaseViewSet):
         return SuccessResponse(
             data=serializer.data, 
             message="Students retrieved successfully"
+        )
+    
+    def update(self, request, *args, **kwargs):
+        """Update student details with standardized response (Admin only)."""
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        
+        if not serializer.is_valid():
+            return ValidationErrorResponse(errors=serializer.errors)
+        
+        self.perform_update(serializer)
+        return SuccessResponse(
+            data=serializer.data,
+            message="Student details updated successfully."
         )
 
 
