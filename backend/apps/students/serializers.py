@@ -79,7 +79,6 @@ class StudentRegistrationSerializer(serializers.Serializer):
         help_text="Academic program ID the student is enrolled in"
     )
     
-    # NEW: Additional roles field
     additional_roles = serializers.PrimaryKeyRelatedField(
         queryset=User._meta.get_field('roles').related_model.objects.all(),
         many=True,
@@ -114,7 +113,7 @@ class StudentRegistrationSerializer(serializers.Serializer):
     @transaction.atomic
     def create(self, validated_data):
         """
-        ENHANCED: Creates User and StudentProfile with optional additional roles.
+        Creates User and StudentProfile with optional additional roles.
         """
         # Extract additional roles and profile data
         additional_roles = validated_data.pop('additional_roles', [])

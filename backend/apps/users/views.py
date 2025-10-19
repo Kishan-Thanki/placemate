@@ -206,7 +206,6 @@ class LoginRoleView(APIView):
         except User.DoesNotExist:
             return NotFoundResponse(message="User not found.")
         
-        # Validate user has the chosen role
         user_roles = [role.name for role in user.roles.all()]
         
         if chosen_role not in user_roles:
@@ -214,7 +213,6 @@ class LoginRoleView(APIView):
                 message=f"You do not have the '{chosen_role}' role."
             )
         
-        # Generate tokens with chosen role
         return self._generate_login_response(user, chosen_role)
     
     def _generate_login_response(self, user, active_role):
@@ -504,7 +502,7 @@ class UserViewSet(BaseViewSet):
     @action(detail=True, methods=['patch'], url_path='roles')
     def update_roles(self, request, pk=None):
         """
-        NEW: Specialized endpoint for updating user roles.
+        Specialized endpoint for updating user roles.
         
         USAGE:
         ------
@@ -538,7 +536,6 @@ class UserViewSet(BaseViewSet):
         
         serializer.save()
         
-        # PROPER FIX: Now UserDetailSerializer has correct field names
         return SuccessResponse(
             data=UserDetailSerializer(user).data,
             message="User roles updated successfully."
@@ -547,7 +544,7 @@ class UserViewSet(BaseViewSet):
     @action(detail=True, methods=['patch'], url_path='activation')
     def update_activation(self, request, pk=None):
         """
-        NEW: Activate or deactivate a user account.
+        Activate or deactivate a user account.
         
         USAGE:
         ------
@@ -575,7 +572,6 @@ class UserViewSet(BaseViewSet):
         
         action = "activated" if is_active else "deactivated"
         
-        # PROPER FIX: Now UserDetailSerializer has correct field names
         return SuccessResponse(
             data=UserDetailSerializer(user).data,
             message=f"User account {action} successfully."
