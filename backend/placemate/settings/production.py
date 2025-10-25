@@ -11,6 +11,12 @@ from decouple import config
 
 print("loading production...")
 
+# --- Production REST_FRAMEWORK Overrides ---
+# Disable the Browsable API in production for security.
+REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
+    'rest_framework.renderers.JSONRenderer',
+)
+
 # --- Core Settings ---
 # Disables detailed error pages for security.
 DEBUG = False
@@ -97,3 +103,4 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # This line OVERRIDES the base setting and activates Cloudinary for all
 # user-uploaded media files in the production environment.
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
