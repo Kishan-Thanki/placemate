@@ -10,6 +10,7 @@ class PlacementDrive(models.Model):
     def __str__(self):
         return self.title
 
+
 class CompanyDrive(models.Model):
     DRIVE_TYPES = [('FullTime', 'FullTime'), ('Internship', 'Internship'), ('Contract', 'Contract')]
     JOB_MODES = [('Onsite', 'Onsite'), ('Remote', 'Remote'), ('Hybrid', 'Hybrid')]
@@ -23,6 +24,8 @@ class CompanyDrive(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Open')
     rounds = models.JSONField(null=True, blank=True)
     locations = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         unique_together = ('drive', 'company')
