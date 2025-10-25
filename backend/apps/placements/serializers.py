@@ -3,7 +3,7 @@ Serializers for the Placements App.
 """
 from rest_framework import serializers
 from .models import PlacementDrive, CompanyDrive
-
+from apps.companies.serializers import CompanySerializer
 
 class PlacementDriveSerializer(serializers.ModelSerializer):
     """
@@ -14,7 +14,7 @@ class PlacementDriveSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlacementDrive
         fields = [
-            'id',  'title',  'start_date',  'end_date',  'created_at',  'updated_at'
+            'id', 'title', 'start_date', 'end_date', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -29,18 +29,25 @@ class CompanyDriveReadSerializer(serializers.ModelSerializer):
     - All fields are read-only for data presentation
     """
     
-    company_name = serializers.CharField(source='company.name', read_only=True)
-    company_industry = serializers.CharField(source='company.industry', read_only=True)
-    drive_title = serializers.CharField(source='drive.title', read_only=True)
+    # Use nested serializers for rich, read-only data
+    company = CompanySerializer(read_only=True)
+    drive = PlacementDriveSerializer(read_only=True)
     
     class Meta:
         model = CompanyDrive
         fields = [
-            'id', 'drive', 'company',  'company_name', 'company_industry',
-            'drive_title', 'drive_type', 'job_mode', 'application_deadline',
-            'status', 'rounds', 'locations', 'created_at', 'updated_at'
+            'id',
+            'drive',
+            'company',
+            'drive_type',
+            'job_mode',
+            'application_deadline',
+            'status',
+            'rounds',
+            'locations',
+            'created_at',
+            'updated_at'
         ]
-        read_only_fields = ['__all__']  
 
 
 class CompanyDriveWriteSerializer(serializers.ModelSerializer):
@@ -56,6 +63,12 @@ class CompanyDriveWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyDrive
         fields = [
-            'drive', 'company', 'drive_type', 'job_mode',
-            'application_deadline', 'status', 'rounds', 'locations'
+            'drive',
+            'company',
+            'drive_type',
+            'job_mode',
+            'application_deadline',
+            'status',
+            'rounds',
+            'locations'
         ]

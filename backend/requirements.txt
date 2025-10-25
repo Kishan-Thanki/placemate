@@ -5,8 +5,10 @@ cloudinary==1.44.1
 coverage==7.10.7
 dj-database-url==3.0.1
 Django==5.2.6
+django-anymail==13.1
 django-cloudinary-storage==0.3.0
 django-cors-headers==4.9.0
+django-filter==25.2
 django-health-check==3.20.0
 django-rest-passwordreset==1.5.0
 djangorestframework==3.16.1
@@ -26,7 +28,6 @@ pytest-cov==7.0.0
 pytest-django==4.11.1
 python-decouple==3.8
 python-dotenv==1.1.1
-django-anymail==13.1
 pytz==2025.2
 PyYAML==6.0.3
 requests==2.32.5
