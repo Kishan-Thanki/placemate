@@ -120,7 +120,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'apps.core.exception_handler.custom_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.StandardPagination',
     
-    # --- Renderer Configuration ---
+    # --- Renderer Configuration (Default) ---
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer', 
@@ -135,7 +135,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',  
     ),
     
-    # --- Performance ---
+    # --- API Features & Performance ---
     'PAGE_SIZE': 20, 
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
@@ -144,7 +144,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/day',
         'user': '1000/day'
-    }
+    },
 }
 
 # --- JWT (JSON Web Token) Configuration ---

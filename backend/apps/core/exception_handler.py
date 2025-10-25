@@ -1,9 +1,8 @@
 """
 Custom API Exception Handler for the Placemate Project.
 
-This module provides a centralized function to intercept all exceptions raised by the Django REST Framework and the application. 
-Its primary purpose is to ensure that all API error responses are consistent by mapping different exception types to our custom, 
-standardized ErrorResponse classes from `response.py`.
+This is the central "translator" that intercepts all exceptions and maps them to a standardized, 
+user-friendly response from `response.py`.
 """
 import traceback
 from django.http import Http404
@@ -21,60 +20,100 @@ from .response import (
     UnauthorizedResponse, 
     ForbiddenResponse,
     NotFoundResponse, 
-    ServerErrorResponse
+    ServerErrorResponse,
+    ConflictResponse,
+    ErrorResponse
+)
+from .exceptions import (
+    ValidationException,
+    AuthenticationException,
+    PermissionException,
+    NotFoundException,
+    ConflictException,
+    ThrottledException,
+    InternalServerException
 )
 
 def custom_exception_handler(exc, context):
     """
     Handles all exceptions for the API, returning a standardized error response.
-
-    This function is registered in the DRF settings ('EXCEPTION_HANDLER').
-    It inspects the type of the raw exception and returns an instance of the
-    appropriate custom ErrorResponse subclass from `response.py`.
-
-    Args:
-        exc (Exception): The exception instance that was raised.
-        context (dict): A dictionary containing the view that raised the exception.
-
-    Returns:
-        ErrorResponse: An instance of a custom error response class.
     """
-    # Handle failed login attempts (wrong password).
+    # --- 1. Handle Our Custom Application Exceptions ---
+    if isinstance(exc, ValidationException):
+        return ValidationErrorResponse(
+            errors=exc.detail.get('errors', {}),
+            message=exc.detail.get('message', exc.default_detail),
+            error_code=exc.detail.get('error_code', exc.default_code)
+        )
+        
+    if isinstance(exc, AuthenticationException):
+        return UnauthorizedResponse(
+            message=exc.detail.get('message', exc.default_detail),
+            error_code=exc.detail.get('error_code', exc.default_code)
+        )
+
+    if isinstance(exc, PermissionException):
+        return ForbiddenResponse(
+            message=exc.detail.get('message', exc.default_detail),
+            error_code=exc.detail.get('error_code', exc.default_code)
+        )
+
+    if isinstance(exc, NotFoundException):
+        return NotFoundResponse(
+            message=exc.detail.get('message', exc.default_detail),
+            error_code=exc.detail.get('error_code', exc.default_code)
+        )
+
+    if isinstance(exc, ConflictException):
+        return ConflictResponse(
+            message=exc.detail.get('message', exc.default_detail),
+            error_code=exc.detail.get('error_code', exc.default_code)
+        )
+        
+    if isinstance(exc, ThrottledException):
+        return ErrorResponse(
+            message=exc.detail.get('message', exc.default_detail),
+            status_code=exc.status_code,
+            error_code=exc.detail.get('error_code', exc.default_code)
+        )
+    
+    if isinstance(exc, InternalServerException):
+        return ServerErrorResponse(
+            message=exc.detail.get('message', exc.default_detail),
+            error_code=exc.detail.get('error_code', exc.default_code)
+        )
+
+    # --- 2. Handle Standard DRF Exceptions ---
     if isinstance(exc, AuthenticationFailed):
         return UnauthorizedResponse(message=exc.detail)
     
-    # Handle DRF's validation errors (e.g., from a serializer).
     if isinstance(exc, DRFValidationError):
         return ValidationErrorResponse(errors=exc.detail)
     
-    # Handle errors where a user is not logged in at all.
     if isinstance(exc, NotAuthenticated):
         return UnauthorizedResponse()
         
-    # Handle errors where a logged-in user does not have permission.
     if isinstance(exc, PermissionDenied):
         return ForbiddenResponse()
         
-    # Handle errors where a user has exceeded their request rate limit.
     if isinstance(exc, Throttled):
-        return ForbiddenResponse(message=str(exc.detail))
+        return ErrorResponse(
+            message=str(exc.detail),
+            status_code=exc.status_code,
+            error_code='throttled'
+        )
 
-    # Handle Django's standard 404 error when an object is not found.
+    # --- 3. Handle Standard Django Exceptions ---
     if isinstance(exc, Http404):
         return NotFoundResponse()
         
-    # Handle database integrity errors (e.g., unique constraint violations).
     if isinstance(exc, IntegrityError):
-        return ServerErrorResponse(message="Database constraint violation.")
+        return ConflictResponse(message="Database constraint violation.")
 
-    # --- Fallback for any other unexpected exception ---
-    # This ensures a generic but structured 500 error is always returned.
-
-    # In DEBUG mode, provide a detailed error message and traceback for easier debugging.
+    # --- 4. Fallback for Unhandled Errors ---
     if settings.DEBUG:
         message = f"Unhandled Exception: {exc.__class__.__name__}: {str(exc)}"
         traceback_info = traceback.format_exc()
         return ServerErrorResponse(message=message, traceback=traceback_info)
     else:
-        # In production, provide a generic, user-friendly error message to avoid exposing sensitive system information.
         return ServerErrorResponse()
