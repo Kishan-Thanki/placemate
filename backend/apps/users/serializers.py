@@ -6,7 +6,7 @@ Serializers handle data validation, transformation, and business logic for API r
 
 SERIALIZER OVERVIEW:
 ===================
-1. PermissionSerializer         - Django permission representation  
+1. PermissionSerializer        - Django permission representation  
 2. RoleSerializer              - Role model with nested permissions
 3. UserRegistrationSerializer  - Admin user creation with auto password generation
 4. UserSerializer              - User profile viewing and updates
@@ -109,7 +109,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         if not roles:
             raise serializers.ValidationError("This field is required.")
         
-        # Ensure all roles exist
         valid_role_ids = set(Role.objects.values_list('id', flat=True))
         provided_role_ids = {role.id for role in roles}
         
@@ -129,7 +128,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(password=password, **validated_data)
         user.roles.set(roles_data)
 
-        # Send welcome email with role information
         role_names = [role.name for role in user.roles.all()]
         
         send_email_in_background(
@@ -186,7 +184,6 @@ class UserRoleUpdateSerializer(serializers.ModelSerializer):
         if not roles:
             raise serializers.ValidationError("At least one role is required.")
         
-        # Check if all roles exist
         valid_role_ids = set(Role.objects.values_list('id', flat=True))
         provided_role_ids = {role.id for role in roles}
         
@@ -201,7 +198,6 @@ class UserRoleUpdateSerializer(serializers.ModelSerializer):
         """
         roles = validated_data.get('roles', [])
         
-        # Update roles
         instance.roles.set(roles)
         instance.save()
         
@@ -210,7 +206,7 @@ class UserRoleUpdateSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     """
-    PROPER FIX: Comprehensive user serializer for admin views with role management.
+    Comprehensive user serializer for admin views with role management.
     Using EXACT field names from your custom User model.
     """
     roles = RoleSerializer(many=True, read_only=True)
