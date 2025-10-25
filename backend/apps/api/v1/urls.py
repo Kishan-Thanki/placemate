@@ -39,6 +39,7 @@ urlpatterns = [
     path('students/', include('apps.students.urls')),
     path('companies/', include('apps.companies.urls')),
     path('core/', include('apps.core.urls')),
+    path('placements/', include('apps.placements.urls')),
     
     # Password reset workflow: request, confirm, validate endpoints
     path('password-reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
