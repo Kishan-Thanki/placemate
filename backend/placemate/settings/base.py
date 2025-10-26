@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'apps.students.apps.StudentsConfig',
     'apps.companies.apps.CompaniesConfig',
     'apps.placements.apps.PlacementsConfig',
-    'apps.jobs.apps.JobsConfig',
     'apps.applications.apps.ApplicationsConfig',
 ]
 

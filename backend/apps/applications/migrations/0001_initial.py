@@ -9,8 +9,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('jobs', '__first__'),
         ('students', '__first__'),
+        ('placements', '0003_job_jobprogram_job_eligible_programs'),
     ]
 
     operations = [
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('resume_url', models.URLField(blank=True, max_length=255, null=True)),
                 ('applied_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to='jobs.job')),
+                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to='placements.job')),
                 ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='job_applications', to='students.studentprofile')),
             ],
             options={
