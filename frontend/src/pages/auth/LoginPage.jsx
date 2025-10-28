@@ -29,7 +29,6 @@ export default function LoginPage() {
     });
 
     if (ok && result?.success) {
-      // Extract nested user data
       const user = result.data?.user;
       const activeRole = result.data?.active_role;
       const availableRoles = result.data?.available_roles || [];
@@ -38,7 +37,6 @@ export default function LoginPage() {
         throw new Error('User data missing in response.');
       }
 
-      // Prepare user object for storage
       const storedUser = {
         id: user.id,
         email: user.email,
@@ -48,7 +46,6 @@ export default function LoginPage() {
         activeRole: activeRole,    // currently active role
       };
 
-      // Save user data to localStorage
       localStorage.setItem('user', JSON.stringify(storedUser));
 
       // Navigate based on active role
