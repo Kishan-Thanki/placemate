@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import logoUrl from '../../assets/placemate.png';
+import logoUrl from '../../../src/assets/placemate.png';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Bell } from 'lucide-react';
 

@@ -4,6 +4,7 @@ import { DashboardLayout, PageContainer, Section } from "../../../components/lay
 import { Button } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { Building2, MapPin, Globe, Users } from "lucide-react";
+import { fetchJSON } from '../../../lib/api';
 
 export default function CompaniesList() {
   const navigate = useNavigate();
@@ -20,11 +21,9 @@ export default function CompaniesList() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('https://placemate-zzgd.onrender.com/api/v1/companies/', { credentials: 'include' });
-
-      if (!res.ok) throw new Error("Failed to fetch companies");
-      const data = await res.json();
-      setCompanies(data.data || []);
+      const { ok, data, res } = await fetchJSON('/api/v1/companies/', { credentials: 'include' });
+      if (!ok) throw new Error(data?.message || `Failed to fetch companies (${res.status})`);
+      setCompanies((data && data.data) || []);
     } catch (err) {
       console.error(err);
       setError(err.message);
