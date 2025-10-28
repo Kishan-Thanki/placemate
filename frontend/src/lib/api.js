@@ -2,7 +2,6 @@
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export function getApiBase() {
-    console.log('API_BASE:', API_BASE);
   return API_BASE.replace(/\/+$/, '');
 }
 
