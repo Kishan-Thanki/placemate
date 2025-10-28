@@ -21,30 +21,35 @@ export default function LoginPage() {
   const password = data.get('password');
 
   try {
-      const { ok, data: result } = await fetchJSON('/api/v1/token/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+    const { ok, data: result } = await fetchJSON('/api/v1/token/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include'
+    });
 
-      if (ok && result && result.success) {
-      // Extract user info
-      const userData = result.data;
+    if (ok && result?.success) {
+      const user = result.data?.user;
+      const activeRole = result.data?.active_role;
+      const availableRoles = result.data?.available_roles || [];
 
-      // Prepare a smaller object with only needed info
+      if (!user) {
+        throw new Error('User data missing in response.');
+      }
+
       const storedUser = {
-        id: userData.id,
-        email: userData.email,
-        firstName: userData.first_name,
-        lastName: userData.last_name,
-        roles: userData.roles.map(role => role.name), // array of roles
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        roles: availableRoles,     // full array from API
+        activeRole: activeRole,    // currently active role
       };
 
-      // Save user data to localStorage
       localStorage.setItem('user', JSON.stringify(storedUser));
 
-      // Navigate based on role
-      const role = storedUser.roles[0]?.toLowerCase();
+      // Navigate based on active role
+      const role = activeRole?.toLowerCase();
       if (role === 'student') {
         navigate('/student');
       } else if (role === 'admin') {
@@ -53,7 +58,7 @@ export default function LoginPage() {
         navigate('/');
       }
     } else {
-        setErrorMsg((result && result.message) || 'Invalid email or password.');
+      setErrorMsg(result?.message || 'Invalid email or password.');
     }
   } catch (err) {
     console.error('Login error:', err);
@@ -62,7 +67,6 @@ export default function LoginPage() {
     setLoading(false);
   }
 };
-
 
 
   return (
