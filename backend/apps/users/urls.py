@@ -1,24 +1,35 @@
 """
-URL Configuration for the Users App.
+ENHANCED URL Configuration for the Users App with complete authentication and role management.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserRegistrationView, CurrentUserView, UserViewSet
+from .views import (
+    LoginView,
+    LoginRoleView, 
+    MyTokenRefreshView,
+    LogoutView,
+    UserRegistrationView,
+    CurrentUserView,
+    UserViewSet
+)
 
-# A router automatically generates the standard URLs for a ViewSet.
+# Router for user management with role endpoints
 router = DefaultRouter()
 router.register(r'manage', UserViewSet, basename='user-manage')
 
 urlpatterns = [
-    # --- Specialized Action Endpoints ---
+    # --- Authentication Endpoints ---
+    path('token/', LoginView.as_view(), name='token-obtain'),
+    path('token/refresh/', MyTokenRefreshView.as_view(), name='token-refresh'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    
+    # --- Role Selection Endpoint ---
+    path('auth/select-role/', LoginRoleView.as_view(), name='select-role'),  
+    
+    # --- User Registration & Profile ---
     path('register/', UserRegistrationView.as_view(), name='user-register'),
     path('me/', CurrentUserView.as_view(), name='current-user'),
     
-    # --- Administrative CRUD Endpoints ---
-    # This includes the router-generated URLs for the UserViewSet.
-    # It will create endpoints like:
-    #   - GET /api/v1/users/manage/ (List all users)
-    #   - GET /api/v1/users/manage/{id}/ (Retrieve a specific user)
-    #   - PATCH /api/v1/users/manage/{id}/ (Update a specific user)
+    # --- Administrative User Management ---
     path('', include(router.urls)),
 ]

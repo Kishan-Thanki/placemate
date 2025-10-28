@@ -11,6 +11,12 @@ from decouple import config
 
 print("loading production...")
 
+# --- Production REST_FRAMEWORK Overrides ---
+# Disable the Browsable API in production for security.
+REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
+    'rest_framework.renderers.JSONRenderer',
+)
+
 # --- Core Settings ---
 # Disables detailed error pages for security.
 DEBUG = False
@@ -54,6 +60,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://www.final-frontend-domain.com",
 ]
 
+# Add these CORS settings:
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
 # A list of trusted origins for CSRF protection.
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
@@ -93,12 +104,3 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # user-uploaded media files in the production environment.
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# --- Email ---
-# Overrides the base setting to use a real SMTP service (Gmail) for sending emails in production.
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp-relay.brevo.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='9916bb001@smtp-brevo.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='202412117@dau.ac.in')

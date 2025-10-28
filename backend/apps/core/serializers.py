@@ -36,7 +36,9 @@ class ProgramSerializer(serializers.ModelSerializer):
     Serializer for the Program model.
     Includes a nested representation of the related Degree for richer data.
     """
-    # Nests the DegreeSerializer to show the full degree details (name, abbreviation) instead of just the ID. This is efficient for the frontend.
+    
+    degree = DegreeSerializer(read_only=True)
+    
     class Meta:
         model = Program
         fields = ['id', 'name', 'abbreviation', 'degree', 'degree_level']
