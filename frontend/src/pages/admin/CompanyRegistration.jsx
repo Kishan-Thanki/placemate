@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { DashboardLayout, PageContainer, Section } from '../../components/layout';
 import { Card, Button } from '../../components/ui';
 import { useTheme } from '../../contexts/ThemeContext';
+import { fetchJSON } from '../../lib/api';
 
 // Assuming Input, Select, Textarea, and FieldLabel are defined as in your original code
 // ... (Your original helper component definitions here)
 
-const COMPANY_REGISTRATION_URL = 'https://placemate-zzgd.onrender.com/api/v1/companies/';
-const CITIES_LOOKUP_URL = 'https://placemate-zzgd.onrender.com/api/v1/core/lookup/?type=cities';
+const COMPANY_REGISTRATION_URL = '/api/v1/companies/';
+const CITIES_LOOKUP_URL = '/api/v1/core/lookup/?type=cities';
 
 export default function CompanyRegistration() {
   const { isDark } = useTheme();
@@ -42,20 +43,19 @@ export default function CompanyRegistration() {
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        const response = await fetch(CITIES_LOOKUP_URL);
-        const data = await response.json();
-        if (data.success && data.data) {
+        const { ok, data } = await fetchJSON(CITIES_LOOKUP_URL);
+        if (ok && data && data.success && data.data) {
           // Map to an array of { label: name, value: id } for the Select component
-          const cityOptions = data.data.map(city => ({
+          const cityOptions = data.data.map((city) => ({
             label: city.name,
             value: city.id.toString(), // Store ID as string for select value
           }));
           setCities(cityOptions);
         } else {
-          console.error("Failed to fetch cities:", data.message);
+          console.error('Failed to fetch cities:', (data && data.message) || 'unknown');
         }
       } catch (error) {
-        console.error("Error fetching cities:", error);
+        console.error('Error fetching cities:', error);
       }
     };
     fetchCities();
@@ -87,25 +87,23 @@ export default function CompanyRegistration() {
     };
 
     try {
-      const response = await fetch(COMPANY_REGISTRATION_URL, {
+      const { ok, data: result, res } = await fetchJSON(COMPANY_REGISTRATION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'credentials': 'include',
           // NOTE: You'll likely need an Authorization header here (e.g., Bearer Token)
         },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (ok) {
         console.log('Company registration successful:', result);
         alert('Company registered successfully!');
         // Optionally reset form here
       } else {
-        console.error('Company registration failed:', result);
-        alert(`Registration failed: ${result.message || response.statusText}`);
+        console.error('Company registration failed:', result || res.statusText);
+        alert(`Registration failed: ${(result && result.message) || res.statusText}`);
       }
     } catch (error) {
       console.error('Network or API error:', error);
@@ -115,8 +113,8 @@ export default function CompanyRegistration() {
     }
   };
 
-  // Utility to map cities data for the Select component
-  const cityOptionsForSelect = cities.map(city => city.label);
+  
+  
 
   return (
     <DashboardLayout title="Register New Company">

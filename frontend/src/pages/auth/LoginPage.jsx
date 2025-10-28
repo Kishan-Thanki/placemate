@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import logoUrl from '../../assets/placemate.png';
+import { fetchJSON } from '../../lib/api';
 
 export default function LoginPage() {
   const { toggleTheme, isDark } = useTheme();
@@ -20,17 +21,13 @@ export default function LoginPage() {
   const password = data.get('password');
 
   try {
-    const response = await fetch('https://placemate-zzgd.onrender.com/api/v1/token/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+      const { ok, data: result } = await fetchJSON('/api/v1/token/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const result = await response.json();
-
-    if (response.ok && result.success) {
+      if (ok && result && result.success) {
       // Extract user info
       const userData = result.data;
 
@@ -56,7 +53,7 @@ export default function LoginPage() {
         navigate('/');
       }
     } else {
-      setErrorMsg(result.message || 'Invalid email or password.');
+        setErrorMsg((result && result.message) || 'Invalid email or password.');
     }
   } catch (err) {
     console.error('Login error:', err);
