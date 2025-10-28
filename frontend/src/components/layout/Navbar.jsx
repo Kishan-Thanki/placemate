@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import logoUrl from '../../../src/assets/placemate.png';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Bell } from 'lucide-react';
+import { fetchJSON } from '../../lib/api';
 
 /**
  * Main navigation bar for the dashboard
@@ -33,8 +34,9 @@ export function Navbar({ onMenuClick }) {
   const handleSignOut = async () => {
   try {
     // Call logout API — must include credentials for cookie-based auth
-    const res = await fetch('https://placemate-zzgd.onrender.com/api/v1/logout/', {
+    const res = await fetchJSON('/api/v1/logout/', {
       method: 'POST',
+      
       credentials: 'include', // 👈 ensures cookie is sent
     });
 
