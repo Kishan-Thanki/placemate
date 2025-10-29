@@ -19,7 +19,7 @@ REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
 
 # --- Core Settings ---
 # Disables detailed error pages for security.
-DEBUG = False
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 # A strict list of the allowed domain names for the live server.
 ALLOWED_HOSTS = [
