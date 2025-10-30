@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import logoUrl from "../../../src/assets/placemate_logo.png";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { Bell } from "lucide-react";
 import { fetchJSON } from "../../lib/api";
 
@@ -11,6 +12,7 @@ import { fetchJSON } from "../../lib/api";
  */
 export function Navbar({ onMenuClick }) {
   const { isDark } = useTheme();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -19,12 +21,11 @@ export function Navbar({ onMenuClick }) {
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
 
-  // Fetch user info from localStorage
-  const storedUser = JSON.parse(localStorage.getItem("user")) || {};
-  const fullName = `${storedUser.firstName || ""} ${
-    storedUser.lastName || ""
-  }`.trim();
-  const email = storedUser.email || "";
+  // Get user info from AuthContext
+  const fullName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    : "";
+  const email = user?.email || "";
   const initials = fullName
     ? fullName
         .split(" ")
@@ -77,23 +78,15 @@ export function Navbar({ onMenuClick }) {
   const handleSignOut = async () => {
     try {
       // Call logout API — must include credentials for cookie-based auth
-      const res = await fetchJSON("/api/v1/logout/", {
+      await fetchJSON("/api/v1/logout/", {
         method: "POST",
-
-        credentials: "include", // 👈 ensures cookie is sent
+        credentials: "include", // ensures cookie is sent
       });
-
-      if (!res.ok) {
-        console.warn("Logout request failed:", res.status);
-      }
     } catch (err) {
       console.error("Error logging out:", err);
     } finally {
-      // Remove stored user data regardless of API success
-      localStorage.removeItem("user");
-
-      // Redirect to login page
-      navigate("/auth/login");
+      // Use AuthContext logout (handles localStorage and navigation)
+      logout();
     }
   };
 
