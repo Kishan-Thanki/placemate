@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import logoUrl from "../../../src/assets/placemate_logo.png";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -14,6 +14,10 @@ export function Navbar({ onMenuClick }) {
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Refs for click-outside detection
+  const profileRef = useRef(null);
+  const notificationRef = useRef(null);
 
   // Fetch user info from localStorage
   const storedUser = JSON.parse(localStorage.getItem("user")) || {};
@@ -51,6 +55,24 @@ export function Navbar({ onMenuClick }) {
     },
   ];
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Handle sign out
   const handleSignOut = async () => {
     try {
@@ -82,10 +104,10 @@ export function Navbar({ onMenuClick }) {
       ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}
     `}
     >
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-12 items-center h-20 gap-4 py-2">
+      <div className="px-2 sm:px-4 lg:px-8">
+        <div className="flex items-center justify-between h-20 py-2">
           {/* Left section: Logo + mobile menu */}
-          <div className="col-span-12 lg:col-span-4 flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <button
               onClick={onMenuClick}
               className={`
@@ -112,14 +134,14 @@ export function Navbar({ onMenuClick }) {
               </svg>
             </button>
 
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <img
                 src={logoUrl}
                 alt="Placemate Logo"
-                className="h-14 w-14 object-contain my-1"
+                className="h-12 w-12 sm:h-14 sm:w-14 object-contain my-1"
               />
               <span
-                className={`text-xl font-bold hidden sm:block ${
+                className={`text-lg sm:text-xl font-bold ${
                   isDark ? "text-white" : "text-gray-900"
                 }`}
               >
@@ -129,8 +151,9 @@ export function Navbar({ onMenuClick }) {
           </div>
 
           {/* Center section: Navigation links */}
-          <div className="hidden md:flex col-span-12 lg:col-span-4 items-center">
-            <div className="hidden lg:flex items-center space-x-6">
+          <div className="flex-1 flex items-center justify-center mx-4">
+            {/* Mobile: Show in sidebar, Desktop: Show in navbar */}
+            <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
               {[
                 {
                   id: "dashboard",
@@ -147,7 +170,7 @@ export function Navbar({ onMenuClick }) {
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) => `
-                    text-sm font-medium pb-1 border-b-2 transition-colors
+                    text-sm font-medium pb-1 border-b-2 transition-colors whitespace-nowrap
                     ${
                       isActive
                         ? isDark
@@ -166,9 +189,9 @@ export function Navbar({ onMenuClick }) {
           </div>
 
           {/* Right section: Notifications + Profile */}
-          <div className="col-span-12 lg:col-span-4 flex items-center justify-end space-x-3">
+          <div className="flex items-center justify-end space-x-1 sm:space-x-3">
             {/* Notifications */}
-            <div className="relative">
+            <div className="relative" ref={notificationRef}>
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className={`
@@ -254,7 +277,7 @@ export function Navbar({ onMenuClick }) {
             </div>
 
             {/* Profile dropdown */}
-            <div className="relative">
+            <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className={`
@@ -298,6 +321,7 @@ export function Navbar({ onMenuClick }) {
                       ? "bg-gray-800 border-gray-700"
                       : "bg-white border-gray-200"
                   } border
+                  max-h-[calc(100vh-100px)] overflow-y-auto
                 `}
                 >
                   <div className="py-2">

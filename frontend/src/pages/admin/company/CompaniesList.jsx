@@ -82,8 +82,6 @@ export default function CompaniesList() {
     <DashboardLayout title="Registered Companies">
       <PageContainer>
         <Section
-          title="Registered Companies"
-          description="Browse and manage all registered companies in the placement portal."
           action={
             <div className="flex gap-2">
               <Button onClick={() => navigate("/admin/companies/register")}>

@@ -77,13 +77,29 @@ export function DashboardLayout({ children, title = "Dashboard" }) {
                   ${isDark ? "text-gray-400" : "text-gray-500"}
                 `}
                   >
-                    Welcome back! Here's the placement status as of{" "}
-                    {new Date().toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                    .
+                    {title === "Placement Dashboard"
+                      ? `Welcome back! Here's the placement status as of ${new Date().toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )}.`
+                      : title === "Registered Companies"
+                      ? "Manage and view all companies registered in the placement portal."
+                      : title === "Placement Drives"
+                      ? "Browse and manage all placement drives and opportunities."
+                      : title === "Registered Students"
+                      ? "View and manage all students registered for placements."
+                      : `Last updated: ${new Date().toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )}`}
                   </p>
                 </div>
 
