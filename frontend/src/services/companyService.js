@@ -70,58 +70,88 @@ export const companyService = {
 
   /**
    * Create new company
-   * @param {Object} companyData - Company data
+   * @param {Object|FormData} companyData - Company data (Object or FormData for file uploads)
    * @returns {Promise<Object>} Created company
    */
   createCompany: async (companyData) => {
     try {
-      const { ok, data, status } = await fetchJSON(COMPANIES_ENDPOINT, {
+      const isFormData = companyData instanceof FormData;
+
+      const options = {
         method: "POST",
         credentials: "include",
-        headers: {
+        body: isFormData ? companyData : JSON.stringify(companyData),
+      };
+
+      // Only set Content-Type for JSON; browser sets it automatically for FormData
+      if (!isFormData) {
+        options.headers = {
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify(companyData),
-      });
+        };
+      }
+
+      const { ok, data, status } = await fetchJSON(COMPANIES_ENDPOINT, options);
 
       if (!ok) {
-        throw new Error(
-          data?.message || `Failed to create company (${status})`
-        );
+        // Extract detailed error message from backend
+        const errorMessage =
+          data?.message ||
+          data?.error ||
+          data?.detail ||
+          (data?.errors ? JSON.stringify(data.errors) : null) ||
+          `Failed to create company (${status})`;
+
+        const error = new Error(errorMessage);
+        error.response = { data, status };
+        throw error;
       }
 
       console.log("✅ Company created:", data);
       return data;
     } catch (error) {
       console.error("❌ Error creating company:", error);
+      console.error("❌ Error data:", error.response?.data);
       throw error;
     }
   },
 
   /**
-   * Update existing company (full update)
+   * Update existing company (uses PATCH)
    * @param {number|string} id - Company ID
-   * @param {Object} companyData - Updated company data
+   * @param {Object|FormData} companyData - Updated company data (Object or FormData for file uploads)
    * @returns {Promise<Object>} Updated company
    */
   updateCompany: async (id, companyData) => {
     try {
+      const isFormData = companyData instanceof FormData;
+
+      const options = {
+        method: "PATCH",
+        credentials: "include",
+        body: isFormData ? companyData : JSON.stringify(companyData),
+      };
+
+      // Only set Content-Type for JSON; browser sets it automatically for FormData
+      if (!isFormData) {
+        options.headers = {
+          "Content-Type": "application/json",
+        };
+      }
+
       const { ok, data, status } = await fetchJSON(
         `${COMPANIES_ENDPOINT}${id}/`,
-        {
-          method: "PUT",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(companyData),
-        }
+        options
       );
 
       if (!ok) {
-        throw new Error(
-          data?.message || `Failed to update company ${id} (${status})`
-        );
+        const errorMessage =
+          data?.message ||
+          data?.error ||
+          data?.detail ||
+          `Failed to update company ${id} (${status})`;
+        const error = new Error(errorMessage);
+        error.response = { data, status };
+        throw error;
       }
 
       console.log("✅ Company updated:", data);

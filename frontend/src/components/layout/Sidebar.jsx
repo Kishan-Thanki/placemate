@@ -26,7 +26,13 @@ export function Sidebar({ isOpen, onClose }) {
   const [user, setUser] = useState(null);
   useEffect(() => {
     const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
+    if (stored) {
+      const parsedUser = JSON.parse(stored);
+      setUser(parsedUser);
+      console.log("🔍 Sidebar - Loaded user from localStorage:", parsedUser);
+    } else {
+      console.log("⚠️ Sidebar - No user found in localStorage");
+    }
   }, []);
 
   // Persist collapsed state (only for desktop)
@@ -286,7 +292,18 @@ export function Sidebar({ isOpen, onClose }) {
             >
               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                 <span className="text-white text-sm font-semibold leading-none">
-                  {user?.firstName?.[0]?.toUpperCase() || "?"}
+                  {(() => {
+                    const firstName = user?.firstName || user?.first_name || "";
+                    const lastName = user?.lastName || user?.last_name || "";
+                    const email = user?.email || "";
+
+                    if (firstName) {
+                      return `${firstName[0]}${
+                        lastName ? lastName[0] : ""
+                      }`.toUpperCase();
+                    }
+                    return email ? email[0].toUpperCase() : "U";
+                  })()}
                 </span>
               </div>
               {!collapsed && (
@@ -296,16 +313,20 @@ export function Sidebar({ isOpen, onClose }) {
                       isDark ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    {user?.firstName
-                      ? `${user.firstName} ${user.lastName || ""}`
-                      : "Unknown User"}
+                    {(() => {
+                      const firstName =
+                        user?.firstName || user?.first_name || "";
+                      const lastName = user?.lastName || user?.last_name || "";
+                      const fullName = `${firstName} ${lastName}`.trim();
+                      return fullName || user?.email || "Unknown User";
+                    })()}
                   </p>
                   <p
                     className={`text-xs truncate ${
                       isDark ? "text-gray-400" : "text-gray-500"
                     }`}
                   >
-                    {user?.roles?.[0] || "No Role"}
+                    {user?.activeRole || user?.roles?.[0] || "No Role"}
                   </p>
                 </div>
               )}

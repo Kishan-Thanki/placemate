@@ -99,6 +99,8 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+
+
 # --- File Storage ---
 # This line OVERRIDES the base setting and activates Cloudinary for all
 # user-uploaded media files in the production environment.

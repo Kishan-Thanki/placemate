@@ -23,16 +23,31 @@ export function Navbar({ onMenuClick }) {
 
   // Get user info from AuthContext
   const fullName = user
-    ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    ? `${user.firstName || user.first_name || ""} ${
+        user.lastName || user.last_name || ""
+      }`.trim()
     : "";
   const email = user?.email || "";
+
+  // Debug logging
+  useEffect(() => {
+    console.log("🔍 Navbar - Current user:", user);
+    console.log("🔍 Navbar - Full name:", fullName);
+    console.log("🔍 Navbar - Email:", email);
+  }, [user, fullName, email]);
+
+  // Generate initials from name, fallback to email, then 'U'
   const initials = fullName
     ? fullName
         .split(" ")
+        .filter((n) => n.length > 0)
         .map((n) => n[0])
         .join("")
         .toUpperCase()
-    : "U"; // fallback to 'U' if no name
+        .slice(0, 2) // Take max 2 letters
+    : email
+    ? email[0].toUpperCase()
+    : "U";
 
   // Mock notifications (replace with real data later)
   const notifications = [

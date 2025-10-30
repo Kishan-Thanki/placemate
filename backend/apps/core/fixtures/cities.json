@@ -478,5 +478,13 @@
             "name": "Puducherry",
             "state": 36
         }
+    },
+    {
+        "model": "core.city",
+        "pk": 61,
+        "fields": {
+            "name": "Bhuj",
+            "state": 7
+        }
     }
 ]

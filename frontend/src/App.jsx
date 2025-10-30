@@ -19,6 +19,7 @@ import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import { StudentDashboard } from "./pages/student/StudentDashboard";
 import { StudentDrives } from "./pages/student/StudentDrives";
 import CompaniesList from "./pages/admin/company/CompaniesList";
+import CompanyDetails from "./pages/admin/company/CompanyDetails";
 import { CompanyDrives } from "./pages/admin/drive/DrivesList";
 import TestAuth from "./pages/admin/TestAuth";
 
@@ -109,6 +110,22 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
                     <CompanyRegistration />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/companies/:id/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <CompanyRegistration />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/companies/:id"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <CompanyDetails />
                   </ProtectedRoute>
                 }
               />

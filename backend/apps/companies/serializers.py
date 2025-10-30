@@ -6,9 +6,11 @@ class CompanySerializer(serializers.ModelSerializer):
         source='get_company_size_display', 
         read_only=True
     )
-    logo = serializers.SerializerMethodField()
+    # Make logo writable so file uploads via multipart/form-data are accepted
+    logo = serializers.ImageField(required=False, allow_null=True)
 
-    headquarters_city_name = serializers.SerializerMethodField(read_only=True)    
+    headquarters_city_name = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Company
         fields = [
@@ -18,14 +20,19 @@ class CompanySerializer(serializers.ModelSerializer):
             'headquarters_city','headquarters_city_name', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-    
-    def get_logo(self, obj):
+
+    def to_representation(self, instance):
         """
-        Returns the full, absolute URL of the company logo from Cloudinary.
+        Ensure the 'logo' field is represented as a URL string in responses
+        while still allowing file uploads on write.
         """
-        if obj.logo:
-            return obj.logo.url
-        return None
-    
+        data = super().to_representation(instance)
+        try:
+            data['logo'] = instance.logo.url if instance.logo else None
+        except Exception:
+            # In case Cloudinary/file storage is misconfigured or empty
+            data['logo'] = None
+        return data
+
     def get_headquarters_city_name(self, obj):
         return obj.headquarters_city.name if obj.headquarters_city else None 
