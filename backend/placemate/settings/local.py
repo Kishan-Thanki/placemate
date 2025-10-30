@@ -25,8 +25,9 @@ DATABASES = {
 # --- CORS ---
 # A permissive CORS policy for local development, allowing any origin
 # to make requests. This is convenient for running a local frontend.
-CORS_ALLOW_ALL_ORIGINS = True
-
+#CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:3000"]
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000"]
 # --- Security ---
 # Disable HTTPS and secure cookie settings for local HTTP development.
 SESSION_COOKIE_SECURE = False

@@ -7,7 +7,7 @@ class JobApplication(models.Model):
         ('Rejected', 'Rejected'), ('Offered', 'Offered'), ('Accepted', 'Accepted'), ('Declined', 'Declined')
     ]
     
-    job = models.ForeignKey('jobs.Job', on_delete=models.CASCADE, related_name='applications')
+    job = models.ForeignKey('placements.Job', on_delete=models.CASCADE, related_name='applications')
     student = models.ForeignKey('students.StudentProfile', on_delete=models.CASCADE, related_name='job_applications')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Applied')
     resume = CloudinaryField('raw', folder='resumes', resource_type='raw', blank=True, null=True)

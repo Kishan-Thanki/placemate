@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'health_check',
     'health_check.db',
     'django_rest_passwordreset',
+    'anymail',
 
     # Custom Apps
     'apps.core.apps.CoreConfig',
@@ -49,7 +50,6 @@ INSTALLED_APPS = [
     'apps.students.apps.StudentsConfig',
     'apps.companies.apps.CompaniesConfig',
     'apps.placements.apps.PlacementsConfig',
-    'apps.jobs.apps.JobsConfig',
     'apps.applications.apps.ApplicationsConfig',
 ]
 
@@ -119,7 +119,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'apps.core.exception_handler.custom_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.StandardPagination',
     
-    # --- Renderer Configuration ---
+    # --- Renderer Configuration (Default) ---
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer', 
@@ -134,7 +134,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',  
     ),
     
-    # --- Performance ---
+    # --- API Features & Performance ---
     'PAGE_SIZE': 20, 
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
@@ -143,7 +143,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/day',
         'user': '1000/day'
-    }
+    },
 }
 
 # --- JWT (JSON Web Token) Configuration ---
@@ -191,9 +191,12 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # --- Email ---
 # Default to printing emails to the console for development.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+ANYMAIL = {
+    "BREVO_API_KEY": config("BREVO_API_KEY"),  # stored in Render env
+}
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL') 
 # --- Frontend Configuration ---
 # The base URL for your frontend application. 
 # This is used to construct absolute URLs in emails (e.g., for password reset links).
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')

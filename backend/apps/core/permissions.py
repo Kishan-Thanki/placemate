@@ -1,81 +1,103 @@
 """
 Custom API Permission Classes for the Placemate Project.
 
-This module defines a set of custom, reusable permission classes that can be applied to API views to enforce specific business logic and access control rules.
-These classes work in conjunction with Django's built-in authentication and the project's Role-Based Access Control (RBAC) system.
+This module defines a set of custom, reusable permission classes that enforce
+our "Active Role" security model. This is the single source of truth for
+all business logic and access control rules.
 
 PERMISSION HIERARCHY:
 ====================
-1. IsOwnerOrReadOnly    : Object-level ownership (students edit own data)
-2. IsPlacementTeam      : Role-based access (Admin + Student Placement Cell)
-3. IsAdminRole          : Strict admin-only access (Admin role required)
-
-USAGE EXAMPLES:
-==============
-@permission_classes([IsAuthenticated, IsOwnerOrReadOnly])  # Student profile
-@permission_classes([IsAuthenticated, IsPlacementTeam])    # Placement operations  
-@permission_classes([IsAuthenticated, IsAdminRole])        # User registration
+1. IsOwnerOrReadOnly    : Object-level ownership (students edit own data) OR Admin override.
+2. IsStudentRole        : Active role must be 'Student'.
+3. IsPlacementTeam      : Active role must be 'Admin' OR 'Student Placement Cell'.
+4. IsAdminRole          : Active role must be 'Admin'.
 """
 from rest_framework import permissions
 
+def _get_active_role(request):
+    """
+    A central helper function to safely extract the 'active_role'
+    claim from the user's validated JWT payload.
+    """
+    # request.auth is the validated token payload set by CookieJWTAuthentication
+    if not hasattr(request, 'auth') or not request.auth:
+        return None
+        
+    if hasattr(request.auth, 'payload'):
+        # For simple-jwt >= 6.0
+        return request.auth.payload.get('active_role')
+    elif hasattr(request.auth, 'get'):
+        # For simple-jwt < 6.0
+        return request.auth.get('active_role')
+    return None
+
+class BaseRolePermission(permissions.BasePermission):
+    """
+    A base class for our role permissions that checks the user's
+    *active* role from the JWT against a list of required roles.
+    """
+    required_roles = [] # This will be overridden by child classes
+
+    def has_permission(self, request, view):
+        # 1. User must be logged in.
+        if not (request.user and request.user.is_authenticated):
+            return False
+        
+        # 2. Get the active role from the token (e.g., "Student").
+        active_role = _get_active_role(request)
+        if not active_role:
+            return False
+
+        # 3. Check if the active role is one of the roles allowed for this endpoint.
+        if active_role not in self.required_roles:
+            return False
+            
+        # 4. Final security check: Verify the user *actually has* this role
+        #    in the database to prevent a user from faking a token.
+        return request.user.roles.filter(name=active_role).exists()
+
+class IsAdminRole(BaseRolePermission):
+    """
+    Allows access only if the user's active role is 'Admin'.
+    Used for the most sensitive, top-level administrative actions.
+    """
+    required_roles = ['Admin']
+
+class IsPlacementTeam(BaseRolePermission):
+    """
+    Allows access if the user's active role is 'Admin' OR 'Student Placement Cell'.
+    Used for general placement-related tasks.
+    """
+    required_roles = ['Admin', 'Student Placement Cell']
+
+class IsStudentRole(BaseRolePermission):
+    """
+    Allows access only if the user's active role is 'Student'.
+    Used for student-specific dashboards and actions.
+    """
+    required_roles = ['Student']
+
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
-    An object-level permission to only allow owners of an object to edit it.
-
-    This rule grants read-only access (GET, HEAD, OPTIONS) to any authenticated user, 
-    but restricts write access (POST, PUT, PATCH, DELETE) to the user who is directly associated with the object.
-
-    USAGE: Student profiles, company drives, user-specific data
-    ACCESS: Read - any authenticated user, Write - object owner only
-    
-    SUPPORTED OBJECT STRUCTURES:
-    - obj.user == request.user (direct ownership)
-    - obj.company.user == request.user (company ownership)
+    An object-level permission that allows read-only access to anyone,
+    but write access only to the object's owner OR an active Admin.
     """
     def has_object_permission(self, request, view, obj):
-        # SAFE_METHODS are read-only methods (GET, HEAD, OPTIONS) that do not modify the data. 
-        # We allow any authenticated user to perform these.
+        # Read-only methods (GET, HEAD, OPTIONS) are allowed by any authenticated user.
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # For write methods (PUT, PATCH, DELETE), we check if the user making the request is the same as the user associated with the object.
-        # This is used, for example, to ensure a student can only edit their own profile.
+        # Check for Admin override: An active Admin can edit any object.
+        active_role = _get_active_role(request)
+        if active_role == 'Admin' and request.user.roles.filter(name='Admin').exists():
+            return True
+
+        # If not an Admin, check if the user is the direct owner.
         if hasattr(obj, 'user'):
             return obj.user == request.user
         
-        # fallback
+        # Fallback for company-owned objects.
         if hasattr(obj, 'company') and hasattr(obj.company, 'user'):
              return obj.company.user == request.user
 
         return False
-
-
-class IsPlacementTeam(permissions.BasePermission):
-    """
-    Allows access to users who are part of the placement team.
-    
-    USAGE: General placement operations, student management, drive coordination
-    ACCESS: Users with 'Admin' OR 'Student Placement Cell' roles
-    
-    ROLES: ['Admin', 'Student Placement Cell']
-    """
-    def has_permission(self, request, view):
-        if not (request.user and request.user.is_authenticated):
-            return False
-        return request.user.roles.filter(
-            name__in=['Admin', 'Student Placement Cell']
-        ).exists()
-
-class IsAdminRole(permissions.BasePermission):
-    """
-    Custom permission to only allow users with the 'Admin' role.
-    
-    USAGE: Top-level administrative actions, user registration, system configuration
-    ACCESS: Users with 'Admin' role only (most restrictive)
-    
-    ROLES: ['Admin']
-    """
-    def has_permission(self, request, view):
-        if not (request.user and request.user.is_authenticated):
-            return False
-        return request.user.roles.filter(name='Admin').exists()

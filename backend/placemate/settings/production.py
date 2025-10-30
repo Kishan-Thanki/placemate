@@ -11,9 +11,15 @@ from decouple import config
 
 print("loading production...")
 
+# --- Production REST_FRAMEWORK Overrides ---
+# Disable the Browsable API in production for security.
+REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
+    'rest_framework.renderers.JSONRenderer',
+)
+
 # --- Core Settings ---
 # Disables detailed error pages for security.
-DEBUG = False
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 # A strict list of the allowed domain names for the live server.
 ALLOWED_HOSTS = [
@@ -32,16 +38,53 @@ DATABASES = {
 # --- CORS & Security ---
 # A strict list of the frontend domains that are allowed to make API requests.
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  
-    "http://127.0.0.1:3000", 
+    "http://localhost:5173",
+    "https://localhost:5173",
+
+    "http://127.0.0.1:5173",  
+    "https://127.0.0.1:5173", 
+
+    "http://localhost:3000",   
+    "https://localhost:3000", 
+
+    "http://127.0.0.1:3000",
+    "https://127.0.0.1:3000",
+
+    "http://localhost:5500",  
+    "https://localhost:5500",  
+
+    "http://127.0.0.1:5500", 
+    "https://127.0.0.1:5500",  
+
     "https://final-frontend-domain.com", 
     "https://www.final-frontend-domain.com",
 ]
 
+# Add these CORS settings:
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
 # A list of trusted origins for CSRF protection.
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",  
-    "http://127.0.0.1:3000",  
+    "http://localhost:5173",
+    "https://localhost:5173",
+
+    "http://127.0.0.1:5173",  
+    "https://127.0.0.1:5173", 
+
+    "http://localhost:3000",   
+    "https://localhost:3000", 
+
+    "http://127.0.0.1:3000",
+    "https://127.0.0.1:3000",
+
+    "http://localhost:5500",  
+    "https://localhost:5500",  
+
+    "http://127.0.0.1:5500", 
+    "https://127.0.0.1:5500", 
+     
     "https://placemate-zzgd.onrender.com", 
     "https://final-frontend-domain.com",  
 ]
@@ -61,12 +104,3 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # user-uploaded media files in the production environment.
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# --- Email ---
-# Overrides the base setting to use a real SMTP service (Gmail) for sending emails in production.
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Building2, CalendarDays, FileText, GraduationCap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout, PageContainer, Section } from '../../components/layout';
 import { StatCard, StatsGrid, Button } from '../../components/ui';
@@ -14,106 +15,22 @@ export function AdminDashboard() {
 
   // Mock data matching the screenshot
   const stats = [
-    {
-      title: 'Companies Visited',
-      value: 15,
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-      ),
-      color: 'blue',
-      trend: '+2 this month',
-      trendDirection: 'up'
-    },
-    {
-      title: 'Drives Conducted',
-      value: 48,
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      ),
-      color: 'purple',
-      trend: '+8 this month',
-      trendDirection: 'up'
-    },
-    {
-      title: 'Total Applications',
-      value: 250,
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      ),
-      color: 'red',
-      trend: '+45 this week',
-      trendDirection: 'up'
-    },
-    {
-      title: 'Students Placed',
-      value: 120,
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-        </svg>
-      ),
-      color: 'green',
-      trend: '+12 this month',
-      trendDirection: 'up'
-    },
+    { title: 'Companies Visited', value: 15, icon: <Building2 className="w-6 h-6" />, color: 'blue', trend: '+2 this month', trendDirection: 'up' },
+    { title: 'Drives Conducted', value: 48, icon: <CalendarDays className="w-6 h-6" />, color: 'purple', trend: '+8 this month', trendDirection: 'up' },
+    { title: 'Total Applications', value: 250, icon: <FileText className="w-6 h-6" />, color: 'red', trend: '+45 this week', trendDirection: 'up' },
+    { title: 'Students Placed', value: 120, icon: <GraduationCap className="w-6 h-6" />, color: 'green', trend: '+12 this month', trendDirection: 'up' },
   ];
 
   // Quick action buttons as shown in the screenshot
   const quickActions = [
-    {
-      id: 'add-drive',
-      label: 'Add New Drive',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-      ),
-      variant: 'primary'
-    },
-    {
-      id: 'view-drives',
-      label: 'View All Drives',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-        </svg>
-      ),
-      variant: 'primary'
-    },
-    {
-      id: 'register-company',
-      label: 'Register Company',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-      ),
-      variant: 'warning'
-    },
-    {
-      id: 'register-student',
-      label: 'Register Student',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
-      variant: 'success'
-    },
+    { id: 'add-drive', label: 'Add New Drive', icon: <CalendarDays className="w-5 h-5" />, variant: 'primary', to: '/admin/drives/new' },
+    { id: 'view-drives', label: 'View All Drives', icon: <FileText className="w-5 h-5" />, variant: 'primary', to: '/admin/drives' },
+    { id: 'register-company', label: 'Register Company', icon: <Building2 className="w-5 h-5" />, variant: 'warning', to: '/admin/companies' },
+    { id: 'register-student', label: 'Register Student', icon: <GraduationCap className="w-5 h-5" />, variant: 'success', to: '/admin/students/register' },
   ];
 
-  const handleQuickAction = (actionId) => {
-    if (actionId === 'register-student') {
-      navigate('/admin/students/register');
-    }
-    // Future: add navigations for other actions when routes are ready
+  const handleQuickAction = (action) => {
+    if (action.to) navigate(action.to);
   };
 
   // Mock chart data for placement trends (we'll create a simple visual representation)
@@ -208,7 +125,7 @@ export function AdminDashboard() {
                 variant={action.variant}
                 className="flex-col h-20 space-y-1"
                 leftIcon={action.icon}
-                onClick={() => handleQuickAction(action.id)}
+                onClick={() => handleQuickAction(action)}
               >
                 <span className="text-xs text-center leading-tight">
                   {action.label}

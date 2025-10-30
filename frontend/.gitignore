@@ -11,6 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+
+# Allow tracking of local library used by the frontend (global gitignore may contain `lib/`)
+!src/lib/
 
 # Editor directories and files
 .vscode/*
