@@ -10,6 +10,7 @@ class CompanySerializer(serializers.ModelSerializer):
     logo = serializers.ImageField(required=False, allow_null=True)
 
     headquarters_city_name = serializers.SerializerMethodField(read_only=True)
+   
 
     class Meta:
         model = Company
