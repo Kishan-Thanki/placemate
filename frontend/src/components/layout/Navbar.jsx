@@ -5,6 +5,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { Bell } from "lucide-react";
 import { fetchJSON } from "../../lib/api";
+import { performLogout } from "../../lib/auth";
 
 /**
  * Main navigation bar for the dashboard
@@ -91,18 +92,7 @@ export function Navbar({ onMenuClick }) {
 
   // Handle sign out
   const handleSignOut = async () => {
-    try {
-      // Call logout API — must include credentials for cookie-based auth
-      await fetchJSON("/api/v1/logout/", {
-        method: "POST",
-        credentials: "include", // ensures cookie is sent
-      });
-    } catch (err) {
-      console.error("Error logging out:", err);
-    } finally {
-      // Use AuthContext logout (handles localStorage and navigation)
-      logout();
-    }
+    await performLogout(logout);
   };
 
   return (

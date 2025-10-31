@@ -40,7 +40,9 @@ export default function App() {
               <Route
                 path="/admin"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <AdminDashboard />
                   </ProtectedRoute>
                 }
@@ -48,7 +50,9 @@ export default function App() {
               <Route
                 path="/admin/students/register"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <StudentRegistration />
                   </ProtectedRoute>
                 }
@@ -56,7 +60,9 @@ export default function App() {
               <Route
                 path="/admin/students"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <RegisteredStudents />
                   </ProtectedRoute>
                 }
@@ -64,7 +70,9 @@ export default function App() {
               <Route
                 path="/admin/students/details"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <StudentDetails />
                   </ProtectedRoute>
                 }
@@ -72,7 +80,9 @@ export default function App() {
               <Route
                 path="/admin/drives"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <CompanyDrives />
                   </ProtectedRoute>
                 }
@@ -80,7 +90,9 @@ export default function App() {
               <Route
                 path="/admin/drives/new"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <DashboardLayout title="Add Drive">
                       <PageContainer>
                         <AddDrive />
@@ -92,7 +104,9 @@ export default function App() {
               <Route
                 path="/admin/drives/new/jobs"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <JobDriveForm />
                   </ProtectedRoute>
                 }
@@ -100,7 +114,9 @@ export default function App() {
               <Route
                 path="/admin/companies"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <CompaniesList />
                   </ProtectedRoute>
                 }
@@ -108,7 +124,9 @@ export default function App() {
               <Route
                 path="/admin/companies/register"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <CompanyRegistration />
                   </ProtectedRoute>
                 }
@@ -116,7 +134,9 @@ export default function App() {
               <Route
                 path="/admin/companies/:id/edit"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <CompanyRegistration />
                   </ProtectedRoute>
                 }
@@ -124,7 +144,9 @@ export default function App() {
               <Route
                 path="/admin/companies/:id"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <CompanyDetails />
                   </ProtectedRoute>
                 }
@@ -132,7 +154,9 @@ export default function App() {
               <Route
                 path="/admin/test-auth"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <TestAuth />
                   </ProtectedRoute>
                 }
@@ -140,7 +164,9 @@ export default function App() {
               <Route
                 path="/admin/applications"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <div className="p-6">Applications Page</div>
                   </ProtectedRoute>
                 }
@@ -148,7 +174,9 @@ export default function App() {
               <Route
                 path="/admin/spc"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
                     <DashboardLayout title="Register Cell Member">
                       <PageContainer>
                         <RegisterCellMember />

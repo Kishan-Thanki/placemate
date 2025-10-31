@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
+import RoleSwitcher from "../RoleSwitcher";
 import {
   LayoutDashboard,
   Building2,
@@ -262,12 +263,19 @@ export function Sidebar({ isOpen, onClose }) {
             </div>
           </nav>
 
-          {/* ✅ Sidebar Footer: Theme toggle + Profile */}
+          {/* ✅ Sidebar Footer: Role switcher + Theme toggle + Profile */}
           <div
             className={`${collapsed ? "px-2" : "px-3"} py-3 border-t ${
               isDark ? "border-gray-700" : "border-gray-200"
             } space-y-2`}
           >
+            {/* Role Switcher - Only show if not collapsed and user has multiple roles */}
+            {!collapsed && (
+              <div className="mb-2">
+                <RoleSwitcher />
+              </div>
+            )}
+
             <button
               onClick={toggleTheme}
               className={`w-full ${
