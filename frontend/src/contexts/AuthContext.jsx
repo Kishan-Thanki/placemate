@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const navigate = useNavigate();
 
   // Check for stored user on mount
@@ -34,6 +35,19 @@ export const AuthProvider = ({ children }) => {
   const login = (userData) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
+  };
+
+  const switchRole = (newRole) => {
+    setIsSwitchingRole(true);
+    // Update user with new active role
+    const updatedUser = {
+      ...user,
+      activeRole: newRole,
+    };
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    // Reset switching flag after a brief delay
+    setTimeout(() => setIsSwitchingRole(false), 200);
   };
 
   const logout = () => {
@@ -74,6 +88,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     login,
+    switchRole,
     logout,
     hasRole,
     isActiveRole,
@@ -82,6 +97,7 @@ export const AuthProvider = ({ children }) => {
     canAccessStudentPanel,
     loading,
     isLoggingOut,
+    isSwitchingRole,
     isAuthenticated: !!user,
   };
 

@@ -17,6 +17,7 @@ export function StudentNavbar({ onMenuClick }) {
   const { user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Mock notifications (replace with real data later)
   const notifications = [
@@ -42,7 +43,13 @@ export function StudentNavbar({ onMenuClick }) {
 
   // Handle sign out
   const handleSignOut = async () => {
-    await performLogout(logout);
+    setIsLoggingOut(true);
+    try {
+      await performLogout(logout);
+    } catch (error) {
+      console.error("Logout error:", error);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -116,7 +123,7 @@ export function StudentNavbar({ onMenuClick }) {
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className={`
-                  p-2 rounded-lg transition-colors relative
+                  p-2 rounded-lg transition-colors relative cursor-pointer
                   ${
                     isDark
                       ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -209,7 +216,7 @@ export function StudentNavbar({ onMenuClick }) {
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className={`
-                  flex items-center space-x-2 p-2 rounded-lg transition-colors
+                  flex items-center space-x-2 p-2 rounded-lg transition-colors cursor-pointer
                   ${
                     isDark
                       ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -279,16 +286,44 @@ export function StudentNavbar({ onMenuClick }) {
                     >
                       <button
                         onClick={handleSignOut}
+                        disabled={isLoggingOut}
                         className={`
-                        block w-full text-left px-4 py-2 text-sm transition-colors
+                        flex items-center gap-2 w-full text-left px-4 py-2 text-sm transition-colors
                         ${
                           isDark
                             ? "text-red-400 hover:bg-gray-700"
                             : "text-red-600 hover:bg-gray-100"
                         }
+                        ${
+                          isLoggingOut
+                            ? "opacity-50 cursor-not-allowed"
+                            : "cursor-pointer"
+                        }
                       `}
                       >
-                        Sign Out
+                        {isLoggingOut ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                            <span>Logging out...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                              />
+                            </svg>
+                            <span>Sign Out</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>

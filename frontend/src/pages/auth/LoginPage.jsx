@@ -179,7 +179,7 @@ export default function LoginPage() {
             <button
               onClick={toggleTheme}
               className={`
-                absolute top-4 right-4 p-3 rounded-lg transition-colors
+                absolute top-4 right-4 p-3 rounded-lg transition-colors cursor-pointer
                 ${
                   isDark
                     ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -279,14 +279,17 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full rounded-md py-2 font-medium transition-colors text-white
+                  className={`w-full rounded-md py-2 font-medium transition-colors text-white flex items-center justify-center gap-2
                     ${
                       loading
                         ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-[var(--primary-500)] hover:bg-[var(--primary-600)]"
+                        : "bg-[var(--primary-500)] hover:bg-[var(--primary-600)] cursor-pointer"
                     }
                   `}
                 >
+                  {loading && (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                  )}
                   {loading ? "Logging in..." : "Log In"}
                 </button>
               </div>

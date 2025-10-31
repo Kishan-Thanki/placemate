@@ -6,16 +6,35 @@ import { fetchJSON } from "../lib/api";
 
 /**
  * RoleSwitcher component - Allows users with multiple roles to switch between them
+ * Security: Only allows switching to Student role from Admin/SPC (downgrading)
  */
 export default function RoleSwitcher() {
-  const { user, login } = useAuth();
+  const { user, switchRole } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
 
-  // Don't show if user doesn't have multiple roles
-  if (!user || !user.roles || user.roles.length <= 1) {
+  // Define role hierarchy (higher number = higher privilege)
+  const roleHierarchy = {
+    Student: 1,
+    "Student Placement Cell": 2,
+    Admin: 3,
+  };
+
+  // Get current role level
+  const currentRoleLevel = roleHierarchy[user?.activeRole] || 0;
+
+  // Filter roles: Only show roles with equal or lower privilege (security measure)
+  // Students cannot switch to Admin/SPC, but Admin/SPC can switch to Student
+  const switchableRoles =
+    user?.roles?.filter((role) => {
+      const roleLevel = roleHierarchy[role] || 0;
+      return roleLevel <= currentRoleLevel;
+    }) || [];
+
+  // Don't show if user doesn't have switchable roles
+  if (!user || !user.roles || switchableRoles.length <= 1) {
     return null;
   }
 
@@ -42,23 +61,18 @@ export default function RoleSwitcher() {
       );
 
       if (ok && result?.success) {
-        // Update user with new active role
-        const updatedUser = {
-          ...user,
-          activeRole: selectedRole,
-        };
-
-        login(updatedUser);
+        // Use switchRole to update the user with proper state management
+        switchRole(selectedRole);
         setIsOpen(false);
 
-        // Navigate to appropriate dashboard
+        // Navigate to appropriate dashboard with replace to avoid access denied errors
         const normalizedRole = selectedRole.toLowerCase();
         if (normalizedRole === "admin") {
-          navigate("/admin");
+          navigate("/admin", { replace: true });
         } else if (normalizedRole === "student placement cell") {
-          navigate("/admin");
+          navigate("/admin", { replace: true });
         } else if (normalizedRole === "student") {
-          navigate("/student");
+          navigate("/student", { replace: true });
         }
       }
     } catch (err) {
@@ -120,10 +134,10 @@ export default function RoleSwitcher() {
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Dropdown */}
+          {/* Dropdown - Fixed positioning to prevent overflow */}
           <div
             className={`
-              absolute right-0 mt-2 w-64 rounded-lg shadow-lg z-40
+              absolute left-0 bottom-full mb-2 w-64 rounded-lg shadow-lg z-40
               ${
                 isDark
                   ? "bg-gray-800 border border-gray-700"
@@ -144,10 +158,19 @@ export default function RoleSwitcher() {
               >
                 Switch Role
               </p>
+              {currentRoleLevel > 1 && (
+                <p
+                  className={`text-xs mt-1 ${
+                    isDark ? "text-gray-500" : "text-gray-500"
+                  }`}
+                >
+                  🔒 Security: Can only switch to lower privilege roles
+                </p>
+              )}
             </div>
 
             <div className="py-2">
-              {user.roles.map((role) => (
+              {switchableRoles.map((role) => (
                 <button
                   key={role}
                   onClick={() => handleRoleSwitch(role)}
