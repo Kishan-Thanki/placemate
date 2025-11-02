@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -24,22 +24,39 @@ export default function Home() {
   const { isDark, toggleTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Show alert if redirected with error message
+  // Show alert if redirected with error message (but not from logout)
   useEffect(() => {
-    if (location.state?.error) {
+    console.log("🏠 Home - location.state:", location.state);
+    console.log("🏠 Home - isAuthenticated:", isAuthenticated);
+
+    // Don't show error if this navigation came from logout
+    if (location.state?.fromLogout) {
+      console.log("✅ Logout detected, hiding alert");
+      setShowAlert(false); // Immediately hide any existing alert
+      setAlertMessage(""); // Clear any existing message
+      // Clear the logout flag from state
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
+    // Show error message if present and not empty
+    if (location.state?.error && location.state.error.trim() !== "") {
+      console.log("⚠️ Showing error:", location.state.error);
       setAlertMessage(location.state.error);
       setShowAlert(true);
-      // Clear the error from location state
-      window.history.replaceState({}, document.title);
+
+      // Clear the error from location state using React Router
+      navigate(location.pathname, { replace: true, state: {} });
 
       // Auto-hide after 5 seconds
       const timer = setTimeout(() => setShowAlert(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, [location]);
+  }, [location.state, location.pathname, navigate, isAuthenticated]);
 
   const features = [
     {

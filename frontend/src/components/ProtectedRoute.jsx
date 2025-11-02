@@ -15,7 +15,8 @@ export const ProtectedRoute = ({
   allowedRoles = [],
   requireAuth = true,
 }) => {
-  const { user, loading, isActiveRole } = useAuth();
+  const { user, loading, isActiveRole, isLoggingOut, isSwitchingRole } =
+    useAuth();
   const { isDark } = useTheme();
   const location = useLocation();
 
@@ -43,6 +44,11 @@ export const ProtectedRoute = ({
 
   // Check if authentication is required
   if (requireAuth && !user) {
+    // Don't redirect with error if user is actively logging out
+    if (isLoggingOut) {
+      return null; // Return nothing during logout to prevent error flash
+    }
+
     // Store the attempted URL to redirect after login
     return (
       <Navigate
@@ -61,6 +67,11 @@ export const ProtectedRoute = ({
     const hasRequiredRole = rolesArray.some((role) => isActiveRole(role));
 
     if (!hasRequiredRole) {
+      // Don't redirect with error if user is actively switching roles
+      if (isSwitchingRole) {
+        return null; // Return nothing during role switch to prevent error flash
+      }
+
       // User doesn't have the required role
       return (
         <Navigate

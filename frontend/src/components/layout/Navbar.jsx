@@ -5,6 +5,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { Bell } from "lucide-react";
 import { fetchJSON } from "../../lib/api";
+import { performLogout } from "../../lib/auth";
 
 /**
  * Main navigation bar for the dashboard
@@ -16,6 +17,7 @@ export function Navbar({ onMenuClick }) {
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Refs for click-outside detection
   const profileRef = useRef(null);
@@ -91,17 +93,12 @@ export function Navbar({ onMenuClick }) {
 
   // Handle sign out
   const handleSignOut = async () => {
+    setIsLoggingOut(true);
     try {
-      // Call logout API — must include credentials for cookie-based auth
-      await fetchJSON("/api/v1/logout/", {
-        method: "POST",
-        credentials: "include", // ensures cookie is sent
-      });
-    } catch (err) {
-      console.error("Error logging out:", err);
-    } finally {
-      // Use AuthContext logout (handles localStorage and navigation)
-      logout();
+      await performLogout(logout);
+    } catch (error) {
+      console.error("Logout error:", error);
+      setIsLoggingOut(false);
     }
   };
 
@@ -119,7 +116,7 @@ export function Navbar({ onMenuClick }) {
             <button
               onClick={onMenuClick}
               className={`
-                lg:hidden p-2 rounded-md transition-colors
+                lg:hidden p-2 rounded-md transition-colors cursor-pointer
                 ${
                   isDark
                     ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -203,7 +200,7 @@ export function Navbar({ onMenuClick }) {
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className={`
-                  p-2 rounded-lg transition-colors relative
+                  p-2 rounded-lg transition-colors relative cursor-pointer
                   ${
                     isDark
                       ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -289,7 +286,7 @@ export function Navbar({ onMenuClick }) {
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className={`
-                  flex items-center space-x-2 p-2 rounded-lg transition-colors
+                  flex items-center space-x-2 p-2 rounded-lg transition-colors cursor-pointer
                   ${
                     isDark
                       ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -380,13 +377,40 @@ export function Navbar({ onMenuClick }) {
                     >
                       <button
                         onClick={handleSignOut}
-                        className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        disabled={isLoggingOut}
+                        className={`flex items-center gap-2 w-full text-left px-4 py-2 text-sm transition-colors ${
                           isDark
                             ? "text-red-400 hover:bg-gray-700"
                             : "text-red-600 hover:bg-gray-100"
+                        } ${
+                          isLoggingOut
+                            ? "opacity-50 cursor-not-allowed"
+                            : "cursor-pointer"
                         }`}
                       >
-                        Sign Out
+                        {isLoggingOut ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                            <span>Logging out...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                              />
+                            </svg>
+                            <span>Sign Out</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>

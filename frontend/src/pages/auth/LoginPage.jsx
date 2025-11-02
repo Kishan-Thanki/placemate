@@ -4,6 +4,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import logoUrl from "../../assets/placemate.png";
 import { fetchJSON } from "../../lib/api";
+import RoleSelectionModal from "../../components/RoleSelectionModal";
 
 export default function LoginPage() {
   const { toggleTheme, isDark } = useTheme();
@@ -12,6 +13,10 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [userEmail, setUserEmail] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,47 +32,141 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include",
+        credentials: "include", // Important for cookies
       });
 
+      console.log("🔍 Login API Full Response:", { ok, result });
+
       if (ok && result?.success) {
-        const user = result.data?.user;
-        const activeRole = result.data?.active_role;
-        const availableRoles = result.data?.available_roles || [];
+        console.log("🔍 Login API Response:", result);
 
-        if (!user) {
-          throw new Error("User data missing in response.");
-        }
-
-        const storedUser = {
-          id: user.id,
-          email: user.email,
-          firstName: user.first_name,
-          lastName: user.last_name,
-          roles: availableRoles, // full array from API
-          activeRole: activeRole, // currently active role
-        };
-
-        // Use AuthContext login
-        login(storedUser);
-
-        // Navigate based on active role
-        const role = activeRole?.toLowerCase();
-        if (role === "student") {
-          navigate("/student");
-        } else if (role === "admin") {
-          navigate("/admin");
+        // Check if role selection is required
+        if (
+          result.data?.requires_role_selection &&
+          result.data?.available_roles
+        ) {
+          // Multiple roles - show role selection modal
+          setUserId(result.data.user_id);
+          setUserEmail(result.data.email);
+          setAvailableRoles(result.data.available_roles);
+          setShowRoleModal(true);
+          setLoading(false);
         } else {
-          navigate("/");
+          // Single role - direct login
+          // For single role, backend doesn't return user_id/email in response
+          // We need to use the email from the form
+          setUserId(null); // Backend doesn't provide this for single role
+          setUserEmail(email); // Use the email from login form
+          handleSuccessfulLogin(result);
         }
       } else {
-        setErrorMsg(result?.message || "Invalid email or password.");
+        console.error("❌ Login failed:", result);
+        setErrorMsg(
+          result?.message || result?.error || "Invalid email or password."
+        );
+        setLoading(false);
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("❌ Login error:", err);
       setErrorMsg("Network error. Please try again later.");
-    } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRoleSelection = async (selectedRole) => {
+    setLoading(true);
+    setErrorMsg("");
+
+    try {
+      const { ok, data: result } = await fetchJSON(
+        "/api/v1/users/auth/select-role/",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            role: selectedRole,
+          }),
+          credentials: "include", // Important for cookies
+        }
+      );
+
+      if (ok && result?.success) {
+        console.log("🔍 Role Selection API Response:", result);
+        handleSuccessfulLogin(result, selectedRole);
+      } else {
+        setErrorMsg(result?.message || "Failed to select role.");
+        setShowRoleModal(false);
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Role selection error:", err);
+      setErrorMsg("Network error during role selection.");
+      setShowRoleModal(false);
+      setLoading(false);
+    }
+  };
+
+  const handleSuccessfulLogin = (result, selectedRole = null) => {
+    console.log("📝 handleSuccessfulLogin called with:", {
+      result,
+      selectedRole,
+    });
+
+    // Extract user data and tokens
+    const activeRole = selectedRole || result.data?.active_role;
+    const availableRoles = result.data?.available_roles || [];
+
+    // Note: result.data.user is an array of role objects, not user data
+    // User info was captured during initial login or role selection
+    console.log("🔍 Extracted data:", {
+      activeRole,
+      availableRoles,
+      userId,
+      userEmail,
+    });
+
+    // Note: Tokens are stored as httpOnly cookies by the backend
+    // They are NOT in the response and cannot be accessed by JavaScript
+    // This is more secure - cookies are automatically sent with each request
+    console.log(
+      "✅ Tokens are stored as httpOnly cookies (not accessible via JS)"
+    );
+
+    // Prepare user object using the email and userId captured during login
+    const storedUser = {
+      id: userId,
+      email: userEmail,
+      firstName: result.data?.first_name || "", // May not be in response
+      lastName: result.data?.last_name || "", // May not be in response
+      roles: availableRoles,
+      activeRole: activeRole,
+    };
+
+    console.log("👤 Stored user object:", storedUser);
+
+    // Use AuthContext login
+    login(storedUser);
+
+    // Close modal if open
+    setShowRoleModal(false);
+
+    // Navigate based on active role
+    redirectBasedOnRole(activeRole);
+  };
+
+  const redirectBasedOnRole = (role) => {
+    const normalizedRole = role?.toLowerCase();
+
+    if (normalizedRole === "admin") {
+      navigate("/admin");
+    } else if (normalizedRole === "student placement cell") {
+      // Temporary: redirect to admin dashboard (same as admin)
+      navigate("/admin");
+    } else if (normalizedRole === "student") {
+      navigate("/student");
+    } else {
+      navigate("/");
     }
   };
 
@@ -80,7 +179,7 @@ export default function LoginPage() {
             <button
               onClick={toggleTheme}
               className={`
-                absolute top-4 right-4 p-3 rounded-lg transition-colors
+                absolute top-4 right-4 p-3 rounded-lg transition-colors cursor-pointer
                 ${
                   isDark
                     ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -180,14 +279,17 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full rounded-md py-2 font-medium transition-colors text-white
+                  className={`w-full rounded-md py-2 font-medium transition-colors text-white flex items-center justify-center gap-2
                     ${
                       loading
                         ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-[var(--primary-500)] hover:bg-[var(--primary-600)]"
+                        : "bg-[var(--primary-500)] hover:bg-[var(--primary-600)] cursor-pointer"
                     }
                   `}
                 >
+                  {loading && (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                  )}
                   {loading ? "Logging in..." : "Log In"}
                 </button>
               </div>
@@ -199,6 +301,19 @@ export default function LoginPage() {
           </footer>
         </div>
       </div>
+
+      {/* Role Selection Modal */}
+      {showRoleModal && (
+        <RoleSelectionModal
+          roles={availableRoles}
+          onSelectRole={handleRoleSelection}
+          onClose={() => {
+            setShowRoleModal(false);
+            setLoading(false);
+          }}
+          loading={loading}
+        />
+      )}
     </div>
   );
 }
