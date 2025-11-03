@@ -58,6 +58,7 @@ class StudentRegistrationSerializer(serializers.Serializer):
         profile_data = {
             'enrollment_number': validated_data.pop('enrollment_number'),
             'program': validated_data.pop('program'),
+            'joining_year': validated_data.pop('joining_year'),
         }
         
         # Generate secure random password
