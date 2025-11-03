@@ -28,14 +28,14 @@ export default function LoginPage() {
     const password = data.get("password");
 
     try {
-      const { ok, data: result } = await fetchJSON("/api/v1/token/", {
+      const { ok, message, data: result } = await fetchJSON("/api/v1/token/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
         credentials: "include", // Important for cookies
       });
 
-      console.log("🔍 Login API Full Response:", { ok, result });
+      console.log("🔍 Login API Full Response:", { ok, message, result });
 
       if (ok && result?.success) {
         console.log("🔍 Login API Response:", result);
@@ -60,15 +60,13 @@ export default function LoginPage() {
           handleSuccessfulLogin(result);
         }
       } else {
-        console.error("❌ Login failed:", result);
-        setErrorMsg(
-          result?.message || result?.error || "Invalid email or password."
-        );
+        console.error("❌ Login failed:", { message, result });
+        setErrorMsg(message || "Invalid email or password.");
         setLoading(false);
       }
     } catch (err) {
       console.error("❌ Login error:", err);
-      setErrorMsg("Network error. Please try again later.");
+      setErrorMsg(err.message || "Network error. Please try again later.");
       setLoading(false);
     }
   };
@@ -78,7 +76,7 @@ export default function LoginPage() {
     setErrorMsg("");
 
     try {
-      const { ok, data: result } = await fetchJSON(
+      const { ok, message, data: result } = await fetchJSON(
         "/api/v1/users/auth/select-role/",
         {
           method: "POST",
@@ -95,13 +93,14 @@ export default function LoginPage() {
         console.log("🔍 Role Selection API Response:", result);
         handleSuccessfulLogin(result, selectedRole);
       } else {
-        setErrorMsg(result?.message || "Failed to select role.");
+        console.error("❌ Role selection failed:", { message, result });
+        setErrorMsg(message || "Failed to select role.");
         setShowRoleModal(false);
         setLoading(false);
       }
     } catch (err) {
-      console.error("Role selection error:", err);
-      setErrorMsg("Network error during role selection.");
+      console.error("❌ Role selection error:", err);
+      setErrorMsg(err.message || "Network error during role selection.");
       setShowRoleModal(false);
       setLoading(false);
     }
@@ -234,8 +233,10 @@ export default function LoginPage() {
             </div>
 
             {errorMsg && (
-              <div className="text-red-500 text-sm bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-md p-2 mb-3 text-center">
-                {errorMsg}
+              <div className="text-red-500 text-sm bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-md p-2 mb-3 space-y-1">
+                {errorMsg.split('\n').map((line, index) => (
+                  <div key={index} className="text-center">{line}</div>
+                ))}
               </div>
             )}
 
