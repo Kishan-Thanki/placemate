@@ -32,7 +32,7 @@ class StudentProfile(models.Model):
     active_backlogs = models.IntegerField(default=0)
     tenth_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     twelfth_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    
+    joining_year = models.IntegerField(null=False, blank=False,default=2024) 
     is_placed = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
