@@ -34,7 +34,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/auth/login" element={<LoginPage />} />
               <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
-              <Route path="/auth/reset" element={<ResetPasswordPage />} />
+              <Route path="/auth/reset/:token" element={<ResetPasswordPage />} />
 
               {/* Admin routes - protected */}
               <Route
