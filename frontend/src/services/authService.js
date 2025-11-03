@@ -14,34 +14,36 @@ export const authService = {
    * @returns {Promise<Object>} Response from the API
    */
   requestPasswordReset: async (email) => {
-    try {
-      const { ok, data, status } = await fetchJSON(
-        `${AUTH_ENDPOINT}/password-reset/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-          credentials: "include",
-        }
-      );
+  try {
+    console.log("🔄 Requesting password reset for:", email);
 
-      if (!ok) {
-        throw new Error(
-          data?.detail || 
-          data?.message || 
-          `Failed to send password reset email (${status})`
-        );
+    const { ok, message, status, raw } = await fetchJSON(
+      `${AUTH_ENDPOINT}/password-reset/`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+        credentials: "include",
       }
+    );
 
-      console.log("✅ Password reset email sent:", data);
-      return data;
-    } catch (error) {
-      console.error("❌ Password reset request failed:", error);
-      throw error;
+    console.log("📥 Password reset response:", { ok, status, message, raw });
+
+    if (!ok) {
+      const errorMessage =
+        message || `Failed to send password reset email (${status})`;
+      throw new Error(errorMessage);
     }
-  },
+
+    console.log("✅ Password reset email sent successfully!");
+    return { message: message || "Reset email sent successfully" };
+  } catch (error) {
+    console.error("❌ Password reset request failed:", error);
+    throw error; // Pass error to UI
+  }
+},
+
+
 
   /**
    * Confirm password reset with token
@@ -49,36 +51,33 @@ export const authService = {
    * @param {string} password - New password
    * @returns {Promise<Object>} Response from the API
    */
-  confirmPasswordReset: async (token, password) => {
-    try {
-      const { ok, data, status } = await fetchJSON(
-        `${AUTH_ENDPOINT}/password-reset/confirm/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token, password }),
-          credentials: "include",
-        }
-      );
+  confirmPasswordReset: async (token, newPassword) => {
+  try {
+    console.log("🔄 Confirming password reset with token:", token);
 
-      if (!ok) {
-        throw new Error(
-          data?.detail || 
-          data?.message || 
-          data?.password?.[0] ||
-          `Failed to reset password (${status})`
-        );
+    const { ok, message, status, data } = await fetchJSON(
+      `${AUTH_ENDPOINT}/password-reset/confirm/`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password: newPassword }),
+        credentials: "include",
       }
+    );
 
-      console.log("✅ Password reset successful:", data);
-      return data;
-    } catch (error) {
-      console.error("❌ Password reset confirmation failed:", error);
-      throw error;
+    console.log("📥 Confirm reset response:", { ok, status, message, data });
+
+    if (!ok) {
+      throw new Error(message || `Password reset failed (${status})`);
     }
-  },
+
+    return data;
+  } catch (error) {
+    console.error("❌ Password reset confirmation failed:", error);
+    throw error;
+  }
+},
+
 
   /**
    * Validate password reset token
@@ -100,11 +99,22 @@ export const authService = {
       );
 
       if (!ok) {
-        throw new Error(
-          data?.detail || 
-          data?.message || 
-          `Invalid or expired token (${status})`
-        );
+        console.error("❌ Token validation failed - Full data:", data);
+        
+        let errorMessage = null;
+        if (data) {
+          if (data.token && Array.isArray(data.token)) {
+            errorMessage = data.token.join('\n');
+          } else if (data.token && typeof data.token === 'string') {
+            errorMessage = data.token;
+          } else if (data.detail) {
+            errorMessage = data.detail;
+          } else if (data.message) {
+            errorMessage = data.message;
+          }
+        }
+        
+        throw new Error(errorMessage || `Invalid or expired token (${status})`);
       }
 
       console.log("✅ Token is valid:", data);

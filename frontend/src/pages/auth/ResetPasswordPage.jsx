@@ -48,6 +48,13 @@ export default function ResetPasswordPage() {
     const password = data.get('password');
     const confirm = data.get('confirm');
 
+    console.log('🔐 Password reset form submission:', {
+      token: token,
+      tokenLength: token?.length,
+      passwordLength: password?.length,
+      passwordsMatch: password === confirm,
+    });
+
     // Client-side validation
     if (!password || password.length < 8) {
       setError('Password should be at least 8 characters');
@@ -135,8 +142,10 @@ export default function ResetPasswordPage() {
             ) : !changed ? (
               <form className="space-y-4" onSubmit={handleSubmit}>
                 {error && (
-                  <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-600 text-sm">
-                    {error}
+                  <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-600 text-sm space-y-1">
+                    {error.split('\n').map((line, index) => (
+                      <div key={index}>{line}</div>
+                    ))}
                   </div>
                 )}
                 <div>

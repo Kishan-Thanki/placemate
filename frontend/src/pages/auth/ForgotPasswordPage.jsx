@@ -24,8 +24,10 @@ export default function ForgotPasswordPage() {
       setSent(true);
     } catch (err) {
       console.error('❌ Failed to send password reset email:', err);
+      // The error message is already extracted in authService
       setError(err.message || 'Failed to send reset email. Please try again.');
-    } finally {
+    }
+ finally {
       setLoading(false);
     }
   };
@@ -77,8 +79,10 @@ export default function ForgotPasswordPage() {
             {!sent ? (
               <form className="space-y-4" onSubmit={handleSubmit}>
                 {error && (
-                  <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-600 text-sm">
-                    {error}
+                  <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-600 text-sm space-y-1">
+                    {error.split('\n').map((line, index) => (
+                      <div key={index}>{line}</div>
+                    ))}
                   </div>
                 )}
                 <div>
