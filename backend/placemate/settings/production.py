@@ -26,7 +26,7 @@ ALLOWED_HOSTS = [
     ".onrender.com", 
     "localhost",
     "127.0.0.1",
-    "final-production-domain.com", 
+    "https://placemate-three.vercel.app", 
 ]
 
 # --- Database ---
