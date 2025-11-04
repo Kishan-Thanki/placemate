@@ -5,9 +5,9 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
-import { StudentRegistration } from "./pages/admin/StudentRegistration";
-import { RegisteredStudents } from "./pages/admin/RegisteredStudents";
-import StudentDetails from "./pages/admin/StudentDetails";
+import { StudentRegistration } from "./pages/admin/student/StudentRegistration";
+import { RegisteredStudents } from "./pages/admin/student/RegisteredStudents";
+import StudentDetails from "./pages/admin//student/StudentDetails";
 import JobDriveForm from "./pages/admin/JobDriveForm";
 import RegisterCellMember from "./components/RegisterCellMember";
 import AddDrive from "./components/AddDrive";
@@ -21,7 +21,9 @@ import { StudentDrives } from "./pages/student/StudentDrives";
 import CompaniesList from "./pages/admin/company/CompaniesList";
 import CompanyDetails from "./pages/admin/company/CompanyDetails";
 import { CompanyDrives } from "./pages/admin/drive/DrivesList";
-import TestAuth from "./pages/admin/TestAuth";
+import PlacementDrivesList from "./pages/admin/placement/PlacementDrivesList";
+import PlacementDriveForm from "./pages/admin/placement/PlacementDriveForm";
+import PlacementDriveDetails from "./pages/admin/placement/PlacementDriveDetails";
 
 export default function App() {
   return (
@@ -152,12 +154,42 @@ export default function App() {
                 }
               />
               <Route
-                path="/admin/test-auth"
+                path="/admin/placement-drives"
                 element={
                   <ProtectedRoute
                     allowedRoles={["admin", "student placement cell"]}
                   >
-                    <TestAuth />
+                    <PlacementDrivesList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/placement-drives/new"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
+                    <PlacementDriveForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/placement-drives/:id"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
+                    <PlacementDriveDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/placement-drives/:id/edit"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
+                    <PlacementDriveForm />
                   </ProtectedRoute>
                 }
               />

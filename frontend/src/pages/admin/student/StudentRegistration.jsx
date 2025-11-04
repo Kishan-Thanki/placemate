@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { DashboardLayout, PageContainer, Section } from '../../components/layout';
-import { Button, Card } from '../../components/ui';
-import { useTheme } from '../../contexts/ThemeContext';
+import { DashboardLayout, PageContainer, Section } from '../../../components/layout';
+import { Button, Card } from '../../../components/ui';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 export function StudentRegistration() {
   const { isDark } = useTheme();
