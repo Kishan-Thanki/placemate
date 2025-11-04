@@ -17,7 +17,7 @@ class CompanyDrive(models.Model):
     JOB_MODES = [('Onsite', 'Onsite'), ('Remote', 'Remote'), ('Hybrid', 'Hybrid')]
     STATUS_CHOICES = [('Open', 'Open'), ('Closed', 'Closed')]
     
-    drive = models.ForeignKey(PlacementDrive, on_delete=models.CASCADE, related_name="company_drives")
+    placement_drive = models.ForeignKey(PlacementDrive, on_delete=models.CASCADE, related_name="company_drives")
     company = models.ForeignKey('companies.Company', on_delete=models.CASCADE, related_name="placement_drives")
     drive_type = models.CharField(max_length=20, choices=DRIVE_TYPES)
     job_mode = models.CharField(max_length=20, choices=JOB_MODES)
@@ -28,15 +28,15 @@ class CompanyDrive(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    class Meta:
-        unique_together = ('drive', 'company')
+    # class Meta:
+    #     unique_together = ('drive', 'company')
         
     def __str__(self):
         return f"{self.company.name} - {self.drive.title}"
 
 
 class Job(models.Model):
-    drive = models.ForeignKey(CompanyDrive, on_delete=models.CASCADE, related_name='jobs')
+    company_drive = models.ForeignKey(CompanyDrive, on_delete=models.CASCADE, related_name='jobs')
     title = models.CharField(max_length=255)
     description_ug = models.TextField(null=True, blank=True)
     description_pg = models.TextField(null=True, blank=True)

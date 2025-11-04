@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Campus Job Opportunity</title>
+    <style>
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+                padding: 10px !important;
+            }
+            .button {
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+            }
+            .job-role {
+                display: block !important;
+                margin: 4px 0 !important;
+            }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc;">
+
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <!-- Main Card -->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center;">
+                            <h1 style="color: white; font-size: 24px; font-weight: 600; margin: 0;">New Campus Drive</h1>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; margin: 8px 0 0 0;">{{ company_name }}</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 32px 24px;">
+                            <p style="color: #64748b; font-size: 16px; margin: 0 0 16px 0;">Hello,</p>
+                            <p style="color: #64748b; font-size: 16px; margin: 0 0 24px 0;">
+                                We're excited to announce new job opportunities from <strong>{{ company_name }}</strong> that match your profile.
+                            </p>
+
+                            <!-- Job Roles Section -->
+                            <div style="margin: 24px 0;">
+                                <h3 style="color: #334155; font-size: 18px; margin: 0 0 12px 0;">Available Positions:</h3>
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    {% for role in job_roles %}
+                                    <tr>
+                                        <td style="padding: 8px 0;">
+                                            <span style="color: #475569; background: #f1f5f9; padding: 6px 12px; border-radius: 16px; font-size: 14px; display: inline-block; margin: 2px 4px 2px 0;" class="job-role">
+                                                {{ role }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            </div>
+
+                            <!-- Deadline Card -->
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <p style="color: #ea580c; font-size: 14px; margin: 0; font-weight: 500;">
+                                            ⏰ Application Deadline: {{ deadline }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- CTA Button -->
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 32px 0 24px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{ drive_url }}" style="background: #3b82f6; color: white; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: 500; display: inline-block; font-size: 16px;" class="button">
+                                            Apply Now
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="color: #64748b; font-size: 14px; margin: 0; text-align: center;">
+                                Don't miss this opportunity to kickstart your career with {{ company_name }}.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: #f1f5f9; padding: 20px; text-align: center;">
+                            <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+                                &copy; 2025 Placemate. All rights reserved.
+                            </p>
+                            <p style="color: #94a3b8; font-size: 12px; margin: 8px 0 0 0;">
+                                <a href="#" style="color: #64748b; text-decoration: none;">Unsubscribe</a> • 
+                                <a href="#" style="color: #64748b; text-decoration: none;">Privacy Policy</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
