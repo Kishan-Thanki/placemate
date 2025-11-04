@@ -3,6 +3,12 @@ from rest_framework import serializers
 from apps.core.serializers import ProgramSerializer
 from apps.companies.serializers import CompanySerializer
 from .models import PlacementDrive, CompanyDrive, Job, JobProgram
+from apps.core.models import Program
+from apps.students.models import StudentProfile
+from django.utils import timezone
+from django.db.models import Q
+from django.conf import settings
+from .utils import send_drive_notification
 
 class PlacementDriveSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,13 +19,13 @@ class PlacementDriveSerializer(serializers.ModelSerializer):
 
 class CompanyDriveReadSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
-    drive = PlacementDriveSerializer(read_only=True)
+    placement_drive = PlacementDriveSerializer(read_only=True)
     jobs_count = serializers.SerializerMethodField()
     
     class Meta:
         model = CompanyDrive
         fields = [
-            'id', 'drive', 'company', 'drive_type', 'job_mode',
+            'id', 'placement_drive', 'company', 'drive_type', 'job_mode',
             'application_deadline', 'status', 'rounds', 'locations',
             'created_at', 'updated_at', 'jobs_count'
         ]
@@ -39,7 +45,7 @@ class JobWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = [
-            'drive',  
+            'id','company_drive',
             'title', 'description_ug', 'description_pg', 'job_pdf',
             'min_ug_cgpa', 'min_pg_cgpa', 'min_tenth_percentage', 'min_twelfth_percentage',
             'max_active_backlogs', 'ug_package_min', 'ug_package_max', 'pg_package_min',
@@ -60,17 +66,62 @@ class JobWriteSerializer(serializers.ModelSerializer):
                 JobProgram.objects.create(job=job, program_id=program_id)
             else:
                 print(f"Warning: Skipped duplicate JobProgram: Job {job.id} -> Program {program_id}")
-        
-        return job
 
+        company_drive = job.company_drive
+        program_ids = set()
+        drive_jobs = company_drive.jobs.all()
+        job_titles = []
+        for job in drive_jobs:
+            job_programs = job.eligible_programs.values_list('id', flat=True)
+            program_ids.update(job_programs)
+            job_titles.append(job.title)
+
+        send_drive_notification(company_drive.company.name, company_drive.application_deadline, program_ids, job_titles)
+        return job
+        
+
+class CompanyDriveJobSerializer(serializers.ModelSerializer):
+    eligible_programs = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+        default=[]
+    )
+    
+    class Meta:
+        model = Job
+        fields = [
+            'id','title', 'description_ug', 'description_pg', 'job_pdf',
+            'min_ug_cgpa', 'min_pg_cgpa', 'min_tenth_percentage', 'min_twelfth_percentage',
+            'max_active_backlogs', 'ug_package_min', 'ug_package_max', 'pg_package_min',
+            'pg_package_max', 'ug_stipend', 'pg_stipend', 'eligible_programs'
+        ]
+    
+    def create(self, validated_data):
+        eligible_programs = validated_data.pop('eligible_programs', [])
+        job = Job.objects.create(**validated_data)
+        
+        for program_id in eligible_programs:
+            relation_exists = JobProgram.objects.filter(
+                job=job, 
+                program_id=program_id
+            ).exists()
+            
+            if not relation_exists:
+                JobProgram.objects.create(job=job, program_id=program_id)
+            else:
+                print(f"Warning: Skipped duplicate JobProgram: Job {job.id} -> Program {program_id}")
+ 
+        return job
+    
 
 class CompanyDriveWriteSerializer(serializers.ModelSerializer):
-    jobs = JobWriteSerializer(many=True, required=True)
+    jobs = CompanyDriveJobSerializer(many=True, required=True)
     
     class Meta:
         model = CompanyDrive
         fields = [
-            'drive', 'company', 'drive_type', 'job_mode',
+            'id', 'placement_drive', 'company', 'drive_type', 'job_mode',
             'application_deadline', 'status', 'rounds', 'locations', 'jobs'
         ]
     
@@ -85,15 +136,20 @@ class CompanyDriveWriteSerializer(serializers.ModelSerializer):
         jobs_data = validated_data.pop('jobs')
         company_drive = CompanyDrive.objects.create(**validated_data)
         
-        for job_data in jobs_data:
+        program_ids = set()
+        for job_data in jobs_data: 
             eligible_programs = job_data.pop('eligible_programs', [])
-            job = Job.objects.create(drive=company_drive, **job_data)
+            job = Job.objects.create(company_drive=company_drive, **job_data)
+
+            program_ids.update(eligible_programs)
             
             for program_id in eligible_programs:
                 JobProgram.objects.create(job=job, program_id=program_id)
-        
-        return company_drive
 
+        job_title_list = [job_data['title'] for job_data in jobs_data]
+        send_drive_notification(company_drive.company.name, company_drive.application_deadline, program_ids, job_title_list)
+
+        return company_drive
 
 class JobReadSerializer(serializers.ModelSerializer):
     eligible_programs = ProgramSerializer(many=True, read_only=True)
@@ -103,7 +159,7 @@ class JobReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = [
-            'id', 'drive', 'title', 'description_ug', 'description_pg', 'job_pdf',
+            'id', 'company_drive', 'title', 'description_ug', 'description_pg', 'job_pdf',
             'min_ug_cgpa', 'min_pg_cgpa', 'min_tenth_percentage', 'min_twelfth_percentage',
             'max_active_backlogs', 'ug_package_min', 'ug_package_max', 'pg_package_min',
             'pg_package_max', 'ug_stipend', 'pg_stipend', 'eligible_programs',

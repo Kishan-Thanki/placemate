@@ -28,11 +28,11 @@ class CompanyDriveViewSet(BaseViewSet):
     """
     Company Drive management with role-based access
     """
-    queryset = CompanyDrive.objects.all().select_related('company', 'drive')
+    queryset = CompanyDrive.objects.all().select_related('company', 'placement_drive')
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['drive', 'company', 'drive_type', 'status']
-    
+    filterset_fields = ['placement_drive', 'company', 'drive_type', 'status']
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return CompanyDriveReadSerializer
@@ -59,8 +59,8 @@ class CompanyDriveViewSet(BaseViewSet):
         URL: GET /api/v1/placements/company-drives/{id}/jobs/
         """
         company_drive = self.get_object()
-        jobs = company_drive.jobs.all().select_related('drive').prefetch_related('eligible_programs')
-        
+        jobs = company_drive.jobs.all().select_related('company_drive').prefetch_related('eligible_programs')
+
         if hasattr(request.user, 'studentprofile'):
             if company_drive.status != 'Open':
                 return ForbiddenResponse(
@@ -80,24 +80,24 @@ class JobViewSet(BaseViewSet):
     Job management - Add jobs to existing CompanyDrives
     """
     queryset = Job.objects.all().select_related(
-        'drive', 'drive__company', 'drive__drive'
+        'company_drive', 'company_drive__company', 'company_drive__placement_drive'
     ).prefetch_related('eligible_programs')
-    
+
     def get_queryset(self):
         from django.db.models import F
         queryset = self.queryset.annotate(
-            company_name=F('drive__company__name'),
-            drive_title=F('drive__drive__title')
+            company_name=F('company_drive__company__name'),
+            drive_title=F('company_drive__placement_drive__title')
         )
         
         if hasattr(self.request.user, 'studentprofile'):
-            queryset = queryset.filter(drive__status='Open')
+            queryset = queryset.filter(company_drive__status='Open')
             
         return queryset
     
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['drive', 'title']
+    filterset_fields = ['company_drive', 'title']
     
     def get_serializer_class(self):
         if self.request.method == 'GET':
