@@ -120,7 +120,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-stretch bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <div className="w-full lg:w-full flex items-center justify-center p-8">
         <div className="max-w-md w-full">
-          {/* Header section with theme toggle and back button */}
           <header className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               {/* Back to Home button */}
@@ -176,8 +175,6 @@ export default function LoginPage() {
               )}
             </button>
           </header>
-
-          {/* Login Card */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-8 shadow-md">
             <div className="flex flex-col items-center gap-2 mb-4">
               <img
