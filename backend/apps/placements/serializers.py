@@ -41,6 +41,8 @@ class JobWriteSerializer(serializers.ModelSerializer):
         required=False,
         default=[]
     )
+
+    job_pdf = serializers.FileField(required=False, allow_null=True)
     
     class Meta:
         model = Job
@@ -88,6 +90,8 @@ class CompanyDriveJobSerializer(serializers.ModelSerializer):
         default=[]
     )
     
+    job_pdf = serializers.FileField(required=False, allow_null=True)
+
     class Meta:
         model = Job
         fields = [
@@ -155,6 +159,7 @@ class JobReadSerializer(serializers.ModelSerializer):
     eligible_programs = ProgramSerializer(many=True, read_only=True)
     company_name = serializers.CharField(read_only=True)
     drive_title = serializers.CharField(read_only=True)
+    job_pdf = serializers.FileField(read_only=True)
     
     class Meta:
         model = Job
