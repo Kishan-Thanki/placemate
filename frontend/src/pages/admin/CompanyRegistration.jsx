@@ -10,6 +10,7 @@ import {
   Button,
   LoadingButton,
   ShimmerPlaceholder,
+  LoadingOverlay,
 } from "../../components/ui";
 import { useTheme } from "../../contexts/ThemeContext";
 import { companyService } from "../../services/companyService";
@@ -342,6 +343,15 @@ export default function CompanyRegistration() {
       title={isEditMode ? "Edit Company" : "Register New Company"}
     >
       <PageContainer>
+        {/* Loading Overlay */}
+        {loading && (
+          <LoadingOverlay
+            message={
+              isEditMode ? "Updating company..." : "Registering company..."
+            }
+          />
+        )}
+
         <form onSubmit={onSubmit} className="space-y-6">
           {/* Company Information Section */}
           <Section title="Company Information">

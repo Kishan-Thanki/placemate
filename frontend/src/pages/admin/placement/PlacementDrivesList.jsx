@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, TableRowSkeleton } from "../../../components/ui";
+import { Button, LoadingOverlay } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import {
   CalendarDays,
@@ -147,7 +147,7 @@ export default function PlacementDrivesList() {
     try {
       await placementService.deleteDrive(id);
       setDrives(drives.filter((d) => d.id !== id));
-      
+
       const successMsg = document.createElement("div");
       successMsg.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
         isDark ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800"
@@ -267,50 +267,7 @@ export default function PlacementDrivesList() {
           )}
 
           {loading ? (
-            <div
-              className={`overflow-x-auto rounded-xl border ${
-                isDark
-                  ? "border-gray-700 bg-gray-800"
-                  : "border-gray-200 bg-white"
-              }`}
-            >
-              <table className="min-w-full text-sm">
-                <thead
-                  className={`${
-                    isDark
-                      ? "bg-gray-700 text-gray-300"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium">Title</th>
-                    <th className="px-4 py-3 text-left font-medium">
-                      Start Date
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium">
-                      End Date
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium">
-                      Created
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  className={`${
-                    isDark
-                      ? "divide-gray-700 text-gray-300"
-                      : "divide-gray-200 text-gray-700"
-                  } divide-y`}
-                >
-                  {[...Array(5)].map((_, i) => (
-                    <TableRowSkeleton key={i} cols={5} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <LoadingOverlay message="Loading placement drives..." />
           ) : error ? (
             <div
               className={`p-8 text-center rounded-xl border ${
@@ -398,11 +355,11 @@ export default function PlacementDrivesList() {
                       <tr
                         key={drive.id}
                         className={`${
-                          isDark
-                            ? "hover:bg-gray-700"
-                            : "hover:bg-gray-50"
+                          isDark ? "hover:bg-gray-700" : "hover:bg-gray-50"
                         } cursor-pointer transition-colors`}
-                        onClick={() => navigate(`/admin/placement-drives/${drive.id}`)}
+                        onClick={() =>
+                          navigate(`/admin/placement-drives/${drive.id}`)
+                        }
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">

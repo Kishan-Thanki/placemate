@@ -5,7 +5,11 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, CardSkeleton, ShimmerPlaceholder } from "../../../components/ui";
+import {
+  Button,
+  CardSkeleton,
+  ShimmerPlaceholder,
+} from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import {
   CalendarDays,
@@ -352,7 +356,9 @@ export default function PlacementDriveDetails() {
                   Associated Companies
                 </h3>
                 <Button
-                  onClick={() => navigate(`/admin/drives/new?placement_drive=${id}`)}
+                  onClick={() =>
+                    navigate(`/admin/drives/new?placement_drive=${id}`)
+                  }
                   size="sm"
                 >
                   <Briefcase className="w-4 h-4 mr-2" />
@@ -365,9 +371,12 @@ export default function PlacementDriveDetails() {
                 }`}
               >
                 <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No company drives associated with this placement drive yet.</p>
+                <p>
+                  No company drives associated with this placement drive yet.
+                </p>
                 <p className="text-sm mt-1">
-                  Add company drives to organize company visits and job postings.
+                  Add company drives to organize company visits and job
+                  postings.
                 </p>
               </div>
             </div>

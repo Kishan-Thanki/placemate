@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Bell } from "lucide-react";
 import { fetchJSON } from "../../lib/api";
 import { performLogout } from "../../lib/auth";
+import { LoadingOverlay } from "../ui/Spinner";
 
 /**
  * Main navigation bar for the dashboard
@@ -167,7 +168,11 @@ export function Navbar({ onMenuClick }) {
                   end: true,
                 },
                 { id: "companies", label: "Companies", to: "/admin/companies" },
-                { id: "placement-drives", label: "Placement Drives", to: "/admin/placement-drives" },
+                {
+                  id: "placement-drives",
+                  label: "Placement Drives",
+                  to: "/admin/placement-drives",
+                },
                 { id: "drives", label: "Drives", to: "/admin/drives" },
                 { id: "students", label: "Students", to: "/admin/students" },
               ].map((item) => (
@@ -432,6 +437,9 @@ export function Navbar({ onMenuClick }) {
           }}
         />
       )}
+
+      {/* Loading overlay during logout */}
+      {isLoggingOut && <LoadingOverlay message="Logging out..." />}
     </nav>
   );
 }
