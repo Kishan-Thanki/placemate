@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DashboardLayout, PageContainer, Section } from '../../components/layout';
-import { Card, Button } from '../../components/ui';
-import { useTheme } from '../../contexts/ThemeContext';
+import { DashboardLayout, PageContainer, Section } from '../../../components/layout';
+import { Card, Button } from '../../../components/ui';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { Search } from 'lucide-react';
 
 const StudentDetails = () => {
