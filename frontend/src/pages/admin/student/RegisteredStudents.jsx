@@ -4,9 +4,9 @@ import {
   DashboardLayout,
   PageContainer,
   Section,
-} from "../../components/layout";
-import { Button, Card, TableRowSkeleton } from "../../components/ui";
-import { useTheme } from "../../contexts/ThemeContext";
+} from "../../../components/layout";
+import { Button, Card, TableRowSkeleton } from "../../../components/ui";
+import { useTheme } from "../../../contexts/ThemeContext";
 import { Eye, Edit, Trash2, Search } from "lucide-react";
 
 export function RegisteredStudents() {
