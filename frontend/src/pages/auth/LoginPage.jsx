@@ -32,40 +32,26 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include", // Important for cookies
+        credentials: "include",
       });
 
-      console.log("🔍 Login API Full Response:", { ok, message, result });
-
       if (ok && result?.success) {
-        console.log("🔍 Login API Response:", result);
-
-        // Check if role selection is required
-        if (
-          result.data?.requires_role_selection &&
-          result.data?.available_roles
-        ) {
-          // Multiple roles - show role selection modal
+        if (result.data?.requires_role_selection && result.data?.available_roles) {
           setUserId(result.data.user_id);
           setUserEmail(result.data.email);
           setAvailableRoles(result.data.available_roles);
           setShowRoleModal(true);
           setLoading(false);
         } else {
-          // Single role - direct login
-          // For single role, backend doesn't return user_id/email in response
-          // We need to use the email from the form
-          setUserId(null); // Backend doesn't provide this for single role
-          setUserEmail(email); // Use the email from login form
+          setUserId(null);
+          setUserEmail(email);
           handleSuccessfulLogin(result);
         }
       } else {
-        console.error("❌ Login failed:", { message, result });
         setErrorMsg(message || "Invalid email or password.");
         setLoading(false);
       }
     } catch (err) {
-      console.error("❌ Login error:", err);
       setErrorMsg(err.message || "Network error. Please try again later.");
       setLoading(false);
     }
@@ -85,21 +71,18 @@ export default function LoginPage() {
             user_id: userId,
             role: selectedRole,
           }),
-          credentials: "include", // Important for cookies
+          credentials: "include",
         }
       );
 
       if (ok && result?.success) {
-        console.log("🔍 Role Selection API Response:", result);
         handleSuccessfulLogin(result, selectedRole);
       } else {
-        console.error("❌ Role selection failed:", { message, result });
         setErrorMsg(message || "Failed to select role.");
         setShowRoleModal(false);
         setLoading(false);
       }
     } catch (err) {
-      console.error("❌ Role selection error:", err);
       setErrorMsg(err.message || "Network error during role selection.");
       setShowRoleModal(false);
       setLoading(false);
@@ -107,73 +90,48 @@ export default function LoginPage() {
   };
 
   const handleSuccessfulLogin = (result, selectedRole = null) => {
-    console.log("📝 handleSuccessfulLogin called with:", {
-      result,
-      selectedRole,
-    });
-
-    // Extract user data and tokens
     const activeRole = selectedRole || result.data?.active_role;
     const availableRoles = result.data?.available_roles || [];
 
-    // Note: result.data.user is an array of role objects, not user data
-    // User info was captured during initial login or role selection
-    console.log("🔍 Extracted data:", {
-      activeRole,
-      availableRoles,
-      userId,
-      userEmail,
-    });
-
-    // Note: Tokens are stored as httpOnly cookies by the backend
-    // They are NOT in the response and cannot be accessed by JavaScript
-    // This is more secure - cookies are automatically sent with each request
-    console.log(
-      "✅ Tokens are stored as httpOnly cookies (not accessible via JS)"
-    );
-
-    // Prepare user object using the email and userId captured during login
     const storedUser = {
       id: userId,
       email: userEmail,
-      firstName: result.data?.first_name || "", // May not be in response
-      lastName: result.data?.last_name || "", // May not be in response
+      firstName: result.data?.first_name || "",
+      lastName: result.data?.last_name || "",
       roles: availableRoles,
       activeRole: activeRole,
     };
 
-    console.log("👤 Stored user object:", storedUser);
-
-    // Use AuthContext login
     login(storedUser);
-
-    // Close modal if open
     setShowRoleModal(false);
-
-    // Navigate based on active role
     redirectBasedOnRole(activeRole);
   };
 
   const redirectBasedOnRole = (role) => {
     const normalizedRole = role?.toLowerCase();
 
-    if (normalizedRole === "admin") {
-      navigate("/admin");
-    } else if (normalizedRole === "student placement cell") {
-      // Temporary: redirect to admin dashboard (same as admin)
-      navigate("/admin");
-    } else if (normalizedRole === "student") {
-      navigate("/student");
-    } else {
-      navigate("/");
-    }
+    if (normalizedRole === "admin") navigate("/admin");
+    else if (normalizedRole === "student placement cell") navigate("/admin");
+    else if (normalizedRole === "student") navigate("/student");
+    else navigate("/");
   };
 
   return (
     <div className="min-h-screen flex items-stretch bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <div className="w-full lg:w-full flex items-center justify-center p-8">
         <div className="max-w-md w-full">
+          {/* Header section with theme toggle and back button */}
           <header className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              {/* Back to Home button */}
+              <Link
+                to="/"
+                className="px-3 py-1 rounded-md bg-transparent border border-[var(--border-color)] text-[var(--text-secondary)]"
+              >
+                Back to Home
+              </Link>
+            </div>
+
             {/* Theme toggle button */}
             <button
               onClick={toggleTheme}
@@ -219,6 +177,7 @@ export default function LoginPage() {
             </button>
           </header>
 
+          {/* Login Card */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-8 shadow-md">
             <div className="flex flex-col items-center gap-2 mb-4">
               <img
@@ -234,8 +193,10 @@ export default function LoginPage() {
 
             {errorMsg && (
               <div className="text-red-500 text-sm bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-md p-2 mb-3 space-y-1">
-                {errorMsg.split('\n').map((line, index) => (
-                  <div key={index} className="text-center">{line}</div>
+                {errorMsg.split("\n").map((line, index) => (
+                  <div key={index} className="text-center">
+                    {line}
+                  </div>
                 ))}
               </div>
             )}
@@ -303,7 +264,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Role Selection Modal */}
       {showRoleModal && (
         <RoleSelectionModal
           roles={availableRoles}
