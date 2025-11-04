@@ -21,6 +21,9 @@ import { StudentDrives } from "./pages/student/StudentDrives";
 import CompaniesList from "./pages/admin/company/CompaniesList";
 import CompanyDetails from "./pages/admin/company/CompanyDetails";
 import { CompanyDrives } from "./pages/admin/drive/DrivesList";
+import PlacementDrivesList from "./pages/admin/placement/PlacementDrivesList";
+import PlacementDriveForm from "./pages/admin/placement/PlacementDriveForm";
+import PlacementDriveDetails from "./pages/admin/placement/PlacementDriveDetails";
 
 export default function App() {
   return (
@@ -147,6 +150,46 @@ export default function App() {
                     allowedRoles={["admin", "student placement cell"]}
                   >
                     <CompanyDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/placement-drives"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
+                    <PlacementDrivesList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/placement-drives/new"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
+                    <PlacementDriveForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/placement-drives/:id"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
+                    <PlacementDriveDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/placement-drives/:id/edit"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "student placement cell"]}
+                  >
+                    <PlacementDriveForm />
                   </ProtectedRoute>
                 }
               />

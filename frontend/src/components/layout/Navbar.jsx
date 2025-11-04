@@ -167,6 +167,7 @@ export function Navbar({ onMenuClick }) {
                   end: true,
                 },
                 { id: "companies", label: "Companies", to: "/admin/companies" },
+                { id: "placement-drives", label: "Placement Drives", to: "/admin/placement-drives" },
                 { id: "drives", label: "Drives", to: "/admin/drives" },
                 { id: "students", label: "Students", to: "/admin/students" },
               ].map((item) => (

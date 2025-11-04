@@ -57,6 +57,13 @@ export function AdminDashboard() {
   // Quick action buttons as shown in the screenshot
   const quickActions = [
     {
+      id: "manage-placement-drives",
+      label: "Manage Placement Drives",
+      icon: <CalendarDays className="w-5 h-5" />,
+      variant: "primary",
+      to: "/admin/placement-drives",
+    },
+    {
       id: "add-drive",
       label: "Add New Drive",
       icon: <CalendarDays className="w-5 h-5" />,
