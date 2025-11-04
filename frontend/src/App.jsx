@@ -21,7 +21,6 @@ import { StudentDrives } from "./pages/student/StudentDrives";
 import CompaniesList from "./pages/admin/company/CompaniesList";
 import CompanyDetails from "./pages/admin/company/CompanyDetails";
 import { CompanyDrives } from "./pages/admin/drive/DrivesList";
-import TestAuth from "./pages/admin/TestAuth";
 
 export default function App() {
   return (
@@ -148,16 +147,6 @@ export default function App() {
                     allowedRoles={["admin", "student placement cell"]}
                   >
                     <CompanyDetails />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/test-auth"
-                element={
-                  <ProtectedRoute
-                    allowedRoles={["admin", "student placement cell"]}
-                  >
-                    <TestAuth />
                   </ProtectedRoute>
                 }
               />
