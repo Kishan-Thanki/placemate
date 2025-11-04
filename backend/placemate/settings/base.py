@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'health_check.db',
     'django_rest_passwordreset',
     'anymail',
+    'django_filters',
 
     # Custom Apps
     'apps.core.apps.CoreConfig',

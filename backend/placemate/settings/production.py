@@ -26,7 +26,8 @@ ALLOWED_HOSTS = [
     ".onrender.com", 
     "localhost",
     "127.0.0.1",
-    "final-production-domain.com", 
+    "https://placemate-three.vercel.app", 
+    "https://placemate-coral.vercel.app"
 ]
 
 # --- Database ---
@@ -56,8 +57,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500", 
     "https://127.0.0.1:5500",  
 
-    "https://final-frontend-domain.com", 
-    "https://www.final-frontend-domain.com",
+    "https://placemate-three.vercel.app/",
+    "https://placemate-coral.vercel.app/"
 ]
 
 # Add these CORS settings:
@@ -86,7 +87,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://127.0.0.1:5500", 
      
     "https://placemate-zzgd.onrender.com", 
-    "https://final-frontend-domain.com",  
+    "https://placemate-three.vercel.app/",
+    "https://placemate-coral.vercel.app/"
 ]
 
 # --- Production Security Headers ---

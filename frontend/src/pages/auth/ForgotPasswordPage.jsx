@@ -2,18 +2,34 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import logoUrl from '../../assets/placemate.png';
+import { authService } from '../../services/authService';
 
 export default function ForgotPasswordPage() {
   const { toggleTheme, isDark } = useTheme();
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     const data = new FormData(e.target);
     const email = data.get('email');
-    // TODO: call API to send reset email
-    console.log('send reset to', email);
-    setSent(true);
+
+    try {
+      await authService.requestPasswordReset(email);
+      console.log('✅ Password reset email sent to:', email);
+      setSent(true);
+    } catch (err) {
+      console.error('❌ Failed to send password reset email:', err);
+      // The error message is already extracted in authService
+      setError(err.message || 'Failed to send reset email. Please try again.');
+    }
+ finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,23 +78,42 @@ export default function ForgotPasswordPage() {
 
             {!sent ? (
               <form className="space-y-4" onSubmit={handleSubmit}>
+                {error && (
+                  <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-600 text-sm space-y-1">
+                    {error.split('\n').map((line, index) => (
+                      <div key={index}>{line}</div>
+                    ))}
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-medium mb-1 text-[var(--text-secondary)]">Email Address</label>
                   <input
                     name="email"
                     type="email"
                     required
+                    disabled={loading}
                     placeholder="Enter your Registered Email"
-                    className="w-full border rounded-md px-3 py-2 bg-transparent text-[var(--text-primary)] border-[var(--border-color)]"
+                    className="w-full border rounded-md px-3 py-2 bg-transparent text-[var(--text-primary)] border-[var(--border-color)] disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <div>
                   <button
                     type="submit"
-                    className="w-full bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white rounded-md py-2 font-medium transition-colors"
+                    disabled={loading}
+                    className="w-full bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white rounded-md py-2 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Send Reset Email
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      'Send Reset Email'
+                    )}
                   </button>
                 </div>
               </form>

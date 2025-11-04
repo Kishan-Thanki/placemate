@@ -22,6 +22,7 @@ class StudentRegistrationSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150)
     middle_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
     last_name = serializers.CharField(max_length=150)
+    joining_year = serializers.IntegerField(required=True)
     
     # StudentProfile fields
     enrollment_number = serializers.CharField(max_length=50)
@@ -57,6 +58,7 @@ class StudentRegistrationSerializer(serializers.Serializer):
         profile_data = {
             'enrollment_number': validated_data.pop('enrollment_number'),
             'program': validated_data.pop('program'),
+            'joining_year': validated_data.pop('joining_year'),
         }
         
         # Generate secure random password
@@ -128,11 +130,11 @@ class StudentProfileSerializer(serializers.ModelSerializer):
             'profile_picture', 'address_line1', 'address_line2', 'postal_code',
             'city', 'current_cgpa', 'graduation_cgpa', 'active_backlogs',
             'tenth_percentage', 'twelfth_percentage', 'is_placed',
-            'created_at', 'updated_at',
+            'created_at', 'updated_at', 'joining_year'
         ]
         read_only_fields = [
             'user', 'enrollment_number', 'program', 'is_placed',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'joining_year'
         ]
     
     def get_user(self, obj):
