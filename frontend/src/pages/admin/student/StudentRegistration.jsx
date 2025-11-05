@@ -9,7 +9,7 @@ import { Button, Card } from "../../../components/ui";
 import { LoadingOverlay } from "../../../components/ui/Spinner";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { studentService, lookupService } from "../../../services";
-import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, ArrowLeft } from "lucide-react";
 
 export function StudentRegistration() {
   const { isDark } = useTheme();
@@ -180,6 +180,14 @@ export function StudentRegistration() {
   return (
     <DashboardLayout title="Register Student">
       <PageContainer>
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button variant="outline" onClick={() => navigate("/admin/students")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Students
+          </Button>
+        </div>
+
         {/* Loading Overlay */}
         {loading && <LoadingOverlay message="Registering student..." />}
 
