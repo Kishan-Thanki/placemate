@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button } from "../../../components/ui";
+import { Button, LoadingOverlay } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { CalendarDays, Save, X } from "lucide-react";
 import { placementService } from "../../../services/placementService";
@@ -30,7 +30,7 @@ export default function PlacementDriveForm() {
     try {
       const response = await placementService.getDriveById(id);
       const drive = response.data || response;
-      
+
       setFormData({
         title: drive.title || "",
         start_date: drive.start_date
@@ -100,32 +100,28 @@ export default function PlacementDriveForm() {
 
       if (isEditMode) {
         await placementService.updateDrive(id, submitData);
-        
+
         const successMsg = document.createElement("div");
         successMsg.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-          isDark
-            ? "bg-green-900 text-green-200"
-            : "bg-green-100 text-green-800"
+          isDark ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800"
         }`;
         successMsg.textContent = "Placement drive updated successfully!";
         document.body.appendChild(successMsg);
         setTimeout(() => successMsg.remove(), 3000);
-        
+
         navigate(`/admin/placement-drives/${id}`);
       } else {
         const response = await placementService.createDrive(submitData);
         const createdDrive = response.data || response;
-        
+
         const successMsg = document.createElement("div");
         successMsg.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-          isDark
-            ? "bg-green-900 text-green-200"
-            : "bg-green-100 text-green-800"
+          isDark ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800"
         }`;
         successMsg.textContent = "Placement drive created successfully!";
         document.body.appendChild(successMsg);
         setTimeout(() => successMsg.remove(), 3000);
-        
+
         navigate(`/admin/placement-drives/${createdDrive.id}`);
       }
     } catch (err) {
@@ -152,11 +148,7 @@ export default function PlacementDriveForm() {
         title={isEditMode ? "Edit Placement Drive" : "Add New Placement Drive"}
       >
         <PageContainer>
-          <Section>
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            </div>
-          </Section>
+          <LoadingOverlay message="Loading placement drive data..." />
         </PageContainer>
       </DashboardLayout>
     );
@@ -167,6 +159,17 @@ export default function PlacementDriveForm() {
       title={isEditMode ? "Edit Placement Drive" : "Add New Placement Drive"}
     >
       <PageContainer>
+        {/* Loading Overlay */}
+        {loading && (
+          <LoadingOverlay
+            message={
+              isEditMode
+                ? "Updating placement drive..."
+                : "Creating placement drive..."
+            }
+          />
+        )}
+
         <Section>
           <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
             {/* Error Message */}
@@ -310,11 +313,7 @@ export default function PlacementDriveForm() {
 
             {/* Action Buttons */}
             <div className="flex gap-3 mt-6">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="flex-1"
-              >
+              <Button type="submit" disabled={loading} className="flex-1">
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

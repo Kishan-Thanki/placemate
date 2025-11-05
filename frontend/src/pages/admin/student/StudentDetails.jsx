@@ -1,195 +1,209 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { DashboardLayout, PageContainer, Section } from '../../../components/layout';
-import { Card, Button } from '../../../components/ui';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  DashboardLayout,
+  PageContainer,
+  Section,
+} from "../../../components/layout";
+import { Card, Button } from "../../../components/ui";
+import { LoadingOverlay } from "../../../components/ui/Spinner";
+import { ToastContainer } from "../../../components/ui/Toast";
+import { useToast } from "../../../hooks/useToast";
+import { useTheme } from "../../../contexts/ThemeContext";
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  GraduationCap,
+  Briefcase,
+  Award,
+  Edit,
+  Save,
+  X,
+  Trash2,
+} from "lucide-react";
+import { studentService } from "../../../services/studentService";
 
 const StudentDetails = () => {
   const navigate = useNavigate();
+  const { userId } = useParams();
+  const [searchParams] = useSearchParams();
   const { isDark } = useTheme();
-  const [students, setStudents] = useState([]);
+  const { toasts, removeToast, success, error: showError } = useToast();
+  const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [isEditMode, setIsEditMode] = useState(
+    searchParams.get("edit") === "true"
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [formData, setFormData] = useState({});
 
   useEffect(() => {
-    fetchAllStudentsData();
-  }, []);
+    fetchStudentDetails();
+  }, [userId]);
 
-  const fetchAllStudentsData = async () => {
+  const fetchStudentDetails = async () => {
     try {
       setLoading(true);
-      const mockStudents = [
-        {
-          id: 1,
-          full_name: "John Doe",
-          enrollment_number: "2021001",
-          date_of_birth: "2000-01-15",
-          gender: "Male",
-          joining_year: "2021",
-          course: "B.Tech Computer Science",
-          current_cgpa: "8.5",
-          graduation_status: "Ongoing",
-          placement_status: "Placed",
-          phone: "+91 9876543210",
-          address: "123 Main Street, City, State",
-          email: "john.doe@example.com",
-          company_placed: "Google",
-          job_role: "Software Engineer",
-          package: "15 LPA",
-          percentage_data: {
-            tenth: "85%",
-            twelfth: "78%",
-            diploma: "N/A",
-            ug_cgpa: "8.5"
-          }
-        },
-        {
-          id: 2,
-          full_name: "Jane Smith",
-          enrollment_number: "2021002",
-          date_of_birth: "1999-05-20",
-          gender: "Female",
-          joining_year: "2021",
-          course: "B.Sc Information Technology",
-          current_cgpa: "7.8",
-          graduation_status: "Ongoing",
-          placement_status: "Internship",
-          phone: "+91 9876543211",
-          address: "456 Oak Avenue, City, State",
-          email: "jane.smith@example.com",
-          company_placed: "Microsoft",
-          job_role: "Software Development Intern",
-          package: "8 LPA",
-          percentage_data: {
-            tenth: "82%",
-            twelfth: "75%",
-            diploma: "N/A",
-            ug_cgpa: "7.8"
-          }
-        },
-        {
-          id: 3,
-          full_name: "Michael Brown",
-          enrollment_number: "2021003",
-          date_of_birth: "1998-12-10",
-          gender: "Male",
-          joining_year: "2020",
-          course: "Diploma in Information Technology",
-          current_cgpa: "8.2",
-          graduation_status: "Graduated",
-          placement_status: "Not Placed",
-          phone: "+91 9876543212",
-          address: "789 Pine Street, City, State",
-          email: "michael.brown@example.com",
-          company_placed: "N/A",
-          job_role: "N/A",
-          package: "N/A",
-          percentage_data: {
-            tenth: "78%",
-            twelfth: "72%",
-            diploma: "85%",
-            ug_cgpa: "8.2"
-          }
-        },
-        {
-          id: 4,
-          full_name: "Aarav Patel",
-          enrollment_number: "2021004",
-          date_of_birth: "2001-03-25",
-          gender: "Male",
-          joining_year: "2021",
-          course: "M.E Electrical Engineering",
-          current_cgpa: "9.1",
-          graduation_status: "Ongoing",
-          placement_status: "Placed",
-          phone: "+91 9876543213",
-          address: "321 Elm Drive, City, State",
-          email: "aarav.patel@example.com",
-          company_placed: "TCS",
-          job_role: "Electrical Engineer",
-          package: "12 LPA",
-          percentage_data: {
-            tenth: "90%",
-            twelfth: "85%",
-            diploma: "N/A",
-            ug_cgpa: "9.1"
-          }
-        },
-        {
-          id: 5,
-          full_name: "Sanya Verma",
-          enrollment_number: "2021005",
-          date_of_birth: "2000-08-14",
-          gender: "Female",
-          joining_year: "2020",
-          course: "B.E Electronics and Communication",
-          current_cgpa: "7.5",
-          graduation_status: "Graduated",
-          placement_status: "Not Placed",
-          phone: "+91 9876543214",
-          address: "654 Maple Lane, City, State",
-          email: "sanya.verma@example.com",
-          company_placed: "N/A",
-          job_role: "N/A",
-          package: "N/A",
-          percentage_data: {
-            tenth: "80%",
-            twelfth: "76%",
-            diploma: "N/A",
-            ug_cgpa: "7.5"
-          }
-        }
-      ];
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setStudents(mockStudents);
+      setError(null);
+      const response = await studentService.getStudentProfileByUser(userId);
+      console.log("📋 Student Details Response:", response);
+      console.log("👤 User data:", response?.data?.user);
+      console.log("📧 Email:", response?.data?.user?.email);
+      // Set only the data property, not the entire response
+      setStudent(response.data);
+      // Initialize form data with current student data (exclude city as it's a ForeignKey)
+      setFormData({
+        date_of_birth: response.data.date_of_birth || "",
+        gender: response.data.gender || "",
+        address_line1: response.data.address_line1 || "",
+        address_line2: response.data.address_line2 || "",
+        postal_code: response.data.postal_code || "",
+        current_cgpa: response.data.current_cgpa || "",
+        graduation_cgpa: response.data.graduation_cgpa || "",
+        active_backlogs: response.data.active_backlogs || 0,
+        tenth_percentage: response.data.tenth_percentage || "",
+        twelfth_percentage: response.data.twelfth_percentage || "",
+      });
     } catch (err) {
-      setError('Failed to load students data');
+      console.error("Error fetching student details:", err);
+      setError(err.message || "Failed to load student details");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBack = () => {
-    navigate('/admin/students');
+  const handleEditToggle = () => {
+    if (isEditMode) {
+      // Cancel edit - reset form data (exclude city as it's a ForeignKey)
+      setFormData({
+        date_of_birth: student.date_of_birth || "",
+        gender: student.gender || "",
+        address_line1: student.address_line1 || "",
+        address_line2: student.address_line2 || "",
+        postal_code: student.postal_code || "",
+        current_cgpa: student.current_cgpa || "",
+        graduation_cgpa: student.graduation_cgpa || "",
+        active_backlogs: student.active_backlogs || 0,
+        tenth_percentage: student.tenth_percentage || "",
+        twelfth_percentage: student.twelfth_percentage || "",
+      });
+    }
+    setIsEditMode(!isEditMode);
   };
 
-  const getStatusClass = (status) => {
-    switch (status) {
-      case "Placed": return "placed";
-      case "Internship": return "internship";
-      case "Not Placed": return "not-placed";
-      case "Job Offer Received": return "offer";
-      default: return "";
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      setIsSaving(true);
+
+      // Always use FormData for consistency with backend expectations
+      const formDataToSend = new FormData();
+
+      // Format date_of_birth to YYYY-MM-DD if present
+      if (formData.date_of_birth) {
+        const date = new Date(formData.date_of_birth);
+        if (!isNaN(date.getTime())) {
+          formDataToSend.append(
+            "date_of_birth",
+            date.toISOString().split("T")[0]
+          );
+        }
+      }
+
+      // Add all other non-empty fields
+      Object.keys(formData).forEach((key) => {
+        if (key === "date_of_birth") return; // Already handled above
+
+        const value = formData[key];
+        // Only append non-empty values
+        if (value !== null && value !== undefined && value !== "") {
+          formDataToSend.append(key, value);
+        }
+      });
+
+      await studentService.updateStudentProfile(userId, formDataToSend);
+
+      // Refresh student data
+      await fetchStudentDetails();
+      setIsEditMode(false);
+      success("Student details updated successfully!");
+    } catch (err) {
+      console.error("Error updating student details:", err);
+      showError(err.message || "Failed to update student details");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const courses = useMemo(() => [...new Set(students.map(s => s.course))], [students]);
-  const statuses = useMemo(() => [...new Set(students.map(s => s.placement_status))], [students]);
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await studentService.deleteStudentProfile(userId);
+      success("Student profile deleted successfully!");
+      setTimeout(() => {
+        navigate("/admin/students");
+      }, 1500);
+    } catch (err) {
+      console.error("Error deleting student profile:", err);
+      showError(err.message || "Failed to delete student profile");
+      setIsDeleting(false);
+    }
+  };
 
-  const filteredStudents = useMemo(() => students.filter(student => {
-    const matchesSearch = student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.enrollment_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCourse = !selectedCourse || student.course === selectedCourse;
-    const matchesStatus = !selectedStatus || student.placement_status === selectedStatus;
+  const handleBack = () => {
+    navigate("/admin/students");
+  };
 
-    return matchesSearch && matchesCourse && matchesStatus;
-  }), [students, searchTerm, selectedCourse, selectedStatus]);
+  const getFullName = (studentData) => {
+    if (!studentData || !studentData.user) return "N/A";
+    const parts = [
+      studentData.user.first_name,
+      studentData.user.middle_name,
+      studentData.user.last_name,
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(" ") : "N/A";
+  };
+
+  const getInitials = (studentData) => {
+    if (!studentData || !studentData.user) return "N";
+    const firstName = studentData.user.first_name || "";
+    const lastName = studentData.user.last_name || "";
+    const initials = `${firstName.charAt(0)}${lastName.charAt(
+      0
+    )}`.toUpperCase();
+    return initials || (firstName.charAt(0) || "N").toUpperCase();
+  };
+
+  const getPlacementStatusColor = (studentData) => {
+    if (!studentData || studentData.is_placed === null)
+      return isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700";
+    return studentData.is_placed
+      ? isDark
+        ? "bg-green-900/30 text-green-400"
+        : "bg-green-100 text-green-700"
+      : isDark
+      ? "bg-red-900/30 text-red-400"
+      : "bg-red-100 text-red-700";
+  };
 
   if (loading) {
     return (
       <DashboardLayout title="Student Details">
-        <PageContainer>
-          <Section>
-            <Card className="p-6">
-              <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Loading students data...</div>
-            </Card>
-          </Section>
-        </PageContainer>
+        <LoadingOverlay message="Loading student details..." />
       </DashboardLayout>
     );
   }
@@ -200,7 +214,44 @@ const StudentDetails = () => {
         <PageContainer>
           <Section>
             <Card className="p-6">
-              <div className={`text-sm ${isDark ? 'text-red-300' : 'text-red-700'}`}>Error: {error}</div>
+              <div
+                className={`text-center ${
+                  isDark ? "text-red-300" : "text-red-700"
+                }`}
+              >
+                <p className="mb-4">{error}</p>
+                <div className="flex gap-3 justify-center">
+                  <Button variant="outline" onClick={handleBack}>
+                    <ArrowLeft size={16} className="mr-2" />
+                    Back to List
+                  </Button>
+                  <Button onClick={fetchStudentDetails}>Retry</Button>
+                </div>
+              </div>
+            </Card>
+          </Section>
+        </PageContainer>
+      </DashboardLayout>
+    );
+  }
+
+  if (!student) {
+    return (
+      <DashboardLayout title="Student Details">
+        <PageContainer>
+          <Section>
+            <Card className="p-6">
+              <div
+                className={`text-center ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                <p className="mb-4">Student not found</p>
+                <Button variant="outline" onClick={handleBack}>
+                  <ArrowLeft size={16} className="mr-2" />
+                  Back to List
+                </Button>
+              </div>
             </Card>
           </Section>
         </PageContainer>
@@ -209,129 +260,679 @@ const StudentDetails = () => {
   }
 
   return (
-    <DashboardLayout title="All Student Details">
+    <DashboardLayout title="Student Details">
       <PageContainer>
+        {/* Header with Back Button and Profile Picture */}
         <Section>
           <div className="flex items-center justify-between mb-4">
-            <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'} text-sm`}>Comprehensive details of all registered students</p>
-            <Button variant="outline" onClick={handleBack}>← Back to Students List</Button>
+            <div className="flex items-center gap-4">
+              <div
+                className={`rounded-full flex items-center justify-center font-bold border-2 ${
+                  isEditMode ? "w-20 h-20 text-2xl" : "w-24 h-24 text-3xl"
+                } ${
+                  isDark
+                    ? "bg-blue-900/30 border-blue-700 text-blue-400"
+                    : "bg-blue-100 border-blue-300 text-blue-700"
+                }`}
+              >
+                {getInitials(student)}
+              </div>
+              <h2
+                className={`text-xl font-semibold ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}
+              >
+                {getFullName(student)}
+              </h2>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleBack}>
+                <ArrowLeft size={16} className="mr-2" />
+                Back to List
+              </Button>
+              {isEditMode ? (
+                <>
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveChanges}
+                    disabled={isSaving}
+                  >
+                    <Save size={16} className="mr-2" />
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                  <Button variant="outline" onClick={handleEditToggle}>
+                    <X size={16} className="mr-2" />
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                    onClick={handleEditToggle}
+                  >
+                    <Edit size={16} className="mr-2" />
+                    Edit Details
+                  </Button>
+                  <Button
+                    className="bg-red-500 hover:bg-red-600 text-white"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 size={16} className="mr-2" />
+                    Delete
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-          <Card className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative md:col-span-1">
-                <Search size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-                <input
-                  className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
-                  placeholder="Search by Name or Enrollment"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+        </Section>
+
+        {/* Personal Information Card */}
+        <Section>
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div
+                className={`p-3 rounded-full ${
+                  isDark ? "bg-blue-900/30" : "bg-blue-100"
+                }`}
+              >
+                <User
+                  size={24}
+                  className={isDark ? "text-blue-400" : "text-blue-600"}
                 />
               </div>
-              <select 
-                className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-              >
-                <option value="">All Courses</option>
-                {courses.map(course => (
-                  <option key={course} value={course}>{course}</option>
-                ))}
-              </select>
-              <select 
-                className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option value="">All Status</option>
-                {statuses.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
+              <div>
+                <h3
+                  className={`text-lg font-semibold ${
+                    isDark ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  Personal Information
+                </h3>
+                <p
+                  className={`text-sm ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Basic details about the student
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InfoItem
+                icon={<User size={16} />}
+                label="Full Name"
+                value={getFullName(student)}
+              />
+              <InfoItem
+                icon={<Mail size={16} />}
+                label="Email"
+                value={student.user?.email || "N/A"}
+              />
+              <InfoItem
+                icon={<Phone size={16} />}
+                label="Phone Number"
+                value={student.user?.phone_number || "N/A"}
+              />
+              {isEditMode ? (
+                <>
+                  <EditableInfoItem
+                    icon={<Calendar size={16} />}
+                    label="Date of Birth"
+                    name="date_of_birth"
+                    type="date"
+                    value={formData.date_of_birth}
+                    onChange={handleInputChange}
+                  />
+                  <EditableInfoItem
+                    icon={<User size={16} />}
+                    label="Gender"
+                    name="gender"
+                    type="select"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                  />
+                  <EditableInfoItem
+                    icon={<MapPin size={16} />}
+                    label="Address Line 1"
+                    name="address_line1"
+                    value={formData.address_line1}
+                    onChange={handleInputChange}
+                  />
+                  <EditableInfoItem
+                    icon={<MapPin size={16} />}
+                    label="Address Line 2"
+                    name="address_line2"
+                    value={formData.address_line2}
+                    onChange={handleInputChange}
+                  />
+                  <InfoItem
+                    icon={<MapPin size={16} />}
+                    label="City"
+                    value={student.city || "N/A"}
+                  />
+                  <EditableInfoItem
+                    icon={<MapPin size={16} />}
+                    label="Postal Code"
+                    name="postal_code"
+                    value={formData.postal_code}
+                    onChange={handleInputChange}
+                  />
+                </>
+              ) : (
+                <>
+                  <InfoItem
+                    icon={<Calendar size={16} />}
+                    label="Date of Birth"
+                    value={
+                      student.date_of_birth
+                        ? new Date(student.date_of_birth).toLocaleDateString(
+                            "en-IN",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )
+                        : "N/A"
+                    }
+                  />
+                  <InfoItem
+                    icon={<User size={16} />}
+                    label="Gender"
+                    value={
+                      student.gender
+                        ? student.gender.charAt(0).toUpperCase() +
+                          student.gender.slice(1).toLowerCase()
+                        : "N/A"
+                    }
+                  />
+                  <InfoItem
+                    icon={<MapPin size={16} />}
+                    label="Address"
+                    value={
+                      [
+                        student.address_line1,
+                        student.address_line2,
+                        student.city,
+                        student.postal_code,
+                      ]
+                        .filter(Boolean)
+                        .join(", ") || "N/A"
+                    }
+                  />
+                </>
+              )}
             </div>
           </Card>
         </Section>
 
+        {/* Academic Information Card */}
         <Section>
-          {filteredStudents.length === 0 ? (
-            <Card className="p-6">
-              <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No students found matching your criteria.</p>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredStudents.map((student) => (
-                <Card key={student.id} className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{student.full_name}</h3>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                      getStatusClass(student.placement_status) === 'placed' ? (isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700') :
-                      getStatusClass(student.placement_status) === 'internship' ? (isDark ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-700') :
-                      getStatusClass(student.placement_status) === 'offer' ? (isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700') :
-                      (isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700')
-                    }`}>{student.placement_status}</span>
-                  </div>
-
-                  <div className="space-y-4 text-sm">
-                    <div>
-                      <h4 className={`font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Personal Details</h4>
-                      <div className="grid grid-cols-2 gap-3">
-                        <InfoItem label="Enrollment" value={student.enrollment_number} />
-                        <InfoItem label="DOB" value={student.date_of_birth} />
-                        <InfoItem label="Gender" value={student.gender} />
-                        <InfoItem label="Phone" value={student.phone} />
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className={`font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Academic Details</h4>
-                      <div className="grid grid-cols-2 gap-3">
-                        <InfoItem label="Course" value={student.course} />
-                        <InfoItem label="Joining Year" value={student.joining_year} />
-                        <InfoItem label="CGPA" value={student.current_cgpa} />
-                        <InfoItem label="Graduation" value={student.graduation_status} />
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className={`font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Placement Details</h4>
-                      <div className="grid grid-cols-2 gap-3">
-                        <InfoItem label="Company" value={student.company_placed} />
-                        <InfoItem label="Role" value={student.job_role} />
-                        <InfoItem label="Package" value={student.package} />
-                        <InfoItem label="Email" value={student.email} />
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className={`font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Academic Performance</h4>
-                      <div className="grid grid-cols-2 gap-3">
-                        <InfoItem label="10th %" value={student.percentage_data.tenth} />
-                        <InfoItem label="12th %" value={student.percentage_data.twelfth} />
-                        <InfoItem label="Diploma %" value={student.percentage_data.diploma} />
-                        <InfoItem label="UG CGPA" value={student.percentage_data.ug_cgpa} />
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className={`font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Address</h4>
-                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{student.address}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div
+                className={`p-3 rounded-full ${
+                  isDark ? "bg-purple-900/30" : "bg-purple-100"
+                }`}
+              >
+                <GraduationCap
+                  size={24}
+                  className={isDark ? "text-purple-400" : "text-purple-600"}
+                />
+              </div>
+              <div>
+                <h3
+                  className={`text-lg font-semibold ${
+                    isDark ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  Academic Information
+                </h3>
+                <p
+                  className={`text-sm ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Educational background and performance
+                </p>
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InfoItem
+                icon={<GraduationCap size={16} />}
+                label="Enrollment Number"
+                value={student.enrollment_number || "N/A"}
+              />
+              <InfoItem
+                icon={<GraduationCap size={16} />}
+                label="Program"
+                value={student.program || "N/A"}
+              />
+              <InfoItem
+                icon={<Calendar size={16} />}
+                label="Joining Year"
+                value={student.joining_year || "N/A"}
+              />
+              {isEditMode ? (
+                <>
+                  <EditableInfoItem
+                    icon={<Award size={16} />}
+                    label="Current CGPA"
+                    name="current_cgpa"
+                    type="number"
+                    value={formData.current_cgpa}
+                    onChange={handleInputChange}
+                  />
+                  <EditableInfoItem
+                    icon={<Award size={16} />}
+                    label="Graduation CGPA"
+                    name="graduation_cgpa"
+                    type="number"
+                    value={formData.graduation_cgpa}
+                    onChange={handleInputChange}
+                  />
+                  <EditableInfoItem
+                    icon={<Award size={16} />}
+                    label="Active Backlogs"
+                    name="active_backlogs"
+                    type="number"
+                    value={formData.active_backlogs}
+                    onChange={handleInputChange}
+                  />
+                  <EditableInfoItem
+                    icon={<Award size={16} />}
+                    label="10th Percentage"
+                    name="tenth_percentage"
+                    type="number"
+                    value={formData.tenth_percentage}
+                    onChange={handleInputChange}
+                  />
+                  <EditableInfoItem
+                    icon={<Award size={16} />}
+                    label="12th Percentage"
+                    name="twelfth_percentage"
+                    type="number"
+                    value={formData.twelfth_percentage}
+                    onChange={handleInputChange}
+                  />
+                </>
+              ) : (
+                <>
+                  <InfoItem
+                    icon={<Award size={16} />}
+                    label="Current CGPA"
+                    value={student.current_cgpa || "N/A"}
+                  />
+                  <InfoItem
+                    icon={<Award size={16} />}
+                    label="Graduation CGPA"
+                    value={student.graduation_cgpa || "N/A"}
+                  />
+                  <InfoItem
+                    icon={<Award size={16} />}
+                    label="Active Backlogs"
+                    value={
+                      student.active_backlogs !== null &&
+                      student.active_backlogs !== undefined
+                        ? student.active_backlogs
+                        : "N/A"
+                    }
+                  />
+                  <InfoItem
+                    icon={<Award size={16} />}
+                    label="10th Percentage"
+                    value={student.tenth_percentage || "N/A"}
+                  />
+                  <InfoItem
+                    icon={<Award size={16} />}
+                    label="12th Percentage"
+                    value={student.twelfth_percentage || "N/A"}
+                  />
+                </>
+              )}
+            </div>
+
+            {/* Program Details if available */}
+            {student.program_details && (
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h4
+                  className={`text-sm font-semibold mb-4 ${
+                    isDark ? "text-gray-200" : "text-gray-800"
+                  }`}
+                >
+                  Program Details
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <InfoItem
+                    label="Program Name"
+                    value={student.program_details.name || "N/A"}
+                  />
+                  <InfoItem
+                    label="Abbreviation"
+                    value={student.program_details.abbreviation || "N/A"}
+                  />
+                  <InfoItem
+                    label="Degree Name"
+                    value={student.program_details.degree?.name || "N/A"}
+                  />
+                  <InfoItem
+                    label="Degree Abbreviation"
+                    value={
+                      student.program_details.degree?.abbreviation || "N/A"
+                    }
+                  />
+                  <InfoItem
+                    label="Degree Level"
+                    value={student.program_details.degree_level || "N/A"}
+                  />
+                </div>
+              </div>
+            )}
+          </Card>
+        </Section>
+
+        {/* Placement Information Card */}
+        <Section>
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div
+                className={`p-3 rounded-full ${
+                  isDark ? "bg-green-900/30" : "bg-green-100"
+                }`}
+              >
+                <Briefcase
+                  size={24}
+                  className={isDark ? "text-green-400" : "text-green-600"}
+                />
+              </div>
+              <div className="flex-1">
+                <h3
+                  className={`text-lg font-semibold ${
+                    isDark ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  Placement Status
+                </h3>
+                <p
+                  className={`text-sm ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Current placement information
+                </p>
+              </div>
+              <span
+                className={`px-4 py-2 rounded-full text-sm font-medium ${getPlacementStatusColor(
+                  student
+                )}`}
+              >
+                {student.is_placed === null
+                  ? "Unknown"
+                  : student.is_placed
+                  ? "Placed"
+                  : "Not Placed"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InfoItem
+                icon={<Briefcase size={16} />}
+                label="Placement Status"
+                value={
+                  student.is_placed === null
+                    ? "Unknown"
+                    : student.is_placed
+                    ? "Placed"
+                    : "Not Placed"
+                }
+              />
+              {/* <InfoItem
+                label="Resume"
+                value={
+                  student.resume ? (
+                    <a
+                      href={student.resume}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`text-sm ${
+                        isDark
+                          ? "text-blue-400 hover:text-blue-300"
+                          : "text-blue-600 hover:text-blue-700"
+                      } underline`}
+                    >
+                      View Resume
+                    </a>
+                  ) : (
+                    "N/A"
+                  )
+                }
+              /> */}
+            </div>
+          </Card>
+        </Section>
+
+        {/* User Account Information */}
+        {student.user &&
+          student.user.roles &&
+          student.user.roles.length > 0 && (
+            <Section>
+              <Card className="p-6">
+                <h3
+                  className={`text-lg font-semibold mb-4 ${
+                    isDark ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  Account Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <InfoItem label="User ID" value={student.user.id || "N/A"} />
+                  <InfoItem
+                    label="Roles"
+                    value={
+                      student.user.roles.map((role) => role.name).join(", ") ||
+                      "N/A"
+                    }
+                  />
+                </div>
+              </Card>
+            </Section>
           )}
+
+        {/* Additional Information */}
+        <Section>
+          <Card className="p-6">
+            <h3
+              className={`text-lg font-semibold mb-4 ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Additional Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InfoItem
+                label="Profile Created"
+                value={
+                  student.created_at
+                    ? new Date(student.created_at).toLocaleDateString("en-IN", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"
+                }
+              />
+              <InfoItem
+                label="Last Updated"
+                value={
+                  student.updated_at
+                    ? new Date(student.updated_at).toLocaleDateString("en-IN", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"
+                }
+              />
+            </div>
+          </Card>
         </Section>
       </PageContainer>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+          <div
+            className={`rounded-lg shadow-xl p-6 max-w-md w-full mx-4 ${
+              isDark ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h3
+              className={`text-lg font-semibold mb-4 ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Confirm Delete
+            </h3>
+            <p className={`mb-6 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+              Are you sure you want to delete the profile for{" "}
+              <span className="font-semibold">{getFullName(student)}</span>?
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-red-500 hover:bg-red-600 text-white"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                <Trash2 size={16} className="mr-2" />
+                {isDeleting ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
 
-function InfoItem({ label, value }) {
+function InfoItem({ icon, label, value }) {
   const { isDark } = useTheme();
   return (
-    <div className="flex flex-col">
-      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{label}:</span>
-      <span className={`${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{value}</span>
+    <div className="flex flex-col space-y-1">
+      <div className="flex items-center gap-2">
+        {icon && (
+          <span className={isDark ? "text-gray-400" : "text-gray-500"}>
+            {icon}
+          </span>
+        )}
+        <span
+          className={`text-xs font-medium ${
+            isDark ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          {label}
+        </span>
+      </div>
+      <span className={`text-sm ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+        {typeof value === "object" ? value : value || "N/A"}
+      </span>
+    </div>
+  );
+}
+
+function EditableInfoItem({
+  icon,
+  label,
+  name,
+  value,
+  type = "text",
+  onChange,
+  disabled = false,
+}) {
+  const { isDark } = useTheme();
+  return (
+    <div className="flex flex-col space-y-1">
+      <div className="flex items-center gap-2">
+        {icon && (
+          <span className={isDark ? "text-gray-400" : "text-gray-500"}>
+            {icon}
+          </span>
+        )}
+        <label
+          htmlFor={name}
+          className={`text-xs font-medium ${
+            isDark ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          {label}
+        </label>
+      </div>
+      {type === "select" ? (
+        <select
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className={`text-sm px-3 py-2 rounded-md border ${
+            isDark
+              ? "bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500"
+              : "bg-white border-gray-300 text-gray-800 focus:border-blue-500"
+          } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+        >
+          <option value="">Select {label}</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+          <option value="Prefer not to say">Prefer not to say</option>
+        </select>
+      ) : type === "select-placement" ? (
+        <select
+          id={name}
+          name={name}
+          value={value}
+          onChange={(e) => {
+            const newValue = e.target.value === "true";
+            onChange({ target: { name, value: newValue } });
+          }}
+          disabled={disabled}
+          className={`text-sm px-3 py-2 rounded-md border ${
+            isDark
+              ? "bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500"
+              : "bg-white border-gray-300 text-gray-800 focus:border-blue-500"
+          } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+        >
+          <option value="false">Not Placed</option>
+          <option value="true">Placed</option>
+        </select>
+      ) : (
+        <input
+          id={name}
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className={`text-sm px-3 py-2 rounded-md border ${
+            isDark
+              ? "bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500"
+              : "bg-white border-gray-300 text-gray-800 focus:border-blue-500"
+          } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+        />
+      )}
     </div>
   );
 }

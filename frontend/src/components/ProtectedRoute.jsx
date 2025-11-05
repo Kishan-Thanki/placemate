@@ -64,6 +64,15 @@ export const ProtectedRoute = ({
     const rolesArray = Array.isArray(allowedRoles)
       ? allowedRoles
       : [allowedRoles];
+
+    // Log for debugging
+    console.log("🔐 ProtectedRoute Check:", {
+      path: location.pathname,
+      userActiveRole: user.activeRole,
+      userRoles: user.roles,
+      allowedRoles: rolesArray,
+    });
+
     const hasRequiredRole = rolesArray.some((role) => isActiveRole(role));
 
     if (!hasRequiredRole) {
@@ -71,6 +80,11 @@ export const ProtectedRoute = ({
       if (isSwitchingRole) {
         return null; // Return nothing during role switch to prevent error flash
       }
+
+      console.error("❌ Access Denied:", {
+        userActiveRole: user.activeRole,
+        requiredRoles: rolesArray,
+      });
 
       // User doesn't have the required role
       return (
@@ -86,6 +100,8 @@ export const ProtectedRoute = ({
         />
       );
     }
+
+    console.log("✅ Access Granted");
   }
 
   // User is authenticated and has required role

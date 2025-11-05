@@ -232,7 +232,40 @@ export default function Home() {
 
               {isAuthenticated ? (
                 <Link
-                  to={user.activeRole === "admin" ? "/admin" : "/student"}
+                  to={
+                    user?.activeRole?.toLowerCase() === "admin" ||
+                    user?.activeRole?.toLowerCase() === "student placement cell"
+                      ? "/admin"
+                      : user?.activeRole?.toLowerCase() === "student"
+                      ? "/student"
+                      : user?.roles?.some(
+                          (r) =>
+                            r.toLowerCase() === "admin" ||
+                            r.toLowerCase() === "student placement cell"
+                        )
+                      ? "/admin"
+                      : "/student"
+                  }
+                  onClick={() => {
+                    console.log("🏠 Go to Dashboard clicked:", {
+                      activeRole: user?.activeRole,
+                      roles: user?.roles,
+                      navigatingTo:
+                        user?.activeRole?.toLowerCase() === "admin" ||
+                        user?.activeRole?.toLowerCase() ===
+                          "student placement cell"
+                          ? "/admin"
+                          : user?.activeRole?.toLowerCase() === "student"
+                          ? "/student"
+                          : user?.roles?.some(
+                              (r) =>
+                                r.toLowerCase() === "admin" ||
+                                r.toLowerCase() === "student placement cell"
+                            )
+                          ? "/admin"
+                          : "/student",
+                    });
+                  }}
                   className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
                   Go to Dashboard

@@ -2,6 +2,13 @@
 // Use empty string in development to use proxy, or full URL in production
 const API_BASE = import.meta.env.DEV ? "" : import.meta.env.VITE_API_URL || "";
 
+// Global handler for authentication errors
+let authErrorHandler = null;
+
+export function setAuthErrorHandler(handler) {
+  authErrorHandler = handler;
+}
+
 export function getApiBase() {
   return API_BASE.replace(/\/+$/, "");
 }
@@ -16,14 +23,30 @@ export function buildUrl(path) {
 export async function fetchJSON(path, options = {}) {
   const url = path.startsWith("http") ? path : buildUrl(path);
   console.log("🌐 Fetching URL:", url);
+
+  // Safe logging that handles FormData
+  const bodyLog = options.body
+    ? options.body instanceof FormData
+      ? "[FormData]"
+      : JSON.parse(options.body)
+    : null;
+
   console.log("📤 Request options:", {
     method: options.method || "GET",
     headers: options.headers,
     hasBody: !!options.body,
-    body: options.body ? JSON.parse(options.body) : null,
+    body: bodyLog,
   });
 
   const res = await fetch(url, options);
+
+  // Check for authentication errors (401 Unauthorized)
+  if (res.status === 401) {
+    console.error("🚨 401 Unauthorized - Token expired or invalid");
+    if (authErrorHandler) {
+      authErrorHandler();
+    }
+  }
 
   let data = null;
   try {
@@ -68,7 +91,10 @@ export async function fetchJSON(path, options = {}) {
     } else {
       // LAST RESORT: try to extract all field errors
       const fieldErrors = Object.entries(data)
-        .filter(([key]) => !["success", "timestamp", "data", "error_code"].includes(key))
+        .filter(
+          ([key]) =>
+            !["success", "timestamp", "data", "error_code"].includes(key)
+        )
         .map(([, value]) => {
           if (Array.isArray(value)) {
             return value.join("\n");
@@ -76,7 +102,7 @@ export async function fetchJSON(path, options = {}) {
           return String(value);
         })
         .filter(Boolean);
-      
+
       if (fieldErrors.length > 0) {
         message = fieldErrors.join("\n");
       }
@@ -100,9 +126,9 @@ export async function fetchJSON(path, options = {}) {
   };
 }
 
-
 export default {
   getApiBase,
   buildUrl,
   fetchJSON,
+  setAuthErrorHandler,
 };

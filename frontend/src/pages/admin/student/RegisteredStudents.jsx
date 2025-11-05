@@ -1,178 +1,164 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DashboardLayout,
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, Card, TableRowSkeleton } from "../../../components/ui";
+import {
+  Button,
+  Card,
+  LoadingOverlay,
+  ToastContainer,
+} from "../../../components/ui";
+import { useToast } from "../../../hooks/useToast";
 import { useTheme } from "../../../contexts/ThemeContext";
-import { Eye, Edit, Trash2, Search } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { studentService } from "../../../services/studentService";
 
 export function RegisteredStudents() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
-  const [loading] = useState(false); // Set to true when fetching real data
-  const [students] = useState([
-    {
-      id: 1,
-      enroll: "2021001",
-      name: "John Doe",
-      batch: "2020-2026",
-      course: "M.Sc IT",
-      email: "john.doe@example.com",
-      status: "Placed",
-    },
-    {
-      id: 2,
-      enroll: "2021002",
-      name: "Jane Smith",
-      batch: "2020-2022",
-      course: "B.Sc IT",
-      email: "jane.smith@example.com",
-      status: "Internship",
-    },
-    {
-      id: 3,
-      enroll: "2021003",
-      name: "Michael Brown",
-      batch: "2019-2021",
-      course: "Diploma in Information Technology",
-      email: "michael.brown@example.com",
-      status: "Not Placed",
-    },
-    {
-      id: 4,
-      enroll: "2021004",
-      name: "Aarav Patel",
-      batch: "2020-2022",
-      course: "M.E Electrical Engineering",
-      email: "student1@example.com",
-      status: "Placed",
-    },
-    {
-      id: 5,
-      enroll: "2021005",
-      name: "Sanya Verma",
-      batch: "2019-2021",
-      course: "B.E Electronics and Communication",
-      email: "student2@example.com",
-      status: "Not Placed",
-    },
-    {
-      id: 6,
-      enroll: "2021006",
-      name: "Dev Singh",
-      batch: "2021-2023",
-      course: "M.Sc Data Science",
-      email: "student3@example.com",
-      status: "Internship",
-    },
-    {
-      id: 7,
-      enroll: "2021007",
-      name: "Rhea Shah",
-      batch: "2020-2022",
-      course: "Diploma in Information Technology",
-      email: "student4@example.com",
-      status: "Job Offer Received",
-    },
-    {
-      id: 8,
-      enroll: "2021008",
-      name: "Kabir Khan",
-      batch: "2018-2020",
-      course: "B.Tech Computer Science",
-      email: "student5@example.com",
-      status: "Placed",
-    },
-    {
-      id: 9,
-      enroll: "2021009",
-      name: "Meera Gupta",
-      batch: "2010-2016",
-      course: "M.E Mechanical Engineering",
-      email: "student6@example.com",
-      status: "Not Placed",
-    },
-    {
-      id: 10,
-      enroll: "2021010",
-      name: "Arjun Reddy",
-      batch: "2019-2021",
-      course: "B.E Electrical Engineering",
-      email: "student7@example.com",
-      status: "Placed",
-    },
-    {
-      id: 11,
-      enroll: "2021011",
-      name: "Priya Sharma",
-      batch: "2020-2026",
-      course: "M.Sc IT",
-      email: "priya.sharma@example.com",
-      status: "Internship",
-    },
-    {
-      id: 12,
-      enroll: "2021012",
-      name: "Rajesh Kumar",
-      batch: "2020-2022",
-      course: "B.Sc IT",
-      email: "rajesh.kumar@example.com",
-      status: "Placed",
-    },
-  ]);
-
+  const { toasts, removeToast, success, error: showError } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState([]);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+    current_page: 1,
+    total_pages: 1,
+    page_size: 20,
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedBatch, setSelectedBatch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [updatingPlacement, setUpdatingPlacement] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch students on component mount and when page changes
+  useEffect(() => {
+    fetchStudents(pagination.current_page);
+  }, []);
+
+  const fetchStudents = async (page = 1) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await studentService.getStudentProfiles(page);
+      setStudents(response.data || []);
+      if (response.pagination) {
+        setPagination(response.pagination);
+      }
+    } catch (err) {
+      console.error("Error fetching students:", err);
+      setError(err.message || "Failed to load students");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePlacementStatusChange = async (userId, isPlaced) => {
+    setUpdatingPlacement(userId);
+    try {
+      // Use dedicated PATCH endpoint for placement status
+      await studentService.markAsPlaced(userId, isPlaced);
+      // Update local state
+      setStudents((prevStudents) =>
+        prevStudents.map((student) =>
+          student.user?.id === userId
+            ? { ...student, is_placed: isPlaced }
+            : student
+        )
+      );
+      success("Placement status updated successfully!");
+    } catch (err) {
+      console.error("Error updating placement status:", err);
+      showError(err.message || "Failed to update placement status");
+    } finally {
+      setUpdatingPlacement(null);
+    }
+  };
+
+  const handleDeleteClick = (student) => {
+    setDeleteConfirm(student);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
+
+    setIsDeleting(true);
+    try {
+      await studentService.deleteStudentProfile(deleteConfirm.user?.id);
+      // Remove from local state
+      setStudents((prevStudents) =>
+        prevStudents.filter((s) => s.user?.id !== deleteConfirm.user?.id)
+      );
+      success("Student profile deleted successfully!");
+      setDeleteConfirm(null);
+    } catch (err) {
+      console.error("Error deleting student profile:", err);
+      showError(err.message || "Failed to delete student profile");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.total_pages) {
+      fetchStudents(newPage);
+    }
+  };
 
   const courses = useMemo(
-    () => [...new Set(students.map((s) => s.course))],
+    () => [...new Set(students.map((s) => s.program).filter(Boolean))],
     [students]
   );
   const batches = useMemo(
-    () => [...new Set(students.map((s) => s.batch))],
-    [students]
-  );
-  const statuses = useMemo(
-    () => [...new Set(students.map((s) => s.status))],
+    () => [...new Set(students.map((s) => s.joining_year).filter(Boolean))],
     [students]
   );
 
   const filteredStudents = useMemo(
     () =>
       students.filter((student) => {
+        const fullName = student.user?.full_name || "";
+        const email = student.user?.email || "";
         const matchesSearch =
-          student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          student.enroll.toLowerCase().includes(searchTerm.toLowerCase());
+          fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (student.enrollment_number &&
+            student.enrollment_number
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())) ||
+          email.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCourse =
-          !selectedCourse || student.course === selectedCourse;
-        const matchesBatch = !selectedBatch || student.batch === selectedBatch;
+          !selectedCourse || student.program === selectedCourse;
+        const matchesBatch =
+          !selectedBatch || student.joining_year?.toString() === selectedBatch;
         const matchesStatus =
-          !selectedStatus || student.status === selectedStatus;
+          !selectedStatus ||
+          (selectedStatus === "Placed"
+            ? student.is_placed
+            : !student.is_placed);
         return matchesSearch && matchesCourse && matchesBatch && matchesStatus;
       }),
     [students, searchTerm, selectedCourse, selectedBatch, selectedStatus]
   );
 
-  const getStatusPill = (status) => {
-    const map = {
-      Placed:
-        "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-      Internship:
-        "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-      "Not Placed":
-        "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-      "Job Offer Received":
-        "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    };
-    return (
-      map[status] ||
-      (isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700")
-    );
+  const getStatusPill = (isPlaced) => {
+    return isPlaced
+      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+      : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
   };
 
   return (
@@ -242,11 +228,8 @@ export function RegisteredStudents() {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                 >
                   <option value="">All Status</option>
-                  {statuses.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
+                  <option value="Placed">Placed</option>
+                  <option value="Not Placed">Not Placed</option>
                 </select>
                 <Button
                   variant="outline"
@@ -265,72 +248,146 @@ export function RegisteredStudents() {
         </Section>
 
         <Section>
-          <div
-            className={`overflow-x-auto rounded-lg border ${
-              isDark ? "border-gray-700" : "border-gray-200"
-            }`}
-          >
-            <table
-              className={`min-w-full text-sm ${
-                isDark ? "text-gray-300" : "text-gray-700"
+          {loading ? (
+            <LoadingOverlay message="Loading students..." />
+          ) : (
+            <div
+              className={`overflow-x-auto rounded-lg border ${
+                isDark ? "border-gray-700" : "border-gray-200"
               }`}
             >
-              <thead className={`${isDark ? "bg-gray-800" : "bg-gray-50"}`}>
-                <tr>
-                  {[
-                    "S.No",
-                    "Enrollment No",
-                    "Full Name",
-                    "Batch",
-                    "Course",
-                    "Email",
-                    "Placement Status",
-                    "Action",
-                  ].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left font-semibold">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading
-                  ? [...Array(5)].map((_, i) => (
-                      <TableRowSkeleton key={i} columns={8} />
-                    ))
-                  : filteredStudents.map((s, i) => (
+              <table
+                className={`min-w-full text-sm ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                <thead className={`${isDark ? "bg-gray-800" : "bg-gray-50"}`}>
+                  <tr>
+                    {[
+                      "S.No",
+                      "Enrollment No",
+                      "Full Name",
+                      "Batch",
+                      "Course",
+                      "Email",
+                      "Placement Status",
+                      "Action",
+                    ].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left font-semibold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {error ? (
+                    <tr>
+                      <td colSpan="8" className="px-4 py-8 text-center">
+                        <div
+                          className={`text-${isDark ? "red-400" : "red-600"}`}
+                        >
+                          <p className="font-medium">❌ {error}</p>
+                          <Button
+                            onClick={() =>
+                              fetchStudents(pagination.current_page)
+                            }
+                            className="mt-4"
+                            size="sm"
+                          >
+                            Try Again
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredStudents.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="8"
+                        className="px-4 py-8 text-center text-gray-500"
+                      >
+                        No students found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredStudents.map((s, i) => (
                       <tr
-                        key={s.id}
+                        key={s.user?.id || i}
                         className={`${
                           isDark ? "hover:bg-gray-800" : "hover:bg-gray-50"
                         }`}
                       >
-                        <td className="px-4 py-3">{i + 1}</td>
-                        <td className="px-4 py-3 font-mono">{s.enroll}</td>
-                        <td className="px-4 py-3">{s.name}</td>
-                        <td className="px-4 py-3">{s.batch}</td>
-                        <td className="px-4 py-3">{s.course}</td>
-                        <td className="px-4 py-3">{s.email}</td>
                         <td className="px-4 py-3">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusPill(
-                              s.status
-                            )}`}
-                          >
-                            {s.status}
-                          </span>
+                          {(pagination.current_page - 1) *
+                            pagination.page_size +
+                            i +
+                            1}
+                        </td>
+                        <td className="px-4 py-3 font-mono">
+                          {s.enrollment_number}
+                        </td>
+                        <td className="px-4 py-3">
+                          {s.user?.full_name || "-"}
+                        </td>
+                        <td className="px-4 py-3">{s.joining_year || "-"}</td>
+                        <td className="px-4 py-3">{s.program || "-"}</td>
+                        <td className="px-4 py-3">{s.user?.email || "-"}</td>
+                        <td className="px-4 py-3">
+                          <div className="relative inline-block">
+                            <select
+                              value={s.is_placed ? "Placed" : "Not Placed"}
+                              onChange={(e) =>
+                                handlePlacementStatusChange(
+                                  s.user?.id,
+                                  e.target.value === "Placed"
+                                )
+                              }
+                              disabled={updatingPlacement === s.user?.id}
+                              className={`appearance-none w-30 pl-3 pr-6 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 border-0
+      ${
+        s.is_placed
+          ? isDark
+            ? "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
+            : "bg-green-500 text-white hover:bg-green-600 focus:ring-green-400"
+          : isDark
+          ? "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+          : "bg-red-500 text-white hover:bg-red-600 focus:ring-red-400"
+      }
+      ${updatingPlacement === s.user?.id ? "opacity-50 cursor-not-allowed" : ""}
+      [&>option]:bg-white [&>option]:text-gray-900 [&>option]:font-normal [&>option]:pl-3`}
+                            >
+                              <option value="Placed">Placed</option>
+                              <option value="Not Placed">Not Placed</option>
+                            </select>
+
+                            {/* Custom dropdown arrow */}
+                            <svg
+                              className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <button
                               className={`${
                                 isDark
-                                  ? "text-gray-300 hover:text-white"
-                                  : "text-gray-600 hover:text-gray-900"
+                                  ? "text-blue-400 hover:text-blue-300"
+                                  : "text-blue-600 hover:text-blue-700"
                               }`}
                               title="View"
                               onClick={() =>
-                                navigate("/admin/students/details")
+                                navigate(
+                                  `/admin/students/details/${s.user?.id}`
+                                )
                               }
                             >
                               <Eye size={16} />
@@ -338,10 +395,15 @@ export function RegisteredStudents() {
                             <button
                               className={`${
                                 isDark
-                                  ? "text-gray-300 hover:text-white"
-                                  : "text-gray-600 hover:text-gray-900"
+                                  ? "text-yellow-400 hover:text-yellow-300"
+                                  : "text-yellow-600 hover:text-yellow-700"
                               }`}
                               title="Edit"
+                              onClick={() =>
+                                navigate(
+                                  `/admin/students/details/${s.user?.id}?edit=true`
+                                )
+                              }
                             >
                               <Edit size={16} />
                             </button>
@@ -352,18 +414,120 @@ export function RegisteredStudents() {
                                   : "text-red-600 hover:text-red-700"
                               }`}
                               title="Delete"
+                              onClick={() => handleDeleteClick(s)}
                             >
                               <Trash2 size={16} />
                             </button>
                           </div>
                         </td>
                       </tr>
-                    ))}
-              </tbody>
-            </table>
-          </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!loading &&
+            !error &&
+            filteredStudents.length > 0 &&
+            pagination.total_pages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <div
+                  className={`text-sm ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Showing{" "}
+                  {(pagination.current_page - 1) * pagination.page_size + 1} to{" "}
+                  {Math.min(
+                    pagination.current_page * pagination.page_size,
+                    pagination.count
+                  )}{" "}
+                  of {pagination.count} students
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() =>
+                      handlePageChange(pagination.current_page - 1)
+                    }
+                    disabled={!pagination.previous}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <ChevronLeft size={16} />
+                    Previous
+                  </Button>
+                  <span
+                    className={`text-sm ${
+                      isDark ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Page {pagination.current_page} of {pagination.total_pages}
+                  </span>
+                  <Button
+                    onClick={() =>
+                      handlePageChange(pagination.current_page + 1)
+                    }
+                    disabled={!pagination.next}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Next
+                    <ChevronRight size={16} />
+                  </Button>
+                </div>
+              </div>
+            )}
         </Section>
       </PageContainer>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+          <div
+            className={`rounded-lg shadow-xl p-6 max-w-md w-full mx-4 ${
+              isDark ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h3
+              className={`text-lg font-semibold mb-4 ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Confirm Delete
+            </h3>
+            <p className={`mb-6 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+              Are you sure you want to delete the profile for{" "}
+              <span className="font-semibold">
+                {deleteConfirm.user?.full_name || "this student"}
+              </span>
+              ? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteConfirm(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-red-500 hover:bg-red-600 text-white"
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+              >
+                <Trash2 size={16} className="mr-2" />
+                {isDeleting ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, TableRowSkeleton } from "../../../components/ui";
+import { Button, LoadingOverlay } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import {
   Building2,
@@ -279,41 +279,7 @@ export default function CompaniesList() {
           )}
 
           {loading ? (
-            <div
-              className={`overflow-x-auto rounded-xl border ${
-                isDark
-                  ? "border-gray-700 bg-gray-800"
-                  : "border-gray-200 bg-white"
-              }`}
-            >
-              <table className="min-w-full text-sm">
-                <thead
-                  className={`${
-                    isDark
-                      ? "bg-gray-700 text-gray-300"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium">Company</th>
-                    <th className="px-4 py-3 text-left font-medium">Website</th>
-                    <th className="px-4 py-3 text-left font-medium">
-                      Location
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium">Size</th>
-                    <th className="px-4 py-3 text-left font-medium">Founded</th>
-                    <th className="px-4 py-3 text-center font-medium">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...Array(5)].map((_, i) => (
-                    <TableRowSkeleton key={i} columns={6} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <LoadingOverlay message="Loading companies..." />
           ) : error ? (
             <div
               className={`text-center py-6 rounded-lg border ${
