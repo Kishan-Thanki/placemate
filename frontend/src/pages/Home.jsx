@@ -94,32 +94,6 @@ export default function Home() {
         "Generate comprehensive reports and gain insights with powerful analytics tools.",
       color: "yellow",
     },
-    {
-      icon: <Bell className="w-8 h-8" />,
-      title: "Notifications",
-      description:
-        "Stay updated with real-time notifications for drives, deadlines, and important updates.",
-      color: "indigo",
-    },
-  ];
-
-  const stats = [
-    {
-      label: "Companies",
-      value: "150+",
-      icon: <Building2 className="w-5 h-5" />,
-    },
-    { label: "Students", value: "2000+", icon: <Users className="w-5 h-5" /> },
-    {
-      label: "Placements",
-      value: "85%",
-      icon: <TrendingUp className="w-5 h-5" />,
-    },
-    {
-      label: "Success Rate",
-      value: "95%",
-      icon: <CheckCircle className="w-5 h-5" />,
-    },
   ];
 
   const benefits = [
@@ -362,43 +336,6 @@ export default function Home() {
                 </a>
               </div>
             )}
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
-              {stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className={`
-                    p-6 rounded-xl border transform transition-all duration-300 animate-fade-in
-                    ${
-                      isDark
-                        ? "bg-gray-800 border-gray-700 hover:bg-gray-750"
-                        : "bg-white border-gray-200 hover:bg-gray-50"
-                    }
-                    hover:shadow-2xl hover:scale-105 hover:-translate-y-2
-                  `}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="flex items-center justify-center space-x-2 mb-2">
-                    <div className="text-blue-600 transform transition-transform group-hover:scale-110">
-                      {stat.icon}
-                    </div>
-                    <div
-                      className={`text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}
-                    >
-                      {stat.value}
-                    </div>
-                  </div>
-                  <div
-                    className={`text-sm font-medium ${
-                      isDark ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>

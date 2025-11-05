@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   DashboardLayout,
@@ -24,6 +24,7 @@ import {
   Save,
   X,
   Trash2,
+  Camera,
 } from "lucide-react";
 import { studentService } from "../../../services/studentService";
 
@@ -43,6 +44,9 @@ const StudentDetails = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [formData, setFormData] = useState({});
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchStudentDetails();
@@ -94,6 +98,9 @@ const StudentDetails = () => {
         tenth_percentage: student.tenth_percentage || "",
         twelfth_percentage: student.twelfth_percentage || "",
       });
+      // Reset profile picture
+      setProfilePicture(null);
+      setProfilePicturePreview(null);
     }
     setIsEditMode(!isEditMode);
   };
@@ -106,12 +113,50 @@ const StudentDetails = () => {
     }));
   };
 
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        showError("Please select a valid image file");
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showError("Image size should be less than 5MB");
+        return;
+      }
+
+      setProfilePicture(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveProfilePicture = () => {
+    setProfilePicture(null);
+    setProfilePicturePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const handleSaveChanges = async () => {
     try {
       setIsSaving(true);
 
       // Always use FormData for consistency with backend expectations
       const formDataToSend = new FormData();
+
+      // Add profile picture if selected
+      if (profilePicture) {
+        formDataToSend.append("profile_picture", profilePicture);
+      }
 
       // Format date_of_birth to YYYY-MM-DD if present
       if (formData.date_of_birth) {
@@ -140,6 +185,8 @@ const StudentDetails = () => {
       // Refresh student data
       await fetchStudentDetails();
       setIsEditMode(false);
+      setProfilePicture(null);
+      setProfilePicturePreview(null);
       success("Student details updated successfully!");
     } catch (err) {
       console.error("Error updating student details:", err);
@@ -196,8 +243,8 @@ const StudentDetails = () => {
         ? "bg-green-900/30 text-green-400"
         : "bg-green-100 text-green-700"
       : isDark
-      ? "bg-red-900/30 text-red-400"
-      : "bg-red-100 text-red-700";
+      ? "bg-orange-900/30 text-orange-400"
+      : "bg-orange-100 text-orange-700";
   };
 
   if (loading) {
@@ -266,16 +313,84 @@ const StudentDetails = () => {
         <Section>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <div
-                className={`rounded-full flex items-center justify-center font-bold border-2 ${
-                  isEditMode ? "w-20 h-20 text-2xl" : "w-24 h-24 text-3xl"
-                } ${
-                  isDark
-                    ? "bg-blue-900/30 border-blue-700 text-blue-400"
-                    : "bg-blue-100 border-blue-300 text-blue-700"
-                }`}
-              >
-                {getInitials(student)}
+              {/* Profile Picture with Edit Option */}
+              <div className="relative">
+                {isEditMode ? (
+                  <>
+                    <div
+                      className={`rounded-full flex items-center justify-center font-bold border-2 w-20 h-20 text-2xl overflow-hidden ${
+                        isDark
+                          ? "bg-blue-900/30 border-blue-700 text-blue-400"
+                          : "bg-blue-100 border-blue-300 text-blue-700"
+                      }`}
+                    >
+                      {profilePicturePreview ? (
+                        <img
+                          src={profilePicturePreview}
+                          alt="Profile Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : student.profile_picture ? (
+                        <img
+                          src={student.profile_picture}
+                          alt={getFullName(student)}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        getInitials(student)
+                      )}
+                    </div>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`absolute bottom-0 right-0 p-1.5 rounded-full border-2 ${
+                        isDark
+                          ? "bg-blue-600 hover:bg-blue-700 border-gray-800 text-white"
+                          : "bg-blue-500 hover:bg-blue-600 border-white text-white"
+                      } transition-colors`}
+                      title="Change profile picture"
+                    >
+                      <Camera size={14} />
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureChange}
+                      className="hidden"
+                    />
+                    {(profilePicture || profilePicturePreview) && (
+                      <button
+                        onClick={handleRemoveProfilePicture}
+                        className={`absolute -top-1 -right-1 p-1 rounded-full ${
+                          isDark
+                            ? "bg-red-600 hover:bg-red-700 text-white"
+                            : "bg-red-500 hover:bg-red-600 text-white"
+                        } transition-colors`}
+                        title="Remove picture"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <div
+                    className={`rounded-full flex items-center justify-center font-bold border-2 w-24 h-24 text-3xl overflow-hidden ${
+                      isDark
+                        ? "bg-blue-900/30 border-blue-700 text-blue-400"
+                        : "bg-blue-100 border-blue-300 text-blue-700"
+                    }`}
+                  >
+                    {student.profile_picture ? (
+                      <img
+                        src={student.profile_picture}
+                        alt={getFullName(student)}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      getInitials(student)
+                    )}
+                  </div>
+                )}
               </div>
               <h2
                 className={`text-xl font-semibold ${
