@@ -9,7 +9,6 @@ import {
   Card,
   Button,
   LoadingButton,
-  ShimmerPlaceholder,
   LoadingOverlay,
 } from "../../components/ui";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -28,26 +27,17 @@ export default function CompanyRegistration() {
   const [logo, setLogo] = useState(null); // Preview URL
   const [logoFile, setLogoFile] = useState(null); // Actual file to upload
   const [loading, setLoading] = useState(false);
-  const [fetchingData, setFetchingData] = useState(isEditMode);
+  const [fetchingData, setFetchingData] = useState(false);
   const [cities, setCities] = useState([]);
-  const [states, setStates] = useState([]);
-  const [countries, setCountries] = useState([]);
   const [form, setForm] = useState({
     companyName: "",
     website: "",
+    email: "",
     phoneNumber: "",
     foundedYear: "",
-    industry: "",
     companySize: "",
-    companyType: "",
-    companyCategory: "Software Development",
     description: "",
-    contactName: "",
-    contactEmail: "",
-    contactPosition: "",
     addressLine: "",
-    country: "",
-    state: "",
     city: "",
   });
 
@@ -66,16 +56,17 @@ export default function CompanyRegistration() {
     }
   };
 
-  // Fetch cities, states, and countries for dropdowns
+  // Fetch cities for dropdown
   useEffect(() => {
     const fetchLookupData = async () => {
+      // Set loading state if in edit mode (we need cities before fetching company data)
+      if (isEditMode) {
+        setFetchingData(true);
+      }
+
       try {
-        // Fetch all lookup data in parallel
-        const [citiesData, statesData, countriesData] = await Promise.all([
-          lookupService.getCities(),
-          lookupService.getStates(),
-          lookupService.getCountries(),
-        ]);
+        // Fetch cities data
+        const citiesData = await lookupService.getCities();
 
         // Map cities
         const cityOptions = citiesData.map((city) => ({
@@ -84,37 +75,24 @@ export default function CompanyRegistration() {
         }));
         setCities(cityOptions);
 
-        // Map states
-        const stateOptions = statesData.map((state) => ({
-          label: state.name,
-          value: state.id.toString(),
-        }));
-        setStates(stateOptions);
-
-        // Map countries
-        const countryOptions = countriesData.map((country) => ({
-          label: country.name,
-          value: country.id.toString(),
-        }));
-        setCountries(countryOptions);
-
         console.log("✅ Lookup data loaded:", {
           cities: cityOptions.length,
-          states: stateOptions.length,
-          countries: countryOptions.length,
         });
       } catch (error) {
         console.error("❌ Error fetching lookup data:", error);
+        if (isEditMode) {
+          setFetchingData(false);
+        }
       }
     };
     fetchLookupData();
-  }, []);
+  }, [isEditMode]);
 
   // Fetch company data if in edit mode
   useEffect(() => {
     if (isEditMode && id && cities.length > 0) {
       const fetchCompanyData = async () => {
-        setFetchingData(true);
+        // Don't set fetchingData here - it's already set in the previous useEffect
         try {
           const response = await companyService.getCompanyById(id);
           const company = response.success ? response.data : response;
@@ -139,16 +117,11 @@ export default function CompanyRegistration() {
           setForm({
             companyName: company.name || "",
             website: company.website_url || "",
+            email: company.email || "",
             phoneNumber: company.phone_number || "",
             foundedYear: company.year_founded?.toString() || "",
-            industry: "",
             companySize: companySizeReverseMap[company.company_size] || "",
-            companyType: "",
-            companyCategory: "Software Development",
             description: company.description || "",
-            contactName: "",
-            contactEmail: company.email || "",
-            contactPosition: "",
             addressLine: company.headquarters_address || "",
             country: "",
             state: "",
@@ -180,14 +153,14 @@ export default function CompanyRegistration() {
       return;
     }
 
-    if (!form.contactEmail.trim()) {
-      alert("Contact email is required");
+    if (!form.email || !form.email.trim()) {
+      alert("Email is required");
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.contactEmail)) {
+    if (!emailRegex.test(form.email)) {
       alert("Please enter a valid email address");
       return;
     }
@@ -222,7 +195,7 @@ export default function CompanyRegistration() {
 
     const payload = {
       name: form.companyName.trim(),
-      email: form.contactEmail.trim(),
+      email: form.email.trim(),
       phone_number: form.phoneNumber?.trim() || "0000000000",
       website_url: form.website?.trim() || "",
       description: form.description || "",
@@ -312,27 +285,13 @@ export default function CompanyRegistration() {
 
   if (fetchingData) {
     return (
-      <DashboardLayout title="Loading...">
+      <DashboardLayout
+        title={isEditMode ? "Edit Company" : "Register New Company"}
+      >
         <PageContainer>
-          <Section>
-            <Card className="p-6">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="flex flex-col items-center gap-3">
-                    <div
-                      className={`w-28 h-28 rounded-lg animate-pulse ${
-                        isDark ? "bg-gray-700" : "bg-gray-200"
-                      }`}
-                    />
-                  </div>
-                  <div className="lg:col-span-2 space-y-4">
-                    <ShimmerPlaceholder lines={6} />
-                  </div>
-                </div>
-                <ShimmerPlaceholder lines={4} />
-              </div>
-            </Card>
-          </Section>
+          <LoadingOverlay
+            message={isEditMode ? "Loading company data..." : "Loading..."}
+          />
         </PageContainer>
       </DashboardLayout>
     );
@@ -421,16 +380,13 @@ export default function CompanyRegistration() {
                     onChange={(v) => update("foundedYear", v)}
                     placeholder="e.g., 2020"
                   />
-                  <Select
-                    label="Industry"
-                    options={[
-                      "Technology",
-                      "Finance",
-                      "Healthcare",
-                      "Education",
-                    ]}
-                    value={form.industry}
-                    onChange={(v) => update("industry", v)}
+                  <Input
+                    label="Email"
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(v) => update("email", v)}
+                    placeholder="company@example.com"
                   />
                   <Select
                     label="Company Size *"
@@ -438,28 +394,6 @@ export default function CompanyRegistration() {
                     value={form.companySize}
                     onChange={(v) => update("companySize", v)}
                     placeholder="Select company size"
-                  />
-                  <Select
-                    label="Company Type"
-                    options={[
-                      "Private Limited",
-                      "Public Limited",
-                      "LLP",
-                      "Startup",
-                    ]}
-                    value={form.companyType}
-                    onChange={(v) => update("companyType", v)}
-                  />
-                  <Select
-                    label="Company Category"
-                    options={[
-                      "Software Development",
-                      "Consulting",
-                      "Product",
-                      "Services",
-                    ]}
-                    value={form.companyCategory}
-                    onChange={(v) => update("companyCategory", v)}
                   />
                   <div className="md:col-span-2">
                     <Textarea
@@ -475,36 +409,11 @@ export default function CompanyRegistration() {
             </Card>
           </Section>
 
-          {/* Contact Information Section */}
-          <Section title="Contact Information">
-            <Card className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input
-                  label="Contact Person Name"
-                  value={form.contactName}
-                  onChange={(v) => update("contactName", v)}
-                />
-                <Input
-                  label="Contact Person Email"
-                  type="email"
-                  value={form.contactEmail}
-                  onChange={(v) => update("contactEmail", v)}
-                  placeholder="name@company.com"
-                />
-                <Input
-                  label="Contact Person Position"
-                  value={form.contactPosition}
-                  onChange={(v) => update("contactPosition", v)}
-                />
-              </div>
-            </Card>
-          </Section>
-
           {/* Address Information Section */}
           <Section title="Address Information">
             <Card className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
                   <Input
                     label="Address Line"
                     value={form.addressLine}
@@ -512,18 +421,6 @@ export default function CompanyRegistration() {
                     placeholder="Building, Street, Area"
                   />
                 </div>
-                <Select
-                  label="Country"
-                  value={form.country}
-                  onChange={(v) => update("country", v)}
-                  options={countries.map((c) => c.label)}
-                />
-                <Select
-                  label="State"
-                  value={form.state}
-                  onChange={(v) => update("state", v)}
-                  options={states.map((s) => s.label)}
-                />
                 {/* Use the fetched and formatted 'cities' state for the options */}
                 <Select
                   label="Headquarter City *"

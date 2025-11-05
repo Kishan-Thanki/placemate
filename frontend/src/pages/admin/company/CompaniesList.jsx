@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DashboardLayout,
@@ -19,6 +19,8 @@ import {
   Edit,
   Trash2,
   Eye,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 import { companyService } from "../../../services/companyService";
 
@@ -29,7 +31,10 @@ export default function CompaniesList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeSearchTerm, setActiveSearchTerm] = useState(""); // Track active search
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    company: null,
+  });
   const [pagination, setPagination] = useState({
     count: 0,
     next: null,
@@ -40,23 +45,31 @@ export default function CompaniesList() {
   });
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Client-side safety net in case server search isn't applied (e.g., older backend)
-  const filterCompaniesLocally = useCallback((items, term) => {
-    if (!term || !Array.isArray(items)) return items || [];
-    const q = term.toLowerCase();
-    const pick = (v) => (v == null ? "" : String(v).toLowerCase());
-    return items.filter((c) => {
+  // Client-side filtering similar to RegisteredStudents
+  const filteredCompanies = useMemo(() => {
+    if (!searchTerm.trim()) return companies;
+
+    const query = searchTerm.toLowerCase();
+    return companies.filter((company) => {
+      const name = company.name?.toLowerCase() || "";
+      const email = company.email?.toLowerCase() || "";
+      const phone = company.phone_number?.toLowerCase() || "";
+      const description = company.description?.toLowerCase() || "";
+      const address = company.headquarters_address?.toLowerCase() || "";
+      const website = company.website_url?.toLowerCase() || "";
+      const city = company.headquarters_city_name?.toLowerCase() || "";
+
       return (
-        pick(c.name).includes(q) ||
-        pick(c.email).includes(q) ||
-        pick(c.phone_number).includes(q) ||
-        pick(c.description).includes(q) ||
-        pick(c.headquarters_address).includes(q) ||
-        pick(c.website_url).includes(q) ||
-        pick(c.headquarters_city_name).includes(q)
+        name.includes(query) ||
+        email.includes(query) ||
+        phone.includes(query) ||
+        description.includes(query) ||
+        address.includes(query) ||
+        website.includes(query) ||
+        city.includes(query)
       );
     });
-  }, []);
+  }, [companies, searchTerm]);
 
   const fetchCompanies = useCallback(async () => {
     setLoading(true);
@@ -85,89 +98,23 @@ export default function CompaniesList() {
     }
   }, [currentPage]);
 
-  // Separate function to perform search
-  const performSearch = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = { search: activeSearchTerm, page: currentPage };
-      const response = await companyService.getAllCompanies(params);
-
-      // Prefer server-side filtering when present
-      let list = response?.data || response?.results || response || [];
-      if (!Array.isArray(list)) list = [];
-
-      // Safety: also filter locally so UI never shows unrelated rows
-      const filtered = filterCompaniesLocally(list, activeSearchTerm);
-      setCompanies(filtered);
-
-      // If server returned pagination but didn't filter, counts would be wrong.
-      // For active search, reflect the filtered page locally (single page for small lists).
-      setPagination((prev) => ({
-        ...prev,
-        count: filtered.length,
-        current_page: 1,
-        total_pages: 1,
-        next: null,
-        previous: null,
-      }));
-    } catch (err) {
-      console.error("Search error:", err);
-      setError("Search failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [activeSearchTerm, currentPage, filterCompaniesLocally]);
-
   useEffect(() => {
-    if (activeSearchTerm) {
-      // If there's an active search, perform search instead of fetch
-      performSearch();
-    } else {
-      fetchCompanies();
-    }
-  }, [activeSearchTerm, currentPage, performSearch, fetchCompanies]);
+    fetchCompanies();
+  }, [currentPage, fetchCompanies]);
 
-  // Helper function to highlight search terms
-  const highlightText = (text, search) => {
-    if (!search.trim() || !text) return text;
-
-    const parts = text.toString().split(new RegExp(`(${search})`, "gi"));
-    return parts.map((part, index) =>
-      part.toLowerCase() === search.toLowerCase() ? (
-        <mark
-          key={index}
-          className={
-            isDark ? "bg-yellow-600 text-white" : "bg-yellow-200 text-gray-900"
-          }
-        >
-          {part}
-        </mark>
-      ) : (
-        part
-      )
-    );
-  };
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchTerm.trim()) {
-      setActiveSearchTerm("");
-      setCurrentPage(1);
-      return;
-    }
-
-    setActiveSearchTerm(searchTerm);
-    setCurrentPage(1);
-  };
-
-  const handleDelete = async (id, name, e) => {
+  const handleDeleteClick = (company, e) => {
     e.stopPropagation();
-    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    setDeleteModal({ isOpen: true, company });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const { company } = deleteModal;
+    if (!company) return;
 
     try {
-      await companyService.deleteCompany(id);
-      setCompanies(companies.filter((c) => c.id !== id));
+      await companyService.deleteCompany(company.id);
+      setCompanies(companies.filter((c) => c.id !== company.id));
+
       // Show success message
       const successMsg = document.createElement("div");
       successMsg.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
@@ -176,10 +123,16 @@ export default function CompaniesList() {
       successMsg.textContent = "Company deleted successfully!";
       document.body.appendChild(successMsg);
       setTimeout(() => successMsg.remove(), 3000);
+
+      setDeleteModal({ isOpen: false, company: null });
     } catch (err) {
       console.error("Delete error:", err);
       alert("Failed to delete company. Please try again.");
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({ isOpen: false, company: null });
   };
 
   const handlePageChange = (newPage) => {
@@ -212,7 +165,7 @@ export default function CompaniesList() {
             </div>
           }
         >
-          {/* Search and Filter Bar */}
+          {/* Search Bar */}
           <div
             className={`mb-6 p-4 rounded-lg border ${
               isDark
@@ -220,63 +173,37 @@ export default function CompaniesList() {
                 : "bg-white border-gray-200"
             }`}
           >
-            <form
-              onSubmit={handleSearch}
-              className="flex flex-col md:flex-row gap-3"
-            >
-              <div className="flex-1 relative">
-                <Search
-                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
-                />
-                <input
-                  type="text"
-                  placeholder="Search companies by name, email, phone..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
-                    isDark
-                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-              </div>
-              <Button type="submit">Search</Button>
-              {activeSearchTerm && (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setActiveSearchTerm("");
-                    setCurrentPage(1);
-                  }}
-                >
-                  Clear
-                </Button>
-              )}
-            </form>
-          </div>
-
-          {/* Search Results Badge */}
-          {activeSearchTerm && !loading && (
-            <div
-              className={`mb-4 flex items-center gap-2 ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  isDark
-                    ? "bg-blue-900 text-blue-200"
-                    : "bg-blue-100 text-blue-800"
+            <div className="relative">
+              <Search
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+                  isDark ? "text-gray-400" : "text-gray-500"
                 }`}
-              >
-                {companies.length} result{companies.length !== 1 ? "s" : ""}{" "}
-                found for "{activeSearchTerm}"
-              </span>
+              />
+              <input
+                type="text"
+                placeholder="Search companies by name, email, phone, city..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full pl-10 pr-10 py-2 rounded-lg border ${
+                  isDark
+                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                    isDark
+                      ? "text-gray-400 hover:text-gray-200"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
-          )}
+          </div>
 
           {loading ? (
             <LoadingOverlay message="Loading companies..." />
@@ -290,7 +217,7 @@ export default function CompaniesList() {
             >
               ❌ {error}
             </div>
-          ) : companies.length === 0 ? (
+          ) : filteredCompanies.length === 0 ? (
             <div
               className={`text-center py-12 rounded-lg border ${
                 isDark
@@ -301,7 +228,7 @@ export default function CompaniesList() {
               <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium mb-2">No companies found</p>
               <p className="text-sm mb-4">
-                {activeSearchTerm
+                {searchTerm
                   ? "Try adjusting your search"
                   : "Get started by adding your first company"}
               </p>
@@ -340,15 +267,11 @@ export default function CompaniesList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {companies.map((c) => (
+                  {filteredCompanies.map((c) => (
                     <tr
                       key={c.id}
                       className={`transition-colors ${
-                        activeSearchTerm
-                          ? isDark
-                            ? "bg-blue-900/20 hover:bg-blue-900/30 border-blue-800"
-                            : "bg-blue-50 hover:bg-blue-100 border-blue-200"
-                          : isDark
+                        isDark
                           ? "hover:bg-gray-700 border-gray-700"
                           : "hover:bg-gray-50 border-gray-200"
                       } border-b`}
@@ -378,14 +301,14 @@ export default function CompaniesList() {
                                 isDark ? "text-white" : "text-gray-900"
                               }`}
                             >
-                              {highlightText(c.name, activeSearchTerm)}
+                              {c.name}
                             </div>
                             <div
                               className={`text-xs ${
                                 isDark ? "text-gray-400" : "text-gray-500"
                               }`}
                             >
-                              {highlightText(c.email, activeSearchTerm)}
+                              {c.email}
                             </div>
                           </div>
                         </div>
@@ -478,7 +401,7 @@ export default function CompaniesList() {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={(e) => handleDelete(c.id, c.name, e)}
+                            onClick={(e) => handleDeleteClick(c, e)}
                             className={`p-2 rounded-lg transition-colors ${
                               isDark
                                 ? "text-red-400 hover:bg-gray-700"
@@ -500,6 +423,7 @@ export default function CompaniesList() {
           {/* Pagination */}
           {!loading &&
             !error &&
+            !searchTerm &&
             companies.length > 0 &&
             pagination.total_pages > 1 && (
               <div
@@ -597,6 +521,96 @@ export default function CompaniesList() {
             )}
         </Section>
       </PageContainer>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+            onClick={handleDeleteCancel}
+          />
+
+          {/* Modal */}
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div
+              className={`w-full max-w-md rounded-xl shadow-2xl ${
+                isDark ? "bg-gray-800" : "bg-white"
+              } p-6 animate-in fade-in zoom-in duration-200`}
+            >
+              {/* Icon */}
+              <div className="flex justify-center mb-4">
+                <div
+                  className={`p-4 rounded-full ${
+                    isDark ? "bg-red-900/30" : "bg-red-100"
+                  }`}
+                >
+                  <AlertTriangle
+                    size={48}
+                    className={isDark ? "text-red-400" : "text-red-600"}
+                  />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h2
+                className={`text-2xl font-bold text-center mb-2 ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Delete Company
+              </h2>
+
+              {/* Message */}
+              <p
+                className={`text-center mb-2 ${
+                  isDark ? "text-gray-300" : "text-gray-600"
+                }`}
+              >
+                Are you sure you want to delete
+              </p>
+              <p
+                className={`text-center font-semibold mb-4 ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}
+              >
+                "{deleteModal.company?.name}"?
+              </p>
+              <p
+                className={`text-center text-sm mb-6 ${
+                  isDark ? "text-red-400" : "text-red-600"
+                }`}
+              >
+                This action cannot be undone.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteCancel}
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${
+                    isDark
+                      ? "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${
+                    isDark
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : "bg-red-600 hover:bg-red-700 text-white"
+                  }`}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </DashboardLayout>
   );
 }

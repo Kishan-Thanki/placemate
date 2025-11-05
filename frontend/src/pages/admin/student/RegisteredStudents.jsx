@@ -20,6 +20,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { studentService } from "../../../services/studentService";
 
@@ -175,7 +176,7 @@ export function RegisteredStudents() {
                   }`}
                 />
                 <input
-                  className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${
+                  className={`w-full pl-9 pr-9 py-2 rounded-lg border text-sm ${
                     isDark
                       ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
                       : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
@@ -184,6 +185,18 @@ export function RegisteredStudents() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                      isDark
+                        ? "text-gray-400 hover:text-gray-200"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
               </div>
               <select
                 className={`w-full px-3 py-2 rounded-lg border text-sm ${
@@ -342,15 +355,15 @@ export function RegisteredStudents() {
                                 )
                               }
                               disabled={updatingPlacement === s.user?.id}
-                              className={`appearance-none w-30 pl-3 pr-6 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 border-0
+                              className={`appearance-none min-w-[130px] pl-3 pr-8 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 border
       ${
         s.is_placed
           ? isDark
-            ? "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
-            : "bg-green-500 text-white hover:bg-green-600 focus:ring-green-400"
+            ? "bg-green-900/20 border-green-700/50 text-green-300 hover:bg-green-900/30 focus:ring-green-600 focus:border-green-600"
+            : "bg-green-50 border-green-200 text-green-700 hover:bg-green-100 focus:ring-green-500 focus:border-green-500"
           : isDark
-          ? "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
-          : "bg-red-500 text-white hover:bg-red-600 focus:ring-red-400"
+          ? "bg-orange-900/20 border-orange-700/50 text-orange-300 hover:bg-orange-900/30 focus:ring-orange-600 focus:border-orange-600"
+          : "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 focus:ring-orange-500 focus:border-orange-500"
       }
       ${updatingPlacement === s.user?.id ? "opacity-50 cursor-not-allowed" : ""}
       [&>option]:bg-white [&>option]:text-gray-900 [&>option]:font-normal [&>option]:pl-3`}
@@ -361,7 +374,15 @@ export function RegisteredStudents() {
 
                             {/* Custom dropdown arrow */}
                             <svg
-                              className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none"
+                              className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                                s.is_placed
+                                  ? isDark
+                                    ? "text-green-300"
+                                    : "text-green-700"
+                                  : isDark
+                                  ? "text-orange-300"
+                                  : "text-orange-700"
+                              }`}
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
