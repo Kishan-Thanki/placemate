@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { LoadingOverlay } from "../../components/ui/Spinner";
 import logoUrl from "../../assets/placemate.png";
 import { fetchJSON } from "../../lib/api";
 import RoleSelectionModal from "../../components/RoleSelectionModal";
@@ -28,7 +29,11 @@ export default function LoginPage() {
     const password = data.get("password");
 
     try {
-      const { ok, message, data: result } = await fetchJSON("/api/v1/token/", {
+      const {
+        ok,
+        message,
+        data: result,
+      } = await fetchJSON("/api/v1/token/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -36,15 +41,20 @@ export default function LoginPage() {
       });
 
       if (ok && result?.success) {
-        if (result.data?.requires_role_selection && result.data?.available_roles) {
+        if (
+          result.data?.requires_role_selection &&
+          result.data?.available_roles
+        ) {
+          // Store user info from role selection response
           setUserId(result.data.user_id);
-          setUserEmail(result.data.email);
+          setUserEmail(result.data.email || email);
           setAvailableRoles(result.data.available_roles);
           setShowRoleModal(true);
           setLoading(false);
         } else {
-          setUserId(null);
-          setUserEmail(email);
+          // Store user info for single role login
+          setUserId(result.data?.user_id || null);
+          setUserEmail(result.data?.email || email);
           handleSuccessfulLogin(result);
         }
       } else {
@@ -62,18 +72,19 @@ export default function LoginPage() {
     setErrorMsg("");
 
     try {
-      const { ok, message, data: result } = await fetchJSON(
-        "/api/v1/users/auth/select-role/",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: userId,
-            role: selectedRole,
-          }),
-          credentials: "include",
-        }
-      );
+      const {
+        ok,
+        message,
+        data: result,
+      } = await fetchJSON("/api/v1/users/auth/select-role/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          role: selectedRole,
+        }),
+        credentials: "include",
+      });
 
       if (ok && result?.success) {
         handleSuccessfulLogin(result, selectedRole);
@@ -89,22 +100,65 @@ export default function LoginPage() {
     }
   };
 
-  const handleSuccessfulLogin = (result, selectedRole = null) => {
+  const handleSuccessfulLogin = async (result, selectedRole = null) => {
     const activeRole = selectedRole || result.data?.active_role;
     const availableRoles = result.data?.available_roles || [];
 
-    const storedUser = {
-      id: userId,
-      email: userEmail,
-      firstName: result.data?.first_name || "",
-      lastName: result.data?.last_name || "",
-      roles: availableRoles,
-      activeRole: activeRole,
-    };
+    try {
+      // Fetch current user details from /me endpoint
+      const { ok, data: userResponse } = await fetchJSON("/api/v1/users/me/", {
+        method: "GET",
+        credentials: "include",
+      });
 
-    login(storedUser);
-    setShowRoleModal(false);
-    redirectBasedOnRole(activeRole);
+      if (ok && userResponse?.data) {
+        const userData = userResponse.data;
+
+        const storedUser = {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.first_name || "",
+          middleName: userData.middle_name || "",
+          lastName: userData.last_name || "",
+          phoneNumber: userData.phone_number || "",
+          roles: availableRoles,
+          activeRole: activeRole,
+        };
+
+        console.log("✅ User data stored:", storedUser);
+        login(storedUser);
+        setShowRoleModal(false);
+        redirectBasedOnRole(activeRole);
+      } else {
+        // Fallback if /me endpoint fails - use minimal data
+        console.warn("⚠️ Failed to fetch user details, using minimal data");
+        const storedUser = {
+          id: userId,
+          email: userEmail,
+          firstName: "",
+          lastName: "",
+          roles: availableRoles,
+          activeRole: activeRole,
+        };
+        login(storedUser);
+        setShowRoleModal(false);
+        redirectBasedOnRole(activeRole);
+      }
+    } catch (err) {
+      console.error("❌ Error fetching user details:", err);
+      // Fallback on error
+      const storedUser = {
+        id: userId,
+        email: userEmail,
+        firstName: "",
+        lastName: "",
+        roles: availableRoles,
+        activeRole: activeRole,
+      };
+      login(storedUser);
+      setShowRoleModal(false);
+      redirectBasedOnRole(activeRole);
+    }
   };
 
   const redirectBasedOnRole = (role) => {
@@ -118,6 +172,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-[var(--bg-primary)] text-[var(--text-primary)]">
+      {/* Loading Overlay */}
+      {loading && <LoadingOverlay message="Logging in..." />}
+
       <div className="w-full lg:w-full flex items-center justify-center p-8">
         <div className="max-w-md w-full">
           <header className="flex items-center justify-between mb-6">
@@ -246,10 +303,7 @@ export default function LoginPage() {
                     }
                   `}
                 >
-                  {loading && (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                  )}
-                  {loading ? "Logging in..." : "Log In"}
+                  Log In
                 </button>
               </div>
             </form>

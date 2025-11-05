@@ -122,6 +122,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     program = serializers.StringRelatedField()
     city = serializers.StringRelatedField()
+    profile_picture = serializers.ImageField(required=False, allow_null=True)
     
     class Meta:
         model = StudentProfile

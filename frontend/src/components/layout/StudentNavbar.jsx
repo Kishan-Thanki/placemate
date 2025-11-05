@@ -7,6 +7,7 @@ import { Button } from "../ui";
 import { Bell } from "lucide-react";
 import { fetchJSON } from "../../lib/api";
 import { performLogout } from "../../lib/auth";
+import { LoadingOverlay } from "../ui/Spinner";
 
 /**
  * Main navigation bar for the student dashboard
@@ -118,99 +119,6 @@ export function StudentNavbar({ onMenuClick }) {
 
           {/* Right section - Actions and Profile */}
           <div className="col-span-12 lg:col-span-4 flex items-center justify-end space-x-3">
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className={`
-                  p-2 rounded-lg transition-colors relative cursor-pointer
-                  ${
-                    isDark
-                      ? "text-gray-300 hover:text-white hover:bg-gray-700"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                  }
-                `}
-              >
-                <Bell size={18} />
-                {/* Notification badge */}
-                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {notifications.length}
-                </span>
-              </button>
-
-              {/* Notifications dropdown */}
-              {showNotifications && (
-                <div
-                  className={`
-                  absolute right-0 mt-2 w-80 rounded-lg shadow-lg z-50
-                  ${
-                    isDark
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-gray-200"
-                  }
-                  border
-                `}
-                >
-                  <div className="p-4">
-                    <h3
-                      className={`text-sm font-semibold ${
-                        isDark ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      Notifications
-                    </h3>
-                    <div className="mt-3 space-y-3">
-                      {notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={`
-                          p-3 rounded-lg transition-colors cursor-pointer
-                          ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-50"}
-                        `}
-                        >
-                          <p
-                            className={`text-sm font-medium ${
-                              isDark ? "text-white" : "text-gray-900"
-                            }`}
-                          >
-                            {notification.title}
-                          </p>
-                          <p
-                            className={`text-xs mt-1 ${
-                              isDark ? "text-gray-300" : "text-gray-600"
-                            }`}
-                          >
-                            {notification.message}
-                          </p>
-                          <p
-                            className={`text-xs mt-1 ${
-                              isDark ? "text-gray-400" : "text-gray-500"
-                            }`}
-                          >
-                            {notification.time}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                      <button
-                        className={`
-                        text-sm w-full text-center py-2 rounded-lg transition-colors
-                        ${
-                          isDark
-                            ? "text-blue-400 hover:bg-gray-700"
-                            : "text-blue-600 hover:bg-gray-50"
-                        }
-                      `}
-                      >
-                        View all notifications
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Profile dropdown */}
             <div className="relative">
               <button
@@ -344,6 +252,9 @@ export function StudentNavbar({ onMenuClick }) {
           }}
         />
       )}
+
+      {/* Loading overlay during logout */}
+      {isLoggingOut && <LoadingOverlay message="Logging out..." />}
     </nav>
   );
 }

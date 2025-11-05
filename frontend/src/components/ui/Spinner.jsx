@@ -161,7 +161,7 @@ export const LoadingButton = ({
 };
 
 /**
- * Content placeholder with shimmer effect
+ * Content placeholder with pulse effect
  */
 export const ShimmerPlaceholder = ({ className = "", lines = 3 }) => {
   const { isDark } = useTheme();
@@ -171,19 +171,11 @@ export const ShimmerPlaceholder = ({ className = "", lines = 3 }) => {
       {[...Array(lines)].map((_, i) => (
         <div
           key={i}
-          className={`h-4 rounded overflow-hidden relative ${
+          className={`h-4 rounded animate-pulse ${
             isDark ? "bg-gray-700" : "bg-gray-200"
           }`}
           style={{ width: `${100 - i * 10}%` }}
-        >
-          <div
-            className={`absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r ${
-              isDark
-                ? "from-gray-700 via-gray-600 to-gray-700"
-                : "from-gray-200 via-gray-100 to-gray-200"
-            }`}
-          />
-        </div>
+        />
       ))}
     </div>
   );

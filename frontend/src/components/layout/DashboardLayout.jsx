@@ -92,6 +92,8 @@ export function DashboardLayout({ children, title = "Dashboard" }) {
                       ? "Browse and manage all placement drives and opportunities."
                       : title === "Registered Students"
                       ? "View and manage all students registered for placements."
+                      : title === "Register Student"
+                      ? "Add new student to the placemate"
                       : `Last updated: ${new Date().toLocaleDateString(
                           "en-US",
                           {

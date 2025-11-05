@@ -23,7 +23,32 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+
+        // Ensure activeRole is set - if missing, set it based on available roles
+        if (
+          !parsedUser.activeRole &&
+          parsedUser.roles &&
+          parsedUser.roles.length > 0
+        ) {
+          // Prioritize admin/cell member roles over student
+          if (
+            parsedUser.roles.includes("admin") ||
+            parsedUser.roles.includes("student placement cell")
+          ) {
+            parsedUser.activeRole = parsedUser.roles.includes("admin")
+              ? "admin"
+              : "student placement cell";
+          } else if (parsedUser.roles.includes("student")) {
+            parsedUser.activeRole = "student";
+          } else {
+            parsedUser.activeRole = parsedUser.roles[0]; // Fallback to first role
+          }
+          // Update localStorage with corrected data
+          localStorage.setItem("user", JSON.stringify(parsedUser));
+        }
+
+        setUser(parsedUser);
       } catch (err) {
         console.error("Failed to parse stored user:", err);
         localStorage.removeItem("user");
@@ -33,6 +58,23 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
+    // Ensure activeRole is set during login
+    if (!userData.activeRole && userData.roles && userData.roles.length > 0) {
+      // Prioritize admin/cell member roles over student
+      if (
+        userData.roles.includes("admin") ||
+        userData.roles.includes("student placement cell")
+      ) {
+        userData.activeRole = userData.roles.includes("admin")
+          ? "admin"
+          : "student placement cell";
+      } else if (userData.roles.includes("student")) {
+        userData.activeRole = "student";
+      } else {
+        userData.activeRole = userData.roles[0]; // Fallback to first role
+      }
+    }
+
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };
