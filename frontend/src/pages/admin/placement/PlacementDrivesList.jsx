@@ -189,17 +189,16 @@ export default function PlacementDrivesList() {
   return (
     <DashboardLayout title="Placement Drives">
       <PageContainer>
-        <Section
-          action={
-            <div className="flex gap-2">
-              <Button onClick={() => navigate("/admin/placement-drives/new")}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Placement Drive
-              </Button>
-              <Button onClick={fetchDrives}>Refresh</Button>
-            </div>
-          }
-        >
+        <Section>
+          {/* Action Buttons */}
+          <div className="mb-6 flex justify-end gap-2">
+            <Button onClick={fetchDrives}>Refresh</Button>
+            <Button onClick={() => navigate("/admin/placement-drives/new")}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Placement Drive
+            </Button>
+          </div>
+
           {/* Search Bar */}
           <div
             className={`mb-6 p-4 rounded-lg border ${
