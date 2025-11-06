@@ -155,14 +155,24 @@ export const studentService = {
   /**
    * Get all student profiles with pagination
    * @param {number} page - Page number (optional)
+   * @param {number} page_size - Number of items per page (optional)
    * @returns {Promise<Object>} Response with students data and pagination
    */
-  getStudentProfiles: async (page = 1) => {
+  getStudentProfiles: async (page = 1, page_size = 20) => {
     try {
-      const url =
-        page > 1
-          ? `${PROFILES_ENDPOINT}/?page=${page}`
-          : `${PROFILES_ENDPOINT}/`;
+      const params = new URLSearchParams();
+      if (page > 1) {
+        params.append("page", page);
+      }
+      if (page_size !== 20) {
+        params.append("page_size", page_size);
+      }
+
+      const queryString = params.toString();
+      const url = queryString
+        ? `${PROFILES_ENDPOINT}/?${queryString}`
+        : `${PROFILES_ENDPOINT}/`;
+
       const { ok, data, status, message } = await fetchJSON(url, {
         method: "GET",
         credentials: "include",
