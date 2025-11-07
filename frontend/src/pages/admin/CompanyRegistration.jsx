@@ -14,6 +14,7 @@ import {
 import { useTheme } from "../../contexts/ThemeContext";
 import { companyService } from "../../services/companyService";
 import { lookupService } from "../../services/lookupService";
+import { ArrowLeft } from "lucide-react";
 
 // Assuming Input, Select, Textarea, and FieldLabel are defined as in your original code
 // ... (Your original helper component definitions here)
@@ -250,8 +251,8 @@ export default function CompanyRegistration() {
       document.body.appendChild(successMsg);
       setTimeout(() => successMsg.remove(), 3000);
 
-      // Navigate to companies list after a brief delay
-      setTimeout(() => navigate("/admin/companies"), 1000);
+      // Navigate immediately to companies list
+      navigate("/admin/companies");
     } catch (error) {
       console.error(
         isEditMode ? "Company update failed:" : "Company registration failed:",
@@ -302,6 +303,17 @@ export default function CompanyRegistration() {
       title={isEditMode ? "Edit Company" : "Register New Company"}
     >
       <PageContainer>
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/admin/companies")}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Companies
+          </Button>
+        </div>
+
         {/* Loading Overlay */}
         {loading && (
           <LoadingOverlay
@@ -389,7 +401,8 @@ export default function CompanyRegistration() {
                     placeholder="company@example.com"
                   />
                   <Select
-                    label="Company Size *"
+                    label="Company Size"
+                    required
                     options={["Self", "1–10", "11–50", "51–500", "500+"]}
                     value={form.companySize}
                     onChange={(v) => update("companySize", v)}
@@ -423,7 +436,8 @@ export default function CompanyRegistration() {
                 </div>
                 {/* Use the fetched and formatted 'cities' state for the options */}
                 <Select
-                  label="Headquarter City *"
+                  label="Headquarter City"
+                  required
                   value={form.city}
                   onChange={(v) => update("city", v)}
                   options={cities.map((c) => c.label)}
