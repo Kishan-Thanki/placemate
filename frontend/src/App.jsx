@@ -9,11 +9,9 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { StudentRegistration } from "./pages/admin/student/StudentRegistration";
 import { RegisteredStudents } from "./pages/admin/student/RegisteredStudents";
 import StudentDetails from "./pages/admin//student/StudentDetails";
-import JobDriveForm from "./pages/admin/JobDriveForm";
 import RegisterCellMember from "./components/RegisterCellMember";
-import AddDrive from "./components/AddDrive";
 import { DashboardLayout, PageContainer } from "./components/layout";
-import CompanyRegistration from "./pages/admin/CompanyRegistration";
+import CompanyRegistration from "./pages/admin/company/CompanyRegistration";
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
@@ -21,7 +19,11 @@ import { StudentDashboard } from "./pages/student/StudentDashboard";
 import { StudentDrives } from "./pages/student/StudentDrives";
 import CompaniesList from "./pages/admin/company/CompaniesList";
 import CompanyDetails from "./pages/admin/company/CompanyDetails";
-import { CompanyDrives } from "./pages/admin/drive/DrivesList";
+import CompanyDrivesList from "./pages/admin/companydrive/CompanyDrivesList";
+import CompanyDriveForm from "./pages/admin/companydrive/CompanyDriveForm";
+import CompanyDriveJobForm from "./pages/admin/companydrive/CompanyDriveJobForm";
+import JobEditForm from "./pages/admin/companydrive/JobEditForm";
+import CompanyDriveDetails from "./pages/admin/companydrive/CompanyDriveDetails";
 import PlacementDrivesList from "./pages/admin/placement/PlacementDrivesList";
 import PlacementDriveForm from "./pages/admin/placement/PlacementDriveForm";
 import PlacementDriveDetails from "./pages/admin/placement/PlacementDriveDetails";
@@ -90,7 +92,7 @@ export default function App() {
                     <ProtectedRoute
                       allowedRoles={["admin", "student placement cell"]}
                     >
-                      <CompanyDrives />
+                      <CompanyDrivesList />
                     </ProtectedRoute>
                   }
                 />
@@ -100,11 +102,7 @@ export default function App() {
                     <ProtectedRoute
                       allowedRoles={["admin", "student placement cell"]}
                     >
-                      <DashboardLayout title="Add Drive">
-                        <PageContainer>
-                          <AddDrive />
-                        </PageContainer>
-                      </DashboardLayout>
+                      <CompanyDriveForm />
                     </ProtectedRoute>
                   }
                 />
@@ -114,7 +112,47 @@ export default function App() {
                     <ProtectedRoute
                       allowedRoles={["admin", "student placement cell"]}
                     >
-                      <JobDriveForm />
+                      <CompanyDriveJobForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/drives/:id/jobs/add"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["admin", "student placement cell"]}
+                    >
+                      <CompanyDriveJobForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/drives/:driveId/jobs/:jobId/edit"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["admin", "student placement cell"]}
+                    >
+                      <JobEditForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/drives/:id/edit"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["admin", "student placement cell"]}
+                    >
+                      <CompanyDriveForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/drives/:id"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["admin", "student placement cell"]}
+                    >
+                      <CompanyDriveDetails />
                     </ProtectedRoute>
                   }
                 />

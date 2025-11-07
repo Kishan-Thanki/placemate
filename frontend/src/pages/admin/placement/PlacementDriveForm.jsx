@@ -7,7 +7,7 @@ import {
 } from "../../../components/layout";
 import { Button, LoadingOverlay } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
-import { CalendarDays, Save, X } from "lucide-react";
+import { CalendarDays, Save, X, ArrowLeft } from "lucide-react";
 import { placementService } from "../../../services/placementService";
 
 export default function PlacementDriveForm() {
@@ -159,6 +159,17 @@ export default function PlacementDriveForm() {
       title={isEditMode ? "Edit Placement Drive" : "Add New Placement Drive"}
     >
       <PageContainer>
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/admin/placement-drives")}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Placement Drives
+          </Button>
+        </div>
+
         {/* Loading Overlay */}
         {loading && (
           <LoadingOverlay

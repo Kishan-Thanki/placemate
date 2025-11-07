@@ -4,16 +4,16 @@ import {
   DashboardLayout,
   PageContainer,
   Section,
-} from "../../components/layout";
+} from "../../../components/layout";
 import {
   Card,
   Button,
   LoadingButton,
   LoadingOverlay,
-} from "../../components/ui";
-import { useTheme } from "../../contexts/ThemeContext";
-import { companyService } from "../../services/companyService";
-import { lookupService } from "../../services/lookupService";
+} from "../../../components/ui";
+import { useTheme } from "../../../contexts/ThemeContext";
+import { companyService } from "../../../services/companyService";
+import { lookupService } from "../../../services/lookupService";
 import { ArrowLeft } from "lucide-react";
 
 // Assuming Input, Select, Textarea, and FieldLabel are defined as in your original code
@@ -49,7 +49,7 @@ export default function CompanyRegistration() {
     if (file) {
       setLogoFile(file); // Store actual file
       setLogo(URL.createObjectURL(file)); // Set preview
-      console.log("📷 Logo selected:", {
+      console.log("Logo selected:", {
         name: file.name,
         size: `${(file.size / 1024).toFixed(2)} KB`,
         type: file.type,
