@@ -38,7 +38,7 @@ class StudentRegistrationView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         
         if not serializer.is_valid():
-            return ValidationErrorResponse(serializer.errors)
+            return ValidationErrorResponse(errors=serializer.errors)
         
         try:
             student_profile = serializer.save()
@@ -50,7 +50,7 @@ class StudentRegistrationView(generics.CreateAPIView):
             
         except Exception as e:
             return ValidationErrorResponse(
-                {"error": [str(e)]}
+                message=f"Student registration failed: {str(e)}"
             )
 
 
@@ -85,7 +85,7 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         
         if not serializer.is_valid():
-            return ValidationErrorResponse(serializer.errors)
+            return ValidationErrorResponse(errors=serializer.errors)
         
         self.perform_update(serializer)
         return SuccessResponse(data=serializer.data, message="Profile updated")
