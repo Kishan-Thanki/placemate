@@ -23,6 +23,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { companyService } from "../../../services/companyService";
+import { lookupService } from "../../../services";
 
 export default function CompaniesList() {
   const navigate = useNavigate();
@@ -31,6 +32,9 @@ export default function CompaniesList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCity, setSelectedCity] = useState(""); // New city filter
+  const [cities, setCities] = useState([]); // Cities from API
+  const [loadingCities, setLoadingCities] = useState(true);
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     company: null,
@@ -41,41 +45,53 @@ export default function CompaniesList() {
     previous: null,
     current_page: 1,
     total_pages: 1,
-    page_size: 20,
+    page_size: 10, // Changed from 20 to 10
   });
   const [currentPage, setCurrentPage] = useState(1);
 
   // Client-side filtering similar to RegisteredStudents
   const filteredCompanies = useMemo(() => {
-    if (!searchTerm.trim()) return companies;
+    let filtered = companies;
 
-    const query = searchTerm.toLowerCase();
-    return companies.filter((company) => {
-      const name = company.name?.toLowerCase() || "";
-      const email = company.email?.toLowerCase() || "";
-      const phone = company.phone_number?.toLowerCase() || "";
-      const description = company.description?.toLowerCase() || "";
-      const address = company.headquarters_address?.toLowerCase() || "";
-      const website = company.website_url?.toLowerCase() || "";
-      const city = company.headquarters_city_name?.toLowerCase() || "";
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      filtered = filtered.filter((company) => {
+        const name = company.name?.toLowerCase() || "";
+        const email = company.email?.toLowerCase() || "";
+        const phone = company.phone_number?.toLowerCase() || "";
+        const description = company.description?.toLowerCase() || "";
+        const address = company.headquarters_address?.toLowerCase() || "";
+        const website = company.website_url?.toLowerCase() || "";
+        const city = company.headquarters_city_name?.toLowerCase() || "";
 
-      return (
-        name.includes(query) ||
-        email.includes(query) ||
-        phone.includes(query) ||
-        description.includes(query) ||
-        address.includes(query) ||
-        website.includes(query) ||
-        city.includes(query)
+        return (
+          name.includes(query) ||
+          email.includes(query) ||
+          phone.includes(query) ||
+          description.includes(query) ||
+          address.includes(query) ||
+          website.includes(query) ||
+          city.includes(query)
+        );
+      });
+    }
+
+    // Filter by city
+    if (selectedCity) {
+      filtered = filtered.filter(
+        (company) => company.headquarters_city_name === selectedCity
       );
-    });
-  }, [companies, searchTerm]);
+    }
+
+    return filtered;
+  }, [companies, searchTerm, selectedCity]);
 
   const fetchCompanies = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = { page: currentPage };
+      const params = { page: currentPage, page_size: 10 }; // 10 items per page
 
       const response = await companyService.getAllCompanies(params);
 
@@ -98,8 +114,21 @@ export default function CompaniesList() {
     }
   }, [currentPage]);
 
+  const fetchCities = useCallback(async () => {
+    try {
+      setLoadingCities(true);
+      const data = await lookupService.getCities();
+      setCities(data || []);
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+    } finally {
+      setLoadingCities(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchCompanies();
+    fetchCities();
   }, [currentPage, fetchCompanies]);
 
   const handleDeleteClick = (company, e) => {
@@ -154,18 +183,17 @@ export default function CompaniesList() {
   return (
     <DashboardLayout title="Registered Companies">
       <PageContainer>
-        <Section
-          action={
-            <div className="flex gap-2">
-              <Button onClick={() => navigate("/admin/companies/register")}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Company
-              </Button>
-              <Button onClick={fetchCompanies}>Refresh</Button>
-            </div>
-          }
-        >
-          {/* Search Bar */}
+        <Section>
+          {/* Action Buttons */}
+          <div className="mb-6 flex justify-end gap-2">
+            <Button onClick={fetchCompanies}>Refresh</Button>
+            <Button onClick={() => navigate("/admin/companies/register")}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Company
+            </Button>
+          </div>
+
+          {/* Search Bar and Filters */}
           <div
             className={`mb-6 p-4 rounded-lg border ${
               isDark
@@ -173,36 +201,74 @@ export default function CompaniesList() {
                 : "bg-white border-gray-200"
             }`}
           >
-            <div className="relative">
-              <Search
-                className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
-                  isDark ? "text-gray-400" : "text-gray-500"
-                }`}
-              />
-              <input
-                type="text"
-                placeholder="Search companies by name, email, phone, city..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-10 py-2 rounded-lg border ${
-                  isDark
-                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
-                    isDark
-                      ? "text-gray-400 hover:text-gray-200"
-                      : "text-gray-500 hover:text-gray-700"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Search Input */}
+              <div className="relative md:col-span-2">
+                <Search
+                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+                    isDark ? "text-gray-400" : "text-gray-500"
                   }`}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+                />
+                <input
+                  type="text"
+                  placeholder="Search companies by name, email, phone, city..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={`w-full pl-10 pr-10 py-2 rounded-lg border ${
+                    isDark
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                      isDark
+                        ? "text-gray-400 hover:text-gray-200"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* City Filter */}
+              <select
+                className={`w-full px-3 py-2 rounded-lg border text-sm ${
+                  isDark
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-gray-900"
+                }`}
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                disabled={loadingCities}
+              >
+                <option value="">All Locations</option>
+                {cities.map((city) => (
+                  <option key={city.id} value={city.name}>
+                    {city.name}
+                  </option>
+                ))}
+              </select>
             </div>
+
+            {/* Reset Filters Button */}
+            {(searchTerm || selectedCity) && (
+              <div className="mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedCity("");
+                  }}
+                >
+                  Reset Filters
+                </Button>
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -254,6 +320,7 @@ export default function CompaniesList() {
                   }`}
                 >
                   <tr>
+                    <th className="px-4 py-3 text-left font-medium">S.No.</th>
                     <th className="px-4 py-3 text-left font-medium">Company</th>
                     <th className="px-4 py-3 text-left font-medium">Website</th>
                     <th className="px-4 py-3 text-left font-medium">
@@ -267,7 +334,7 @@ export default function CompaniesList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCompanies.map((c) => (
+                  {filteredCompanies.map((c, index) => (
                     <tr
                       key={c.id}
                       className={`transition-colors ${
@@ -276,6 +343,11 @@ export default function CompaniesList() {
                           : "hover:bg-gray-50 border-gray-200"
                       } border-b`}
                     >
+                      <td className="px-4 py-3">
+                        {(pagination.current_page - 1) * pagination.page_size +
+                          index +
+                          1}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {c.logo ? (
@@ -423,7 +495,6 @@ export default function CompaniesList() {
           {/* Pagination */}
           {!loading &&
             !error &&
-            !searchTerm &&
             companies.length > 0 &&
             pagination.total_pages > 1 && (
               <div

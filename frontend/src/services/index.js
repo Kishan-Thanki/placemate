@@ -3,7 +3,8 @@ export { companyService } from "./companyService";
 export { authService } from "./authService";
 export { studentService } from "./studentService";
 export { lookupService } from "./lookupService";
+export { companyDriveService } from "./companyDriveService";
+export { placementService } from "./placementService";
 
 // Add more services as needed:
-// export { driveService } from './driveService';
 // export { jobService } from './jobService';

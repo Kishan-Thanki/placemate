@@ -21,8 +21,10 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Plus,
 } from "lucide-react";
 import { studentService } from "../../../services/studentService";
+import { lookupService } from "../../../services";
 
 export function RegisteredStudents() {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export function RegisteredStudents() {
     previous: null,
     current_page: 1,
     total_pages: 1,
-    page_size: 20,
+    page_size: 10, // Changed from 20 to 10
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -46,17 +48,32 @@ export function RegisteredStudents() {
   const [updatingPlacement, setUpdatingPlacement] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [programs, setPrograms] = useState([]); // For courses from API
+  const [loadingPrograms, setLoadingPrograms] = useState(true);
 
   // Fetch students on component mount and when page changes
   useEffect(() => {
     fetchStudents(pagination.current_page);
+    fetchPrograms();
   }, []);
+
+  const fetchPrograms = async () => {
+    try {
+      setLoadingPrograms(true);
+      const data = await lookupService.getPrograms();
+      setPrograms(data || []);
+    } catch (error) {
+      console.error("Error fetching programs:", error);
+    } finally {
+      setLoadingPrograms(false);
+    }
+  };
 
   const fetchStudents = async (page = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await studentService.getStudentProfiles(page);
+      const response = await studentService.getStudentProfiles(page, 10); // 10 items per page
       setStudents(response.data || []);
       if (response.pagination) {
         setPagination(response.pagination);
@@ -121,6 +138,16 @@ export function RegisteredStudents() {
     }
   };
 
+  // Generate year options for batch filter (2000 to current year + 1)
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear + 1; year >= 2000; year--) {
+      years.push(year);
+    }
+    return years;
+  }, []);
+
   const courses = useMemo(
     () => [...new Set(students.map((s) => s.program).filter(Boolean))],
     [students]
@@ -166,6 +193,14 @@ export function RegisteredStudents() {
     <DashboardLayout title="Registered Students">
       <PageContainer>
         <Section>
+          {/* Register Student Button */}
+          <div className="mb-4 flex justify-end">
+            <Button onClick={() => navigate("/admin/students/register")}>
+              <Plus className="w-4 h-4 mr-2" />
+              Register Student
+            </Button>
+          </div>
+
           <Card className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
@@ -206,11 +241,15 @@ export function RegisteredStudents() {
                 }`}
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
+                disabled={loadingPrograms}
               >
-                <option value="">All Courses</option>
-                {courses.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                <option value="">All Programs</option>
+                {programs.map((program) => (
+                  <option key={program.id} value={program.name}>
+                    {program.abbreviation || program.name} -{" "}
+                    {typeof program.degree === "object"
+                      ? program.degree.abbreviation
+                      : program.degree_name || ""}
                   </option>
                 ))}
               </select>
@@ -224,9 +263,9 @@ export function RegisteredStudents() {
                 onChange={(e) => setSelectedBatch(e.target.value)}
               >
                 <option value="">All Batches</option>
-                {batches.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
                   </option>
                 ))}
               </select>

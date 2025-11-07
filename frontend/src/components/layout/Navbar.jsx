@@ -51,28 +51,7 @@ export function Navbar({ onMenuClick }) {
     : email
     ? email[0].toUpperCase()
     : "U";
-
-  // Mock notifications (replace with real data later)
-  const notifications = [
-    {
-      id: 1,
-      title: "New job application",
-      message: "John Doe applied for Software Engineer",
-      time: "2m ago",
-    },
-    {
-      id: 2,
-      title: "Drive reminder",
-      message: "TCS drive starts tomorrow",
-      time: "1h ago",
-    },
-    {
-      id: 3,
-      title: "Interview scheduled",
-      message: "Interview with Google at 3 PM",
-      time: "2h ago",
-    },
-  ];
+  
 
   // Close dropdowns when clicking outside
   useEffect(() => {
