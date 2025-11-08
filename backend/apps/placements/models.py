@@ -27,6 +27,7 @@ class CompanyDrive(models.Model):
     locations = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    multiple_allowed = models.BooleanField(default=False)
     
     # class Meta:
     #     unique_together = ('drive', 'company')
@@ -50,8 +51,7 @@ class Job(models.Model):
         unique_filename=True,
         overwrite=True
     )
-    
-    
+    job_desc = models.JSONField(null=True, blank=True) 
     min_ug_cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     min_pg_cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     min_tenth_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)

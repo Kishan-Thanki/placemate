@@ -1,4 +1,5 @@
 from django.contrib import admin
-from .models import JobApplication
+from .models import CompanyDriveApplication, JobPreference
 
-admin.site.register(JobApplication)
+admin.site.register(CompanyDriveApplication)
+admin.site.register(JobPreference)
