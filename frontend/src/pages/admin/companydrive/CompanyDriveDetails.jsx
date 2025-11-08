@@ -30,6 +30,7 @@ export default function CompanyDriveDetails() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeJobTab, setActiveJobTab] = useState({}); // Track active tab for each job
 
   useEffect(() => {
     fetchDriveDetails();
@@ -382,7 +383,7 @@ export default function CompanyDriveDetails() {
                     }`}
                   >
                     <div className="flex items-start justify-between mb-4">
-                      <div>
+                      <div className="flex-1">
                         <h4
                           className={`text-lg font-semibold mb-1 ${
                             isDark ? "text-white" : "text-gray-900"
@@ -398,241 +399,417 @@ export default function CompanyDriveDetails() {
                           Job #{index + 1}
                         </p>
                       </div>
+                      {job.job_pdf && (
+                        <a
+                          href={job.job_pdf}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                            isDark
+                              ? "bg-red-900/20 border-red-900 text-red-400 hover:bg-red-900/30"
+                              : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                          }`}
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                          </svg>
+                          <span className="font-medium">Job Description Pdf</span>
+                        </a>
+                      )}
                     </div>
 
-                    {/* Job Descriptions */}
-                    {(job.description_ug || job.description_pg) && (
-                      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {job.description_ug && (
-                          <div>
-                            <p
-                              className={`text-sm font-medium mb-1 ${
-                                isDark ? "text-gray-400" : "text-gray-600"
-                              }`}
-                            >
-                              UG Description
-                            </p>
-                            <p
-                              className={`text-sm ${
-                                isDark ? "text-gray-300" : "text-gray-700"
-                              }`}
-                            >
-                              {job.description_ug}
-                            </p>
-                          </div>
-                        )}
-                        {job.description_pg && (
-                          <div>
-                            <p
-                              className={`text-sm font-medium mb-1 ${
-                                isDark ? "text-gray-400" : "text-gray-600"
-                              }`}
-                            >
-                              PG Description
-                            </p>
-                            <p
-                              className={`text-sm ${
-                                isDark ? "text-gray-300" : "text-gray-700"
-                              }`}
-                            >
-                              {job.description_pg}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Eligibility Criteria */}
-                    <div className="mb-4">
-                      <p
-                        className={`text-sm font-medium mb-2 ${
-                          isDark ? "text-gray-400" : "text-gray-600"
-                        }`}
-                      >
-                        Eligibility Criteria
-                      </p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {job.min_ug_cgpa && (
-                          <div>
-                            <p
-                              className={`text-xs ${
-                                isDark ? "text-gray-500" : "text-gray-500"
-                              }`}
-                            >
-                              Min UG CGPA
-                            </p>
-                            <p
-                              className={`font-medium ${
-                                isDark ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              {job.min_ug_cgpa}
-                            </p>
-                          </div>
-                        )}
-                        {job.min_pg_cgpa && (
-                          <div>
-                            <p
-                              className={`text-xs ${
-                                isDark ? "text-gray-500" : "text-gray-500"
-                              }`}
-                            >
-                              Min PG CGPA
-                            </p>
-                            <p
-                              className={`font-medium ${
-                                isDark ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              {job.min_pg_cgpa}
-                            </p>
-                          </div>
-                        )}
-                        {job.min_tenth_percentage && (
-                          <div>
-                            <p
-                              className={`text-xs ${
-                                isDark ? "text-gray-500" : "text-gray-500"
-                              }`}
-                            >
-                              Min 10th %
-                            </p>
-                            <p
-                              className={`font-medium ${
-                                isDark ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              {job.min_tenth_percentage}%
-                            </p>
-                          </div>
-                        )}
-                        {job.min_twelfth_percentage && (
-                          <div>
-                            <p
-                              className={`text-xs ${
-                                isDark ? "text-gray-500" : "text-gray-500"
-                              }`}
-                            >
-                              Min 12th %
-                            </p>
-                            <p
-                              className={`font-medium ${
-                                isDark ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              {job.min_twelfth_percentage}%
-                            </p>
-                          </div>
-                        )}
-                        {job.max_active_backlogs !== null &&
-                          job.max_active_backlogs !== undefined && (
-                            <div>
-                              <p
-                                className={`text-xs ${
-                                  isDark ? "text-gray-500" : "text-gray-500"
+                    {/* UG/PG Tabs */}
+                    {(() => {
+                      // Check if UG data exists
+                      const hasUGData = job.description_ug || job.ug_package_min || job.ug_package_max || job.ug_stipend || job.min_ug_cgpa;
+                      // Check if PG data exists
+                      const hasPGData = job.description_pg || job.pg_package_min || job.pg_package_max || job.pg_stipend || job.min_pg_cgpa;
+                      
+                      // Only show tabs if both UG and PG data exist
+                      const showTabs = hasUGData && hasPGData;
+                      
+                      // Determine which content to show
+                      const showContent = hasUGData || hasPGData;
+                      
+                      if (!showContent) return null;
+                      
+                      return (
+                        <div className="mb-4">
+                          {/* Tab Buttons - Only show if both UG and PG data exist */}
+                          {showTabs && (
+                            <div className={`flex gap-2 mb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                              <button
+                                onClick={() => setActiveJobTab(prev => ({ ...prev, [job.id]: 'ug' }))}
+                                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                                  (activeJobTab[job.id] || 'ug') === 'ug'
+                                    ? isDark
+                                      ? 'border-blue-500 text-blue-400'
+                                      : 'border-blue-600 text-blue-600'
+                                    : isDark
+                                      ? 'border-transparent text-gray-400 hover:text-gray-300'
+                                      : 'border-transparent text-gray-600 hover:text-gray-700'
                                 }`}
                               >
-                                Max Backlogs
-                              </p>
-                              <p
-                                className={`font-medium ${
-                                  isDark ? "text-white" : "text-gray-900"
+                                UG
+                              </button>
+                              <button
+                                onClick={() => setActiveJobTab(prev => ({ ...prev, [job.id]: 'pg' }))}
+                                className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                                  (activeJobTab[job.id] || 'ug') === 'pg'
+                                    ? isDark
+                                      ? 'border-blue-500 text-blue-400'
+                                      : 'border-blue-600 text-blue-600'
+                                    : isDark
+                                      ? 'border-transparent text-gray-400 hover:text-gray-300'
+                                      : 'border-transparent text-gray-600 hover:text-gray-700'
                                 }`}
                               >
-                                {job.max_active_backlogs}
-                              </p>
+                                PG
+                              </button>
                             </div>
                           )}
-                      </div>
-                    </div>
 
-                    {/* Package Details */}
-                    <div className="mb-4">
-                      <p
-                        className={`text-sm font-medium mb-2 flex items-center gap-2 ${
-                          isDark ? "text-gray-400" : "text-gray-600"
-                        }`}
-                      >
-                        <DollarSign className="w-4 h-4" />
-                        Package Details
-                      </p>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {(job.ug_package_min || job.ug_package_max) && (
+                          {/* Content - Show with or without tabs based on data availability */}
                           <div>
-                            <p
-                              className={`text-xs ${
-                                isDark ? "text-gray-500" : "text-gray-500"
-                              }`}
-                            >
-                              UG Package
-                            </p>
-                            <p
-                              className={`font-medium ${
-                                isDark ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              ₹{job.ug_package_min || 0} - ₹
-                              {job.ug_package_max || 0} LPA
-                            </p>
+                          {/* Show UG content if: tabs are shown and UG tab is active, OR no tabs and UG data exists */}
+                          {((showTabs && (activeJobTab[job.id] || 'ug') === 'ug') || (!showTabs && hasUGData)) && (
+                            <div className="space-y-4">
+                              {/* UG Description */}
+                              {job.description_ug && (
+                                <div>
+                                  <p
+                                    className={`text-sm font-medium mb-2 ${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Description
+                                  </p>
+                                  <p
+                                    className={`text-sm ${
+                                      isDark ? "text-gray-300" : "text-gray-700"
+                                    }`}
+                                  >
+                                    {job.description_ug}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* UG Eligibility Criteria */}
+                              {(job.min_ug_cgpa || job.min_tenth_percentage || job.min_twelfth_percentage || 
+                                (job.max_active_backlogs !== null && job.max_active_backlogs !== undefined)) && (
+                                <div>
+                                  <p
+                                    className={`text-sm font-medium mb-2 ${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Eligibility Criteria
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {job.min_ug_cgpa && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          Min CGPA
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          {job.min_ug_cgpa}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.min_tenth_percentage && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          Min 10th %
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          {job.min_tenth_percentage}%
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.min_twelfth_percentage && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          Min 12th %
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          {job.min_twelfth_percentage}%
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.max_active_backlogs !== null &&
+                                      job.max_active_backlogs !== undefined && (
+                                        <div>
+                                          <p
+                                            className={`text-xs ${
+                                              isDark ? "text-gray-500" : "text-gray-500"
+                                            }`}
+                                          >
+                                            Max Backlogs
+                                          </p>
+                                          <p
+                                            className={`font-medium ${
+                                              isDark ? "text-white" : "text-gray-900"
+                                            }`}
+                                          >
+                                            {job.max_active_backlogs}
+                                          </p>
+                                        </div>
+                                      )}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* UG Package Details */}
+                              {(job.ug_package_min || job.ug_package_max || job.ug_stipend) && (
+                                <div>
+                                  <p
+                                    className={`text-sm font-medium mb-2 ${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Package Details
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {(job.ug_package_min || job.ug_package_max) && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          {job.ug_package_min === job.ug_package_max ? 'Package' : 'Package Range'}
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          {job.ug_package_min === job.ug_package_max 
+                                            ? `₹${job.ug_package_min || 0} LPA`
+                                            : `₹${job.ug_package_min || 0} - ₹${job.ug_package_max || 0} LPA`
+                                          }
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.ug_stipend && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          Stipend
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          ₹{job.ug_stipend}/month
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Show PG content if: tabs are shown and PG tab is active, OR no tabs and PG data exists */}
+                          {((showTabs && (activeJobTab[job.id] || 'ug') === 'pg') || (!showTabs && hasPGData)) && (
+                            <div className="space-y-4">
+                              {/* PG Description */}
+                              {job.description_pg && (
+                                <div>
+                                  <p
+                                    className={`text-sm font-medium mb-2 ${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Description
+                                  </p>
+                                  <p
+                                    className={`text-sm ${
+                                      isDark ? "text-gray-300" : "text-gray-700"
+                                    }`}
+                                  >
+                                    {job.description_pg}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* PG Eligibility Criteria */}
+                              {(job.min_pg_cgpa || job.min_tenth_percentage || job.min_twelfth_percentage || 
+                                (job.max_active_backlogs !== null && job.max_active_backlogs !== undefined)) && (
+                                <div>
+                                  <p
+                                    className={`text-sm font-medium mb-2 ${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Eligibility Criteria
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {job.min_pg_cgpa && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          Min CGPA
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          {job.min_pg_cgpa}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.min_tenth_percentage && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          Min 10th %
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          {job.min_tenth_percentage}%
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.min_twelfth_percentage && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          Min 12th %
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          {job.min_twelfth_percentage}%
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.max_active_backlogs !== null &&
+                                      job.max_active_backlogs !== undefined && (
+                                        <div>
+                                          <p
+                                            className={`text-xs ${
+                                              isDark ? "text-gray-500" : "text-gray-500"
+                                            }`}
+                                          >
+                                            Max Backlogs
+                                          </p>
+                                          <p
+                                            className={`font-medium ${
+                                              isDark ? "text-white" : "text-gray-900"
+                                            }`}
+                                          >
+                                            {job.max_active_backlogs}
+                                          </p>
+                                        </div>
+                                      )}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* PG Package Details */}
+                              {(job.pg_package_min || job.pg_package_max || job.pg_stipend) && (
+                                <div>
+                                  <p
+                                    className={`text-sm font-medium mb-2 ${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Package Details
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {(job.pg_package_min || job.pg_package_max) && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          {job.pg_package_min === job.pg_package_max ? 'Package' : 'Package Range'}
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          {job.pg_package_min === job.pg_package_max 
+                                            ? `₹${job.pg_package_min || 0}`
+                                            : `₹${job.pg_package_min || 0} - ₹${job.pg_package_max || 0}`
+                                          }
+                                        </p>
+                                      </div>
+                                    )}
+                                    {job.pg_stipend && (
+                                      <div>
+                                        <p
+                                          className={`text-xs ${
+                                            isDark ? "text-gray-500" : "text-gray-500"
+                                          }`}
+                                        >
+                                          Stipend
+                                        </p>
+                                        <p
+                                          className={`font-medium ${
+                                            isDark ? "text-white" : "text-gray-900"
+                                          }`}
+                                        >
+                                          ₹{job.pg_stipend}/month
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                           </div>
-                        )}
-                        {(job.pg_package_min || job.pg_package_max) && (
-                          <div>
-                            <p
-                              className={`text-xs ${
-                                isDark ? "text-gray-500" : "text-gray-500"
-                              }`}
-                            >
-                              PG Package
-                            </p>
-                            <p
-                              className={`font-medium ${
-                                isDark ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              ₹{job.pg_package_min || 0} - ₹
-                              {job.pg_package_max || 0} LPA
-                            </p>
-                          </div>
-                        )}
-                        {job.ug_stipend && (
-                          <div>
-                            <p
-                              className={`text-xs ${
-                                isDark ? "text-gray-500" : "text-gray-500"
-                              }`}
-                            >
-                              UG Stipend
-                            </p>
-                            <p
-                              className={`font-medium ${
-                                isDark ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              ₹{job.ug_stipend}/month
-                            </p>
-                          </div>
-                        )}
-                        {job.pg_stipend && (
-                          <div>
-                            <p
-                              className={`text-xs ${
-                                isDark ? "text-gray-500" : "text-gray-500"
-                              }`}
-                            >
-                              PG Stipend
-                            </p>
-                            <p
-                              className={`font-medium ${
-                                isDark ? "text-white" : "text-gray-900"
-                              }`}
-                            >
-                              ₹{job.pg_stipend}/month
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Eligible Programs */}
                     {job.eligible_programs &&
