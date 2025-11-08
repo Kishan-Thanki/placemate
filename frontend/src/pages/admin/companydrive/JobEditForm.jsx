@@ -31,6 +31,9 @@ export default function JobEditForm() {
     title: '',
     description_ug: '',
     description_pg: '',
+    job_pdf: null,
+    job_pdf_name: '',
+    existing_job_pdf: '',
     min_ug_cgpa: '',
     min_pg_cgpa: '',
     min_tenth_percentage: '',
@@ -50,6 +53,39 @@ export default function JobEditForm() {
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
     }
+  };
+
+  const handleFileChange = (file) => {
+    if (file) {
+      // Validate file type (PDF only)
+      if (file.type !== 'application/pdf') {
+        setError('Please upload a PDF file only');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        setError('File size must be less than 5MB');
+        return;
+      }
+
+      setFormData(prev => ({ 
+        ...prev, 
+        job_pdf: file, 
+        job_pdf_name: file.name 
+      }));
+      setError('');
+    }
+  };
+
+  const removeFile = () => {
+    setFormData(prev => ({ 
+      ...prev, 
+      job_pdf: null, 
+      job_pdf_name: '',
+      existing_job_pdf: '' // Also clear existing file reference
+    }));
   };
 
   useEffect(() => {
@@ -92,6 +128,9 @@ export default function JobEditForm() {
         title: job.title || '',
         description_ug: job.description_ug || '',
         description_pg: job.description_pg || '',
+        job_pdf: null,
+        job_pdf_name: '',
+        existing_job_pdf: job.job_pdf || '',
         min_ug_cgpa: job.min_ug_cgpa || '',
         min_pg_cgpa: job.min_pg_cgpa || '',
         min_tenth_percentage: job.min_tenth_percentage || '',
@@ -157,6 +196,7 @@ export default function JobEditForm() {
         title: formData.title.trim(),
         description_ug: formData.description_ug.trim() || null,
         description_pg: formData.description_pg.trim() || null,
+        job_pdf: formData.job_pdf || null,
         min_ug_cgpa: formData.min_ug_cgpa ? parseFloat(formData.min_ug_cgpa) : null,
         min_pg_cgpa: formData.min_pg_cgpa ? parseFloat(formData.min_pg_cgpa) : null,
         min_tenth_percentage: formData.min_tenth_percentage ? parseFloat(formData.min_tenth_percentage) : null,
@@ -272,6 +312,82 @@ export default function JobEditForm() {
                   placeholder="Job description for PG students..."
                 />
               </div>
+            </div>
+
+            {/* Job PDF Upload */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Job Description PDF (Optional)
+              </label>
+              {formData.existing_job_pdf && !formData.job_pdf ? (
+                <div className={`flex items-center gap-2 p-3 rounded-lg border ${
+                  isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
+                }`}>
+                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                  </svg>
+                  <span className={`flex-1 text-sm ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                    Current: {formData.existing_job_pdf.split('/').pop()}
+                  </span>
+                  <a
+                    href={formData.existing_job_pdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:text-blue-700 text-sm font-medium"
+                  >
+                    View
+                  </a>
+                  <button
+                    type="button"
+                    onClick={removeFile}
+                    className="text-red-500 hover:text-red-700 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : formData.job_pdf ? (
+                <div className={`flex items-center gap-2 p-3 rounded-lg border ${
+                  isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
+                }`}>
+                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                  </svg>
+                  <span className={`flex-1 text-sm ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                    {formData.job_pdf_name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={removeFile}
+                    className="text-red-500 hover:text-red-700 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => handleFileChange(e.target.files[0])}
+                    className="hidden"
+                    id="job-pdf-upload"
+                  />
+                  <label
+                    htmlFor="job-pdf-upload"
+                    className={`flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                      isDark 
+                        ? 'border-gray-600 hover:border-gray-500 bg-gray-800 text-gray-300' 
+                        : 'border-gray-300 hover:border-gray-400 bg-white text-gray-700'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <span>Click to upload PDF</span>
+                    <span className="text-xs opacity-70">(Max 5MB)</span>
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* Eligibility Criteria */}

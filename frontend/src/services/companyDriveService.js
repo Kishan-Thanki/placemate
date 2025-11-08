@@ -156,7 +156,7 @@ export const companyDriveService = {
         body: JSON.stringify(driveData),
       };
 
-      const { ok, data, status } = await fetchJSON(
+      const { ok, data } = await fetchJSON(
         `${COMPANY_DRIVES_ENDPOINT}${id}/`,
         options
       );
@@ -217,16 +217,44 @@ export const companyDriveService = {
    */
   createJob: async (jobData) => {
     try {
-      const options = {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(jobData),
-      };
+      let options;
+      
+      // Check if jobData contains a file (job_pdf)
+      if (jobData.job_pdf instanceof File) {
+        // Use FormData for file upload
+        const formData = new FormData();
+        Object.keys(jobData).forEach(key => {
+          if (jobData[key] !== null && jobData[key] !== undefined) {
+            if (key === 'eligible_programs' && Array.isArray(jobData[key])) {
+              // For arrays, append each item separately
+              jobData[key].forEach(item => {
+                formData.append('eligible_programs', item);
+              });
+            } else {
+              formData.append(key, jobData[key]);
+            }
+          }
+        });
 
-      const { ok, data, status } = await fetchJSON(
+        options = {
+          method: "POST",
+          credentials: "include",
+          // Don't set Content-Type header for FormData - browser will set it with boundary
+          body: formData,
+        };
+      } else {
+        // Regular JSON request
+        options = {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(jobData),
+        };
+      }
+
+      const { ok, data, status: responseStatus } = await fetchJSON(
         "/api/v1/placements/jobs/",
         options
       );
@@ -237,10 +265,10 @@ export const companyDriveService = {
           data?.error ||
           data?.detail ||
           (data?.errors ? JSON.stringify(data.errors) : null) ||
-          `Failed to create job (${status})`;
+          `Failed to update job (${responseStatus})`;
 
         const error = new Error(errorMessage);
-        error.response = { data, status };
+        error.response = { data, status: responseStatus };
         throw error;
       }
 
@@ -260,16 +288,44 @@ export const companyDriveService = {
    */
   updateJob: async (id, jobData) => {
     try {
-      const options = {
-        method: "PATCH",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(jobData),
-      };
+      let options;
+      
+      // Check if jobData contains a file (job_pdf)
+      if (jobData.job_pdf instanceof File) {
+        // Use FormData for file upload
+        const formData = new FormData();
+        Object.keys(jobData).forEach(key => {
+          if (jobData[key] !== null && jobData[key] !== undefined) {
+            if (key === 'eligible_programs' && Array.isArray(jobData[key])) {
+              // For arrays, append each item separately
+              jobData[key].forEach(item => {
+                formData.append('eligible_programs', item);
+              });
+            } else {
+              formData.append(key, jobData[key]);
+            }
+          }
+        });
 
-      const { ok, data, status } = await fetchJSON(
+        options = {
+          method: "PATCH",
+          credentials: "include",
+          // Don't set Content-Type header for FormData - browser will set it with boundary
+          body: formData,
+        };
+      } else {
+        // Regular JSON request
+        options = {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(jobData),
+        };
+      }
+
+      const { ok, data } = await fetchJSON(
         `/api/v1/placements/jobs/${id}/`,
         options
       );
