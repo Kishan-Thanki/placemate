@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { generateHTML } from '@tiptap/html';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import TextAlign from '@tiptap/extension-text-align';
 import { useParams, useNavigate } from "react-router-dom";
 import {
   DashboardLayout,
@@ -32,11 +37,7 @@ export default function CompanyDriveDetails() {
   const [error, setError] = useState(null);
   const [activeJobTab, setActiveJobTab] = useState({}); // Track active tab for each job
 
-  useEffect(() => {
-    fetchDriveDetails();
-  }, [id]);
-
-  const fetchDriveDetails = async () => {
+  const fetchDriveDetails = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -60,7 +61,11 @@ export default function CompanyDriveDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchDriveDetails();
+  }, [fetchDriveDetails]);
 
   const handleDelete = async () => {
     if (
@@ -418,6 +423,38 @@ export default function CompanyDriveDetails() {
                       )}
                     </div>
 
+                    {/* Job Description */}
+                    {job.job_desc && job.job_desc.content && job.job_desc.content.length > 0 && (
+                      <div className={`mb-4 p-4 rounded-lg border ${
+                        isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <h5 className={`text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                          Job Description
+                        </h5>
+                        <div 
+                          className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}
+                          dangerouslySetInnerHTML={{ 
+                            __html: (() => {
+                              try {
+                                const safeDoc = job.job_desc && job.job_desc.type === 'doc' ? job.job_desc : { type: 'doc', content: [{ type: 'paragraph' }] };
+                                return generateHTML(
+                                  safeDoc,
+                                  [
+                                    StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+                                    Underline,
+                                    Link.configure({ HTMLAttributes: { class: 'text-blue-500 hover:underline', target: '_blank', rel: 'noopener noreferrer' } }),
+                                    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+                                  ]
+                                );
+                              } catch {
+                                return '';
+                              }
+                            })()
+                          }}
+                        />
+                      </div>
+                    )}
+
                     {/* UG/PG Tabs */}
                     {(() => {
                       // Check if UG data exists
@@ -474,26 +511,6 @@ export default function CompanyDriveDetails() {
                           {/* Show UG content if: tabs are shown and UG tab is active, OR no tabs and UG data exists */}
                           {((showTabs && (activeJobTab[job.id] || 'ug') === 'ug') || (!showTabs && hasUGData)) && (
                             <div className="space-y-4">
-                              {/* UG Description */}
-                              {job.description_ug && (
-                                <div>
-                                  <p
-                                    className={`text-sm font-medium mb-2 ${
-                                      isDark ? "text-gray-400" : "text-gray-600"
-                                    }`}
-                                  >
-                                    Description
-                                  </p>
-                                  <p
-                                    className={`text-sm ${
-                                      isDark ? "text-gray-300" : "text-gray-700"
-                                    }`}
-                                  >
-                                    {job.description_ug}
-                                  </p>
-                                </div>
-                              )}
-
                               {/* UG Eligibility Criteria */}
                               {(job.min_ug_cgpa || job.min_tenth_percentage || job.min_twelfth_percentage || 
                                 (job.max_active_backlogs !== null && job.max_active_backlogs !== undefined)) && (
@@ -584,7 +601,7 @@ export default function CompanyDriveDetails() {
                               )}
                               
                               {/* UG Package Details */}
-                              {(job.ug_package_min || job.ug_package_max || job.ug_stipend) && (
+                              {(job.ug_package_min || job.ug_package_max || job.ug_stipend || job.description_ug) && (
                                 <div>
                                   <p
                                     className={`text-sm font-medium mb-2 ${
@@ -634,6 +651,15 @@ export default function CompanyDriveDetails() {
                                       </div>
                                     )}
                                   </div>
+                                  {job.description_ug && (
+                                    <p
+                                      className={`text-xs mt-2 ${
+                                        isDark ? "text-gray-400" : "text-gray-600"
+                                      }`}
+                                    >
+                                      {job.description_ug}
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -642,26 +668,6 @@ export default function CompanyDriveDetails() {
                           {/* Show PG content if: tabs are shown and PG tab is active, OR no tabs and PG data exists */}
                           {((showTabs && (activeJobTab[job.id] || 'ug') === 'pg') || (!showTabs && hasPGData)) && (
                             <div className="space-y-4">
-                              {/* PG Description */}
-                              {job.description_pg && (
-                                <div>
-                                  <p
-                                    className={`text-sm font-medium mb-2 ${
-                                      isDark ? "text-gray-400" : "text-gray-600"
-                                    }`}
-                                  >
-                                    Description
-                                  </p>
-                                  <p
-                                    className={`text-sm ${
-                                      isDark ? "text-gray-300" : "text-gray-700"
-                                    }`}
-                                  >
-                                    {job.description_pg}
-                                  </p>
-                                </div>
-                              )}
-
                               {/* PG Eligibility Criteria */}
                               {(job.min_pg_cgpa || job.min_tenth_percentage || job.min_twelfth_percentage || 
                                 (job.max_active_backlogs !== null && job.max_active_backlogs !== undefined)) && (
@@ -752,7 +758,7 @@ export default function CompanyDriveDetails() {
                               )}
                               
                               {/* PG Package Details */}
-                              {(job.pg_package_min || job.pg_package_max || job.pg_stipend) && (
+                              {(job.pg_package_min || job.pg_package_max || job.pg_stipend || job.description_pg) && (
                                 <div>
                                   <p
                                     className={`text-sm font-medium mb-2 ${
@@ -777,8 +783,8 @@ export default function CompanyDriveDetails() {
                                           }`}
                                         >
                                           {job.pg_package_min === job.pg_package_max 
-                                            ? `₹${job.pg_package_min || 0}`
-                                            : `₹${job.pg_package_min || 0} - ₹${job.pg_package_max || 0}`
+                                            ? `₹${job.pg_package_min || 0} LPA`
+                                            : `₹${job.pg_package_min || 0} - ₹${job.pg_package_max || 0} LPA`
                                           }
                                         </p>
                                       </div>
@@ -802,6 +808,15 @@ export default function CompanyDriveDetails() {
                                       </div>
                                     )}
                                   </div>
+                                  {job.description_pg && (
+                                    <p
+                                      className={`text-xs mt-2 ${
+                                        isDark ? "text-gray-400" : "text-gray-600"
+                                      }`}
+                                    >
+                                      {job.description_pg}
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </div>
