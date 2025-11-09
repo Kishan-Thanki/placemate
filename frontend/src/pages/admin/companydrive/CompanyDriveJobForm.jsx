@@ -26,6 +26,24 @@ export default function CompanyDriveJobForm() {
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [programs, setPrograms] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Helper function to process job_desc - returns null if empty
+  const processJobDesc = (jobDesc) => {
+    if (!jobDesc || typeof jobDesc !== 'object') {
+      return null;
+    }
+    
+    // Check if it's an empty document with just one empty paragraph
+    if (jobDesc.type === 'doc' && 
+        jobDesc.content && 
+        jobDesc.content.length === 1 && 
+        jobDesc.content[0].type === 'paragraph' &&
+        (!jobDesc.content[0].content || jobDesc.content[0].content.length === 0)) {
+      return null;
+    }
+    
+    return jobDesc;
+  };
   const [jobs, setJobs] = useState([
     {
       id: Date.now(),
@@ -265,7 +283,7 @@ export default function CompanyDriveJobForm() {
         const jobsData = jobs.map(job => ({
           company_drive: parseInt(driveId),
           title: job.title.trim(),
-          job_desc: job.job_desc || null,
+          job_desc: processJobDesc(job.job_desc),
           description_ug: job.description_ug.trim() || null,
           description_pg: job.description_pg.trim() || null,
           job_pdf: job.job_pdf || null,
@@ -336,7 +354,7 @@ export default function CompanyDriveJobForm() {
             const jobData = {
               company_drive: driveId,
               title: job.title.trim(),
-              job_desc: job.job_desc || null,
+              job_desc: processJobDesc(job.job_desc),
               description_ug: job.description_ug.trim() || null,
               description_pg: job.description_pg.trim() || null,
               job_pdf: job.job_pdf || null,
@@ -359,7 +377,7 @@ export default function CompanyDriveJobForm() {
           // No files, use the original approach (send jobs with drive creation)
           const jobsData = jobs.map(job => ({
             title: job.title.trim(),
-            job_desc: job.job_desc || null,
+            job_desc: processJobDesc(job.job_desc),
             description_ug: job.description_ug.trim() || null,
             description_pg: job.description_pg.trim() || null,
             min_ug_cgpa: job.min_ug_cgpa ? parseFloat(job.min_ug_cgpa) : null,

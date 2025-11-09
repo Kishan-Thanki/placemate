@@ -4,6 +4,8 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
+import HardBreak from '@tiptap/extension-hard-break';
+import Typography from '@tiptap/extension-typography';
 import { useParams, useNavigate } from "react-router-dom";
 import {
   DashboardLayout,
@@ -26,6 +28,86 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { companyDriveService } from "../../../services";
+
+// Custom styles for rendered job descriptions
+const jobDescStyles = `
+  .job-description h1 {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0.67em 0;
+    line-height: 1.2;
+  }
+  .job-description h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0.75em 0;
+    line-height: 1.3;
+  }
+  .job-description h3 {
+    font-size: 1.25em;
+    font-weight: bold;
+    margin: 0.83em 0;
+    line-height: 1.4;
+  }
+  .job-description ul {
+    list-style-type: disc;
+    margin: 1em 0;
+    padding-left: 2em;
+  }
+  .job-description ol {
+    list-style-type: decimal;
+    margin: 1em 0;
+    padding-left: 2em;
+  }
+  .job-description li {
+    margin: 0.5em 0;
+  }
+  .job-description blockquote {
+    border-left: 4px solid #6b7280;
+    padding-left: 1em;
+    margin: 1em 0;
+    font-style: italic;
+    color: #6b7280;
+  }
+  .job-description pre {
+    background-color: #f3f4f6;
+    padding: 1em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+    margin: 1em 0;
+  }
+  .job-description code {
+    background-color: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 0.25em;
+    font-family: monospace;
+  }
+  .job-description hr {
+    border: none;
+    border-top: 2px solid #e5e7eb;
+    margin: 2em 0;
+  }
+  .job-description p {
+    margin: 0.5em 0;
+    line-height: 1.6;
+  }
+  .job-description strong {
+    font-weight: bold;
+  }
+  .job-description em {
+    font-style: italic;
+  }
+  .job-description u {
+    text-decoration: underline;
+  }
+  .job-description a {
+    color: #3b82f6;
+    text-decoration: underline;
+  }
+  .job-description a:hover {
+    color: #2563eb;
+  }
+`;
 
 export default function CompanyDriveDetails() {
   const { id } = useParams();
@@ -50,7 +132,23 @@ export default function CompanyDriveDetails() {
       try {
         const jobsResponse = await companyDriveService.getDriveJobs(id);
         const jobsData = jobsResponse?.data || jobsResponse || [];
-        setJobs(Array.isArray(jobsData) ? jobsData : []);
+        
+        // Parse job_desc if it's a string (happens when sent via FormData)
+        const processedJobs = (Array.isArray(jobsData) ? jobsData : []).map(job => ({
+          ...job,
+          job_desc: typeof job.job_desc === 'string' 
+            ? (() => {
+                try {
+                  return JSON.parse(job.job_desc);
+                } catch {
+                  console.warn('Failed to parse job_desc for job:', job.id);
+                  return null;
+                }
+              })()
+            : job.job_desc
+        }));
+        
+        setJobs(processedJobs);
       } catch (jobErr) {
         console.error("Error fetching jobs:", jobErr);
         setJobs([]);
@@ -428,26 +526,64 @@ export default function CompanyDriveDetails() {
                       <div className={`mb-4 p-4 rounded-lg border ${
                         isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'
                       }`}>
+                        <style>{jobDescStyles}</style>
                         <h5 className={`text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                           Job Description
                         </h5>
                         <div 
-                          className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}
+                          className={`job-description prose prose-sm max-w-none ${isDark ? 'prose-invert text-gray-200' : 'text-gray-900'}`}
+                          style={{
+                            wordBreak: 'break-word'
+                          }}
                           dangerouslySetInnerHTML={{ 
                             __html: (() => {
                               try {
-                                const safeDoc = job.job_desc && job.job_desc.type === 'doc' ? job.job_desc : { type: 'doc', content: [{ type: 'paragraph' }] };
-                                return generateHTML(
+                                // Parse job_desc if it's a string
+                                let jobDesc = job.job_desc;
+                                if (typeof jobDesc === 'string') {
+                                  try {
+                                    jobDesc = JSON.parse(jobDesc);
+                                  } catch (parseError) {
+                                    console.error('Failed to parse job_desc string:', parseError);
+                                    return '<p>Invalid job description format</p>';
+                                  }
+                                }
+                                
+                                const safeDoc = jobDesc && jobDesc.type === 'doc' ? jobDesc : { type: 'doc', content: [{ type: 'paragraph' }] };
+                                
+                                console.log('Generating HTML for job:', job.id, safeDoc);
+                                
+                                const html = generateHTML(
                                   safeDoc,
                                   [
-                                    StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+                                    StarterKit.configure({ 
+                                      heading: { levels: [1, 2, 3] },
+                                      bulletList: {},
+                                      orderedList: {},
+                                      listItem: {},
+                                      blockquote: {},
+                                      codeBlock: {},
+                                      horizontalRule: {},
+                                    }),
                                     Underline,
-                                    Link.configure({ HTMLAttributes: { class: 'text-blue-500 hover:underline', target: '_blank', rel: 'noopener noreferrer' } }),
+                                    Link.configure({ 
+                                      HTMLAttributes: { 
+                                        class: 'text-blue-500 hover:underline cursor-pointer', 
+                                        target: '_blank', 
+                                        rel: 'noopener noreferrer' 
+                                      } 
+                                    }),
                                     TextAlign.configure({ types: ['heading', 'paragraph'] }),
+                                    HardBreak.configure({ keepMarks: true }),
+                                    Typography,
                                   ]
                                 );
-                              } catch {
-                                return '';
+                                
+                                console.log('Generated HTML:', html);
+                                return html;
+                              } catch (error) {
+                                console.error('Error generating HTML for job', job.id, ':', error, job.job_desc);
+                                return '<p class="text-red-500">Error rendering job description. Please check console for details.</p>';
                               }
                             })()
                           }}
