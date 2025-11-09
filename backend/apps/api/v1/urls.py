@@ -43,4 +43,6 @@ urlpatterns = [
     
     # Password reset workflow: request, confirm, validate endpoints
     path('password-reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
+    path('applications/', include('apps.applications.urls')),
+
 ]
