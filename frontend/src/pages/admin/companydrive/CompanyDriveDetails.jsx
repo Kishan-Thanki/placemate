@@ -1,4 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { generateHTML } from '@tiptap/html';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import TextAlign from '@tiptap/extension-text-align';
+import HardBreak from '@tiptap/extension-hard-break';
+import Typography from '@tiptap/extension-typography';
 import { useParams, useNavigate } from "react-router-dom";
 import {
   DashboardLayout,
@@ -22,6 +29,86 @@ import {
 } from "lucide-react";
 import { companyDriveService } from "../../../services";
 
+// Custom styles for rendered job descriptions
+const jobDescStyles = `
+  .job-description h1 {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0.67em 0;
+    line-height: 1.2;
+  }
+  .job-description h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0.75em 0;
+    line-height: 1.3;
+  }
+  .job-description h3 {
+    font-size: 1.25em;
+    font-weight: bold;
+    margin: 0.83em 0;
+    line-height: 1.4;
+  }
+  .job-description ul {
+    list-style-type: disc;
+    margin: 1em 0;
+    padding-left: 2em;
+  }
+  .job-description ol {
+    list-style-type: decimal;
+    margin: 1em 0;
+    padding-left: 2em;
+  }
+  .job-description li {
+    margin: 0.5em 0;
+  }
+  .job-description blockquote {
+    border-left: 4px solid #6b7280;
+    padding-left: 1em;
+    margin: 1em 0;
+    font-style: italic;
+    color: #6b7280;
+  }
+  .job-description pre {
+    background-color: #f3f4f6;
+    padding: 1em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+    margin: 1em 0;
+  }
+  .job-description code {
+    background-color: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 0.25em;
+    font-family: monospace;
+  }
+  .job-description hr {
+    border: none;
+    border-top: 2px solid #e5e7eb;
+    margin: 2em 0;
+  }
+  .job-description p {
+    margin: 0.5em 0;
+    line-height: 1.6;
+  }
+  .job-description strong {
+    font-weight: bold;
+  }
+  .job-description em {
+    font-style: italic;
+  }
+  .job-description u {
+    text-decoration: underline;
+  }
+  .job-description a {
+    color: #3b82f6;
+    text-decoration: underline;
+  }
+  .job-description a:hover {
+    color: #2563eb;
+  }
+`;
+
 export default function CompanyDriveDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -32,11 +119,7 @@ export default function CompanyDriveDetails() {
   const [error, setError] = useState(null);
   const [activeJobTab, setActiveJobTab] = useState({}); // Track active tab for each job
 
-  useEffect(() => {
-    fetchDriveDetails();
-  }, [id]);
-
-  const fetchDriveDetails = async () => {
+  const fetchDriveDetails = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -49,7 +132,23 @@ export default function CompanyDriveDetails() {
       try {
         const jobsResponse = await companyDriveService.getDriveJobs(id);
         const jobsData = jobsResponse?.data || jobsResponse || [];
-        setJobs(Array.isArray(jobsData) ? jobsData : []);
+        
+        // Parse job_desc if it's a string (happens when sent via FormData)
+        const processedJobs = (Array.isArray(jobsData) ? jobsData : []).map(job => ({
+          ...job,
+          job_desc: typeof job.job_desc === 'string' 
+            ? (() => {
+                try {
+                  return JSON.parse(job.job_desc);
+                } catch {
+                  console.warn('Failed to parse job_desc for job:', job.id);
+                  return null;
+                }
+              })()
+            : job.job_desc
+        }));
+        
+        setJobs(processedJobs);
       } catch (jobErr) {
         console.error("Error fetching jobs:", jobErr);
         setJobs([]);
@@ -60,7 +159,11 @@ export default function CompanyDriveDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchDriveDetails();
+  }, [fetchDriveDetails]);
 
   const handleDelete = async () => {
     if (
@@ -418,6 +521,76 @@ export default function CompanyDriveDetails() {
                       )}
                     </div>
 
+                    {/* Job Description */}
+                    {job.job_desc && job.job_desc.content && job.job_desc.content.length > 0 && (
+                      <div className={`mb-4 p-4 rounded-lg border ${
+                        isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <style>{jobDescStyles}</style>
+                        <h5 className={`text-sm font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                          Job Description
+                        </h5>
+                        <div 
+                          className={`job-description prose prose-sm max-w-none ${isDark ? 'prose-invert text-gray-200' : 'text-gray-900'}`}
+                          style={{
+                            wordBreak: 'break-word'
+                          }}
+                          dangerouslySetInnerHTML={{ 
+                            __html: (() => {
+                              try {
+                                // Parse job_desc if it's a string
+                                let jobDesc = job.job_desc;
+                                if (typeof jobDesc === 'string') {
+                                  try {
+                                    jobDesc = JSON.parse(jobDesc);
+                                  } catch (parseError) {
+                                    console.error('Failed to parse job_desc string:', parseError);
+                                    return '<p>Invalid job description format</p>';
+                                  }
+                                }
+                                
+                                const safeDoc = jobDesc && jobDesc.type === 'doc' ? jobDesc : { type: 'doc', content: [{ type: 'paragraph' }] };
+                                
+                                console.log('Generating HTML for job:', job.id, safeDoc);
+                                
+                                const html = generateHTML(
+                                  safeDoc,
+                                  [
+                                    StarterKit.configure({ 
+                                      heading: { levels: [1, 2, 3] },
+                                      bulletList: {},
+                                      orderedList: {},
+                                      listItem: {},
+                                      blockquote: {},
+                                      codeBlock: {},
+                                      horizontalRule: {},
+                                    }),
+                                    Underline,
+                                    Link.configure({ 
+                                      HTMLAttributes: { 
+                                        class: 'text-blue-500 hover:underline cursor-pointer', 
+                                        target: '_blank', 
+                                        rel: 'noopener noreferrer' 
+                                      } 
+                                    }),
+                                    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+                                    HardBreak.configure({ keepMarks: true }),
+                                    Typography,
+                                  ]
+                                );
+                                
+                                console.log('Generated HTML:', html);
+                                return html;
+                              } catch (error) {
+                                console.error('Error generating HTML for job', job.id, ':', error, job.job_desc);
+                                return '<p class="text-red-500">Error rendering job description. Please check console for details.</p>';
+                              }
+                            })()
+                          }}
+                        />
+                      </div>
+                    )}
+
                     {/* UG/PG Tabs */}
                     {(() => {
                       // Check if UG data exists
@@ -474,26 +647,6 @@ export default function CompanyDriveDetails() {
                           {/* Show UG content if: tabs are shown and UG tab is active, OR no tabs and UG data exists */}
                           {((showTabs && (activeJobTab[job.id] || 'ug') === 'ug') || (!showTabs && hasUGData)) && (
                             <div className="space-y-4">
-                              {/* UG Description */}
-                              {job.description_ug && (
-                                <div>
-                                  <p
-                                    className={`text-sm font-medium mb-2 ${
-                                      isDark ? "text-gray-400" : "text-gray-600"
-                                    }`}
-                                  >
-                                    Description
-                                  </p>
-                                  <p
-                                    className={`text-sm ${
-                                      isDark ? "text-gray-300" : "text-gray-700"
-                                    }`}
-                                  >
-                                    {job.description_ug}
-                                  </p>
-                                </div>
-                              )}
-
                               {/* UG Eligibility Criteria */}
                               {(job.min_ug_cgpa || job.min_tenth_percentage || job.min_twelfth_percentage || 
                                 (job.max_active_backlogs !== null && job.max_active_backlogs !== undefined)) && (
@@ -584,7 +737,7 @@ export default function CompanyDriveDetails() {
                               )}
                               
                               {/* UG Package Details */}
-                              {(job.ug_package_min || job.ug_package_max || job.ug_stipend) && (
+                              {(job.ug_package_min || job.ug_package_max || job.ug_stipend || job.description_ug) && (
                                 <div>
                                   <p
                                     className={`text-sm font-medium mb-2 ${
@@ -634,6 +787,15 @@ export default function CompanyDriveDetails() {
                                       </div>
                                     )}
                                   </div>
+                                  {job.description_ug && (
+                                    <p
+                                      className={`text-xs mt-2 ${
+                                        isDark ? "text-gray-400" : "text-gray-600"
+                                      }`}
+                                    >
+                                      {job.description_ug}
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -642,26 +804,6 @@ export default function CompanyDriveDetails() {
                           {/* Show PG content if: tabs are shown and PG tab is active, OR no tabs and PG data exists */}
                           {((showTabs && (activeJobTab[job.id] || 'ug') === 'pg') || (!showTabs && hasPGData)) && (
                             <div className="space-y-4">
-                              {/* PG Description */}
-                              {job.description_pg && (
-                                <div>
-                                  <p
-                                    className={`text-sm font-medium mb-2 ${
-                                      isDark ? "text-gray-400" : "text-gray-600"
-                                    }`}
-                                  >
-                                    Description
-                                  </p>
-                                  <p
-                                    className={`text-sm ${
-                                      isDark ? "text-gray-300" : "text-gray-700"
-                                    }`}
-                                  >
-                                    {job.description_pg}
-                                  </p>
-                                </div>
-                              )}
-
                               {/* PG Eligibility Criteria */}
                               {(job.min_pg_cgpa || job.min_tenth_percentage || job.min_twelfth_percentage || 
                                 (job.max_active_backlogs !== null && job.max_active_backlogs !== undefined)) && (
@@ -752,7 +894,7 @@ export default function CompanyDriveDetails() {
                               )}
                               
                               {/* PG Package Details */}
-                              {(job.pg_package_min || job.pg_package_max || job.pg_stipend) && (
+                              {(job.pg_package_min || job.pg_package_max || job.pg_stipend || job.description_pg) && (
                                 <div>
                                   <p
                                     className={`text-sm font-medium mb-2 ${
@@ -777,8 +919,8 @@ export default function CompanyDriveDetails() {
                                           }`}
                                         >
                                           {job.pg_package_min === job.pg_package_max 
-                                            ? `₹${job.pg_package_min || 0}`
-                                            : `₹${job.pg_package_min || 0} - ₹${job.pg_package_max || 0}`
+                                            ? `₹${job.pg_package_min || 0} LPA`
+                                            : `₹${job.pg_package_min || 0} - ₹${job.pg_package_max || 0} LPA`
                                           }
                                         </p>
                                       </div>
@@ -802,6 +944,15 @@ export default function CompanyDriveDetails() {
                                       </div>
                                     )}
                                   </div>
+                                  {job.description_pg && (
+                                    <p
+                                      className={`text-xs mt-2 ${
+                                        isDark ? "text-gray-400" : "text-gray-600"
+                                      }`}
+                                    >
+                                      {job.description_pg}
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </div>

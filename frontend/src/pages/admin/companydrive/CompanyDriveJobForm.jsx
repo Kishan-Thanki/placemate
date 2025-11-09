@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DashboardLayout, PageContainer, Section } from '../../../components/layout';
-import { Card, Button, LoadingOverlay } from '../../../components/ui';
+import { Card, Button, LoadingOverlay, RichTextEditor } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ArrowLeft } from 'lucide-react';
 import { companyDriveService, lookupService } from '../../../services';
@@ -26,10 +26,29 @@ export default function CompanyDriveJobForm() {
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [programs, setPrograms] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Helper function to process job_desc - returns null if empty
+  const processJobDesc = (jobDesc) => {
+    if (!jobDesc || typeof jobDesc !== 'object') {
+      return null;
+    }
+    
+    // Check if it's an empty document with just one empty paragraph
+    if (jobDesc.type === 'doc' && 
+        jobDesc.content && 
+        jobDesc.content.length === 1 && 
+        jobDesc.content[0].type === 'paragraph' &&
+        (!jobDesc.content[0].content || jobDesc.content[0].content.length === 0)) {
+      return null;
+    }
+    
+    return jobDesc;
+  };
   const [jobs, setJobs] = useState([
     {
       id: Date.now(),
       title: '',
+      job_desc: { type: 'doc', content: [{ type: 'paragraph' }] },
       description_ug: '',
       description_pg: '',
       job_pdf: null,
@@ -84,6 +103,7 @@ export default function CompanyDriveJobForm() {
     const newJob = {
       id: Date.now(),
       title: '',
+      job_desc: { type: 'doc', content: [{ type: 'paragraph' }] },
       description_ug: '',
       description_pg: '',
       job_pdf: null,
@@ -263,6 +283,7 @@ export default function CompanyDriveJobForm() {
         const jobsData = jobs.map(job => ({
           company_drive: parseInt(driveId),
           title: job.title.trim(),
+          job_desc: processJobDesc(job.job_desc),
           description_ug: job.description_ug.trim() || null,
           description_pg: job.description_pg.trim() || null,
           job_pdf: job.job_pdf || null,
@@ -333,6 +354,7 @@ export default function CompanyDriveJobForm() {
             const jobData = {
               company_drive: driveId,
               title: job.title.trim(),
+              job_desc: processJobDesc(job.job_desc),
               description_ug: job.description_ug.trim() || null,
               description_pg: job.description_pg.trim() || null,
               job_pdf: job.job_pdf || null,
@@ -355,6 +377,7 @@ export default function CompanyDriveJobForm() {
           // No files, use the original approach (send jobs with drive creation)
           const jobsData = jobs.map(job => ({
             title: job.title.trim(),
+            job_desc: processJobDesc(job.job_desc),
             description_ug: job.description_ug.trim() || null,
             description_pg: job.description_pg.trim() || null,
             min_ug_cgpa: job.min_ug_cgpa ? parseFloat(job.min_ug_cgpa) : null,
@@ -491,40 +514,16 @@ export default function CompanyDriveJobForm() {
                       )}
                     </div>
 
-                    {/* Job Descriptions */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
-                          UG Description
-                        </label>
-                        <textarea
-                          value={job.description_ug}
-                          onChange={(e) => updateJob(job.id, 'description_ug', e.target.value)}
-                          className={`w-full px-3 py-2 rounded-lg border ${
-                            isDark 
-                              ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                          }`}
-                          rows="3"
-                          placeholder="Job description for UG students"
-                        />
-                      </div>
-                      <div>
-                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
-                          PG Description
-                        </label>
-                        <textarea
-                          value={job.description_pg}
-                          onChange={(e) => updateJob(job.id, 'description_pg', e.target.value)}
-                          className={`w-full px-3 py-2 rounded-lg border ${
-                            isDark 
-                              ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                          }`}
-                          rows="3"
-                          placeholder="Job description for PG students"
-                        />
-                      </div>
+                    {/* Job Description */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Job Description
+                      </label>
+                      <RichTextEditor
+                        value={job.job_desc}
+                        onChange={(value) => updateJob(job.id, 'job_desc', value)}
+                        placeholder="Enter detailed job description, responsibilities, requirements, etc."
+                      />
                     </div>
 
                     {/* Job PDF Upload */}
@@ -702,12 +701,12 @@ export default function CompanyDriveJobForm() {
                     {/* Package Details */}
                     <div className="border-t pt-4">
                       <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
-                        Package Details (in LPA)
+                        UG Package Details (in LPA)
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-3 gap-4">
                         <div>
                           <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            UG Package Min
+                            Package Min
                           </label>
                           <input
                             type="number"
@@ -729,7 +728,7 @@ export default function CompanyDriveJobForm() {
                         </div>
                         <div>
                           <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            UG Package Max
+                            Package Max
                           </label>
                           <input
                             type="number"
@@ -751,7 +750,7 @@ export default function CompanyDriveJobForm() {
                         </div>
                         <div>
                           <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            UG Stipend
+                            Stipend
                           </label>
                           <input
                             type="number"
@@ -771,9 +770,31 @@ export default function CompanyDriveJobForm() {
                             <span className="text-xs text-red-500">{errors[`ug_stipend-${job.id}`]}</span>
                           )}
                         </div>
+                      </div>
+                      <div className="mt-2">
+                        <textarea
+                          value={job.description_ug}
+                          onChange={(e) => updateJob(job.id, 'description_ug', e.target.value)}
+                          className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                            isDark 
+                              ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
+                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                          }`}
+                          rows="2"
+                          placeholder="Additional details (e.g., benefits, bonuses, variable pay, etc.)"
+                        />
+                      </div>
+                    </div>
+
+                    {/* PG Package Details */}
+                    <div className="border-t pt-4">
+                      <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        PG Package Details (in LPA)
+                      </h4>
+                      <div className="grid grid-cols-3 gap-4">
                         <div>
                           <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            PG Package Min
+                            Package Min
                           </label>
                           <input
                             type="number"
@@ -795,7 +816,7 @@ export default function CompanyDriveJobForm() {
                         </div>
                         <div>
                           <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            PG Package Max
+                            Package Max
                           </label>
                           <input
                             type="number"
@@ -817,7 +838,7 @@ export default function CompanyDriveJobForm() {
                         </div>
                         <div>
                           <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            PG Stipend
+                            Stipend
                           </label>
                           <input
                             type="number"
@@ -837,6 +858,19 @@ export default function CompanyDriveJobForm() {
                             <span className="text-xs text-red-500">{errors[`pg_stipend-${job.id}`]}</span>
                           )}
                         </div>
+                      </div>
+                      <div className="mt-2">
+                        <textarea
+                          value={job.description_pg}
+                          onChange={(e) => updateJob(job.id, 'description_pg', e.target.value)}
+                          className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                            isDark 
+                              ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
+                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                          }`}
+                          rows="2"
+                          placeholder="Additional details (e.g., benefits, bonuses, variable pay, etc.)"
+                        />
                       </div>
                     </div>
 

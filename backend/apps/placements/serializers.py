@@ -25,7 +25,7 @@ class CompanyDriveReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyDrive
         fields = [
-            'id', 'placement_drive', 'company', 'drive_type', 'job_mode',
+            'id', 'placement_drive', 'company', 'drive_type', 'job_mode','multiple_allowed',
             'application_deadline', 'status', 'rounds', 'locations',
             'created_at', 'updated_at', 'jobs_count'
         ]
@@ -48,7 +48,7 @@ class JobWriteSerializer(serializers.ModelSerializer):
         model = Job
         fields = [
             'id','company_drive',
-            'title', 'description_ug', 'description_pg', 'job_pdf',
+            'title', 'description_ug', 'description_pg', 'job_pdf', 'job_desc',
             'min_ug_cgpa', 'min_pg_cgpa', 'min_tenth_percentage', 'min_twelfth_percentage',
             'max_active_backlogs', 'ug_package_min', 'ug_package_max', 'pg_package_min',
             'pg_package_max', 'ug_stipend', 'pg_stipend', 'eligible_programs'
@@ -95,7 +95,7 @@ class CompanyDriveJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = [
-            'id','title', 'description_ug', 'description_pg', 'job_pdf',
+            'id','title', 'description_ug', 'description_pg', 'job_pdf','job_desc',
             'min_ug_cgpa', 'min_pg_cgpa', 'min_tenth_percentage', 'min_twelfth_percentage',
             'max_active_backlogs', 'ug_package_min', 'ug_package_max', 'pg_package_min',
             'pg_package_max', 'ug_stipend', 'pg_stipend', 'eligible_programs'
@@ -125,7 +125,7 @@ class CompanyDriveWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyDrive
         fields = [
-            'id', 'placement_drive', 'company', 'drive_type', 'job_mode',
+            'id', 'placement_drive', 'company', 'drive_type', 'job_mode', 'multiple_allowed',
             'application_deadline', 'status', 'rounds', 'locations', 'jobs'
         ]
     
@@ -164,7 +164,7 @@ class JobReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = [
-            'id', 'company_drive', 'title', 'description_ug', 'description_pg', 'job_pdf',
+            'id', 'company_drive', 'title', 'description_ug', 'description_pg', 'job_pdf','job_desc',
             'min_ug_cgpa', 'min_pg_cgpa', 'min_tenth_percentage', 'min_twelfth_percentage',
             'max_active_backlogs', 'ug_package_min', 'ug_package_max', 'pg_package_min',
             'pg_package_max', 'ug_stipend', 'pg_stipend', 'eligible_programs',
