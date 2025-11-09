@@ -230,6 +230,9 @@ export const companyDriveService = {
               jobData[key].forEach(item => {
                 formData.append('eligible_programs', item);
               });
+            } else if (key === 'job_desc' && typeof jobData[key] === 'object') {
+              // Stringify JSON objects (like TipTap content)
+              formData.append(key, JSON.stringify(jobData[key]));
             } else {
               formData.append(key, jobData[key]);
             }
@@ -301,6 +304,9 @@ export const companyDriveService = {
               jobData[key].forEach(item => {
                 formData.append('eligible_programs', item);
               });
+            } else if (key === 'job_desc' && typeof jobData[key] === 'object') {
+              // Stringify JSON objects (like TipTap content)
+              formData.append(key, JSON.stringify(jobData[key]));
             } else {
               formData.append(key, jobData[key]);
             }

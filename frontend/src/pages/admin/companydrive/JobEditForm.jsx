@@ -27,6 +27,24 @@ export default function JobEditForm() {
   const [programs, setPrograms] = useState([]);
   const [error, setError] = useState('');
 
+  // Helper function to process job_desc - returns null if empty
+  const processJobDesc = (jobDesc) => {
+    if (!jobDesc || typeof jobDesc !== 'object') {
+      return null;
+    }
+    
+    // Check if it's an empty document with just one empty paragraph
+    if (jobDesc.type === 'doc' && 
+        jobDesc.content && 
+        jobDesc.content.length === 1 && 
+        jobDesc.content[0].type === 'paragraph' &&
+        (!jobDesc.content[0].content || jobDesc.content[0].content.length === 0)) {
+      return null;
+    }
+    
+    return jobDesc;
+  };
+
   const [formData, setFormData] = useState({
     title: '',
     job_desc: { type: 'doc', content: [{ type: 'paragraph' }] },
@@ -196,7 +214,7 @@ export default function JobEditForm() {
       const updateData = {
         company_drive: parseInt(driveId),
         title: formData.title.trim(),
-        job_desc: formData.job_desc || null,
+        job_desc: processJobDesc(formData.job_desc),
         description_ug: formData.description_ug.trim() || null,
         description_pg: formData.description_pg.trim() || null,
         job_pdf: formData.job_pdf || null,
@@ -270,7 +288,7 @@ export default function JobEditForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Job Title */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                 Job Title <span className="text-red-500">*</span>
               </label>
               <input
@@ -278,16 +296,16 @@ export default function JobEditForm() {
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
                 required
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                className={`w-full px-3 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                 } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                placeholder="e.g., Software Development Engineer"
+                placeholder="e.g., Software Engineer, Data Analyst"
               />
             </div>
 
             {/* Job Description */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                 Job Description
               </label>
               <RichTextEditor
@@ -297,41 +315,9 @@ export default function JobEditForm() {
               />
             </div>
 
-            {/* Descriptions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  UG Description
-                </label>
-                <textarea
-                  value={formData.description_ug}
-                  onChange={(e) => handleChange('description_ug', e.target.value)}
-                  rows={4}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  placeholder="Job description for UG students..."
-                />
-              </div>
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  PG Description
-                </label>
-                <textarea
-                  value={formData.description_pg}
-                  onChange={(e) => handleChange('description_pg', e.target.value)}
-                  rows={4}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  placeholder="Job description for PG students..."
-                />
-              </div>
-            </div>
-
             {/* Job PDF Upload */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                 Job Description PDF (Optional)
               </label>
               {formData.existing_job_pdf && !formData.job_pdf ? (
@@ -406,186 +392,284 @@ export default function JobEditForm() {
             </div>
 
             {/* Eligibility Criteria */}
-            <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-              <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <div className="border-t pt-4">
+              <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                 Eligibility Criteria
-              </h3>
+              </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Min UG CGPA</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Min UG CGPA
+                  </label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    max="10"
                     value={formData.min_ug_cgpa}
                     onChange={(e) => handleChange('min_ug_cgpa', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="7.0"
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Min PG CGPA</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Min PG CGPA
+                  </label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    max="10"
                     value={formData.min_pg_cgpa}
                     onChange={(e) => handleChange('min_pg_cgpa', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="7.5"
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Min 10th %</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Min 10th %
+                  </label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    max="100"
                     value={formData.min_tenth_percentage}
                     onChange={(e) => handleChange('min_tenth_percentage', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="60"
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Min 12th %</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Min 12th %
+                  </label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    max="100"
                     value={formData.min_twelfth_percentage}
                     onChange={(e) => handleChange('min_twelfth_percentage', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="60"
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Max Active Backlogs</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Max Backlogs
+                  </label>
                   <input
                     type="number"
+                    min="0"
                     value={formData.max_active_backlogs}
                     onChange={(e) => handleChange('max_active_backlogs', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="0"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Package Details */}
-            <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-              <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Package Details (in LPA)
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* UG Package Details */}
+            <div className="border-t pt-4">
+              <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                UG Package Details (in LPA)
+              </h4>
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>UG Package Min</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Package Min
+                  </label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.ug_package_min}
                     onChange={(e) => handleChange('ug_package_min', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="6.0"
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>UG Package Max</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Package Max
+                  </label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.ug_package_max}
                     onChange={(e) => handleChange('ug_package_max', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="8.0"
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>PG Package Min</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Stipend
+                  </label>
                   <input
                     type="number"
                     step="0.01"
-                    value={formData.pg_package_min}
-                    onChange={(e) => handleChange('pg_package_min', e.target.value)}
-                    onKeyDown={handleNumberKeyDown}
-                    className={`w-full px-2 py-1 text-sm rounded border ${
-                      isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
-                    }`}
-                  />
-                </div>
-                <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>PG Package Max</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.pg_package_max}
-                    onChange={(e) => handleChange('pg_package_max', e.target.value)}
-                    onKeyDown={handleNumberKeyDown}
-                    className={`w-full px-2 py-1 text-sm rounded border ${
-                      isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
-                    }`}
-                  />
-                </div>
-                <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>UG Stipend</label>
-                  <input
-                    type="number"
-                    step="0.01"
+                    min="0"
                     value={formData.ug_stipend}
                     onChange={(e) => handleChange('ug_stipend', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="30000"
                   />
                 </div>
+              </div>
+              <div className="mt-2">
+                <textarea
+                  value={formData.description_ug}
+                  onChange={(e) => handleChange('description_ug', e.target.value)}
+                  className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                    isDark 
+                      ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
+                  rows="2"
+                  placeholder="Additional details (e.g., benefits, bonuses, variable pay, etc.)"
+                />
+              </div>
+            </div>
+
+            {/* PG Package Details */}
+            <div className="border-t pt-4">
+              <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                PG Package Details (in LPA)
+              </h4>
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>PG Stipend</label>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Package Min
+                  </label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    value={formData.pg_package_min}
+                    onChange={(e) => handleChange('pg_package_min', e.target.value)}
+                    onKeyDown={handleNumberKeyDown}
+                    className={`w-full px-2 py-1 text-sm rounded border ${
+                      isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
+                    }`}
+                    placeholder="8.0"
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Package Max
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.pg_package_max}
+                    onChange={(e) => handleChange('pg_package_max', e.target.value)}
+                    onKeyDown={handleNumberKeyDown}
+                    className={`w-full px-2 py-1 text-sm rounded border ${
+                      isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
+                    }`}
+                    placeholder="12.0"
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Stipend
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
                     value={formData.pg_stipend}
                     onChange={(e) => handleChange('pg_stipend', e.target.value)}
                     onKeyDown={handleNumberKeyDown}
                     className={`w-full px-2 py-1 text-sm rounded border ${
                       isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300'
                     }`}
+                    placeholder="50000"
                   />
                 </div>
+              </div>
+              <div className="mt-2">
+                <textarea
+                  value={formData.description_pg}
+                  onChange={(e) => handleChange('description_pg', e.target.value)}
+                  className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                    isDark 
+                      ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
+                  rows="2"
+                  placeholder="Additional details (e.g., benefits, bonuses, variable pay, etc.)"
+                />
               </div>
             </div>
 
             {/* Eligible Programs */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            <div className="border-t pt-4">
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                 Eligible Programs <span className="text-red-500">*</span>
               </label>
               <div className={`p-3 rounded-lg border max-h-48 overflow-y-auto ${
-                isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'
+                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'
               }`}>
-                {programs.map((program) => (
-                  <label key={program.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.eligible_programs.includes(program.id)}
-                      onChange={() => handleProgramToggle(program.id)}
-                      className="rounded"
-                    />
-                    <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>
-                      {program.name} ({program.abbreviation})
-                    </span>
-                  </label>
-                ))}
+                {programs.length === 0 ? (
+                  <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+                    No programs available
+                  </p>
+                ) : (
+                  programs.map((program) => {
+                    const isChecked = formData.eligible_programs.includes(program.id);
+                    
+                    return (
+                      <label 
+                        key={program.id}
+                        className={`flex items-center gap-2 py-1 cursor-pointer hover:${
+                          isDark ? 'bg-gray-700' : 'bg-gray-50'
+                        } px-2 rounded`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleProgramToggle(program.id)}
+                          className="rounded"
+                        />
+                        <span className={isDark ? 'text-gray-200' : 'text-gray-900'}>
+                          {program.name} ({program.abbreviation})
+                        </span>
+                      </label>
+                    );
+                  })
+                )}
               </div>
             </div>
 
