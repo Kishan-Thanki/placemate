@@ -15,7 +15,7 @@ class CompanyDriveApplication(models.Model):
     student = models.ForeignKey('students.StudentProfile', on_delete=models.CASCADE, related_name='job_applications')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Applied')
     offered_job = models.ForeignKey('placements.Job',on_delete=models.SET_NULL, null=True, blank=True, related_name='offered_applications')
-    resume = CloudinaryField('raw', folder='resumes', resource_type='raw', blank=True, null=True)
+    resume = models.CharField(max_length=255)
     applied_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -40,3 +40,16 @@ class StudentProfile(models.Model):
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
+    
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(is_verified=True) | 
+                (
+                    models.Q(tenth_percentage__isnull=False) &
+                    models.Q(twelfth_percentage__isnull=False) &
+                    models.Q(current_cgpa__isnull=False)
+                ),
+                name='verified_student_has_required_data'
+            )
+        ]

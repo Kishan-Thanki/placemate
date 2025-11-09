@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .offer-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
+        .button { background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Job Offer Received!</h1>
+            <p>Congratulations on your offer from {{ company_name }}</p>
+        </div>
+        
+        <div class="content">
+            <h2>Dear {{ student_name }},</h2>
+            
+            <p>We are thrilled to inform you that <strong>{{ company_name }}</strong> has extended a job offer for the position of:</p>
+            
+            <div class="offer-details">
+                <h3>{{ job_title }}</h3>
+                <p><strong>Job Type:</strong> {{ job_type }}</p>
+                <p><strong>Work Mode:</strong> {{ job_mode }}</p>
+                <p><strong>Package:</strong> {{ package_range }}</p>
+                <p><strong>Campus Drive:</strong> {{ drive_title }}</p>
+            </div>
+            
+            <p>This is a significant achievement and we congratulate you on this success!</p>
+            
+            <h3>Next Steps:</h3>
+            <ul>
+                <li>Review the offer details carefully</li>
+                <li>Accept or decline the offer within <strong>{{ accept_deadline }}</strong></li>
+                <li>Contact placement cell for any queries</li>
+            </ul>
+            
+            <p>To proceed, please log into your Placement Portal and take action on this offer.</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ placement_portal_url }}" class="button">View Offer in Portal</a>
+            </div>
+            
+            <p><strong>Note:</strong> This offer is contingent upon successful verification of your academic credentials and background check.</p>
+        </div>
+        
+        <div class="footer">
+            <p>Best regards,<br>Placement Cell Team<br>
+            {{ placement_contact_email }}</p>
+        </div>
+    </div>
+</body>
+</html>
