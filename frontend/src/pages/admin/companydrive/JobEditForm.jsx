@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DashboardLayout, PageContainer, Section } from '../../../components/layout';
-import { Button, LoadingOverlay } from '../../../components/ui';
+import { Button, LoadingOverlay, RichTextEditor } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ArrowLeft } from 'lucide-react';
 import { companyDriveService, lookupService } from '../../../services';
@@ -29,6 +29,7 @@ export default function JobEditForm() {
 
   const [formData, setFormData] = useState({
     title: '',
+    job_desc: { type: 'doc', content: [{ type: 'paragraph' }] },
     description_ug: '',
     description_pg: '',
     job_pdf: null,
@@ -126,6 +127,7 @@ export default function JobEditForm() {
 
       setFormData({
         title: job.title || '',
+        job_desc: job.job_desc || { type: 'doc', content: [{ type: 'paragraph' }] },
         description_ug: job.description_ug || '',
         description_pg: job.description_pg || '',
         job_pdf: null,
@@ -194,6 +196,7 @@ export default function JobEditForm() {
       const updateData = {
         company_drive: parseInt(driveId),
         title: formData.title.trim(),
+        job_desc: formData.job_desc || null,
         description_ug: formData.description_ug.trim() || null,
         description_pg: formData.description_pg.trim() || null,
         job_pdf: formData.job_pdf || null,
@@ -279,6 +282,18 @@ export default function JobEditForm() {
                   isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
                 } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 placeholder="e.g., Software Development Engineer"
+              />
+            </div>
+
+            {/* Job Description */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Job Description
+              </label>
+              <RichTextEditor
+                value={formData.job_desc}
+                onChange={(value) => handleChange('job_desc', value)}
+                placeholder="Enter detailed job description, responsibilities, requirements, etc."
               />
             </div>
 
