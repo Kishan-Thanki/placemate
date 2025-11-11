@@ -27,6 +27,7 @@ import CompanyDriveDetails from "./pages/admin/companydrive/CompanyDriveDetails"
 import PlacementDrivesList from "./pages/admin/placement/PlacementDrivesList";
 import PlacementDriveForm from "./pages/admin/placement/PlacementDriveForm";
 import PlacementDriveDetails from "./pages/admin/placement/PlacementDriveDetails";
+import SPCManagement from "./pages/admin/SPCManagement";
 
 export default function App() {
   return (
@@ -257,6 +258,14 @@ export default function App() {
                           <RegisterCellMember />
                         </PageContainer>
                       </DashboardLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/spc-management"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                      <SPCManagement />
                     </ProtectedRoute>
                   }
                 />

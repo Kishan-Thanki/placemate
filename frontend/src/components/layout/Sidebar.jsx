@@ -15,6 +15,7 @@ import {
   Moon,
   Sun,
   HomeIcon,
+  Shield,
 } from "lucide-react";
 
 export function Sidebar({ isOpen, onClose }) {
@@ -109,6 +110,12 @@ export function Sidebar({ isOpen, onClose }) {
       name: "Register Student",
       icon: <Users size={18} />,
       href: "/admin/students/register",
+    },
+    {
+      id: "spc-management",
+      name: "Manage SPC Roles",
+      icon: <Shield size={18} />,
+      href: "/admin/spc-management",
     },
   ];
 
