@@ -13,6 +13,7 @@ from .serializers import (
     CompanyDriveApplicationBaseSerializer
 )
 from apps.core.tasks import send_email_in_background
+from django.conf import settings
 
 # Create your views here.
 class CompanyDriveApplicationViewSet(BaseViewSet):
@@ -31,19 +32,14 @@ class CompanyDriveApplicationViewSet(BaseViewSet):
     def get_serializer_context(self):
         """Add student_profile to serializer context"""
         context = super().get_serializer_context()
-    
-        # Add student_profile for student users
-        try:
-            context['student_profile'] = StudentProfile.objects.get(user=self.request.user)
-        except StudentProfile.DoesNotExist:
-            context['student_profile'] = None
         
-        try:
-        #     from apps.placements.models import CompanyDrive
-            context['company_drive'] = CompanyDrive.objects.get(id=self.request.data['company_drive'])
-        except CompanyDrive.DoesNotExist:
-            context['company_drive'] = None
-
+        # Add student_profile for student users
+        if hasattr(self.request, "user") and self.request.user.is_authenticated:
+            try:
+                # Add student_profile for student users
+                context['student_profile'] = StudentProfile.objects.get(user=self.request.user)
+            except StudentProfile.DoesNotExist:
+                context['student_profile'] = None
 
         return context
 
