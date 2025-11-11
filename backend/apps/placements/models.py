@@ -33,7 +33,7 @@ class CompanyDrive(models.Model):
     #     unique_together = ('drive', 'company')
         
     def __str__(self):
-        return f"{self.company.name} - {self.drive.title}"
+        return f"{self.company.name} - {self.placement_drive.title}"
 
 
 class Job(models.Model):
