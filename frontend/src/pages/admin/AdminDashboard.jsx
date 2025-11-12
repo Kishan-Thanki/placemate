@@ -1,5 +1,5 @@
 import React from "react";
-import { Building2, CalendarDays, FileText, GraduationCap } from "lucide-react";
+import { Building2, CalendarDays, FileText, GraduationCap, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DashboardLayout,
@@ -90,6 +90,13 @@ export function AdminDashboard() {
       icon: <GraduationCap className="w-5 h-5" />,
       variant: "success",
       to: "/admin/students/register",
+    },
+    {
+      id: "spc-management",
+      label: "Manage SPC Roles",
+      icon: <Shield className="w-5 h-5" />,
+      variant: "primary",
+      to: "/admin/spc-management",
     },
   ];
 

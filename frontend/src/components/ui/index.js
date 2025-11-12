@@ -13,3 +13,4 @@ export {
 } from "./Spinner";
 export { default as Toast, ToastContainer } from "./Toast";
 export { default as RichTextEditor } from "./RichTextEditor";
+export { Modal } from "./Modal";
