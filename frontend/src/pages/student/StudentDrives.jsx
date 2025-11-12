@@ -2,99 +2,67 @@ import React, { useState, useEffect } from "react";
 import { StudentLayout } from "../../components/layout/StudentLayout";
 import { PageContainer, Section } from "../../components/layout";
 import { useTheme } from "../../contexts/ThemeContext";
-import { Search } from "lucide-react";
-import { DriveCard } from "../../components//ui/DriveCard"; 
+import { Search, Building2, Calendar, MapPin, Briefcase } from "lucide-react";
+import { CardSkeleton } from "../../components/ui";
 import { companyDriveService } from "../../services/companyDriveService";
-import { fetchJSON } from "../../lib/api";
 
 export function StudentDrives() {
   const { isDark } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
-
   const [drives, setDrives] = useState([]);
-  const [studentProgramId, setStudentProgramId] = useState(null);
   const [loadingDrives, setLoadingDrives] = useState(true);
 
-  // Load drives from API and student profile to compute eligibility
+  // Load drives from API — list view only. Jobs/eligibility are resolved on the drive detail page.
   useEffect(() => {
     let mounted = true;
 
     const loadAll = async () => {
       setLoadingDrives(true);
       try {
-        const drivesResp = await companyDriveService.getAllDrives({ status: 'Open' });
-        // normalize wrapper: data may be { results: [...] } or array
+        const drivesResp = await companyDriveService.getAllDrives({ status: "Open" });
         const allDrives = Array.isArray(drivesResp)
           ? drivesResp
           : drivesResp.results || drivesResp.data || [];
 
-        // fetch student profile (program) if available
-        const { ok, data } = await fetchJSON('/api/v1/students/me/', { method: 'GET', credentials: 'include' });
-        let programId = null;
-        if (ok && data && data.data) {
-          // StudentProfileSerializer returns program as string in some endpoints; StudentDetail returns program_details
-          const profile = data.data;
-          if (profile.program && typeof profile.program === 'object' && profile.program.id) {
-            programId = profile.program.id;
-          } else if (profile.program_id) {
-            programId = profile.program_id;
-          } else if (profile.program) {
-            // program might be string; leave null
-            programId = null;
-          }
-        }
-
-        if (mounted) {
-          // Try to enrich each drive with jobs (to determine eligible programs)
-          const enriched = await Promise.all(
-            allDrives.map(async (d) => {
-              try {
-                const jobsResp = await companyDriveService.getDriveJobs(d.id);
-                const jobsList = Array.isArray(jobsResp)
-                  ? jobsResp
-                  : jobsResp.results || jobsResp.data || [];
-                return { ...d, jobs: jobsList };
-              } catch {
-                // If fetching jobs fails, return drive without jobs
-                return { ...d, jobs: [] };
-              }
-            })
-          );
-
-          setDrives(enriched);
-          setStudentProgramId(programId);
-        }
+        if (mounted) setDrives(allDrives);
       } catch (err) {
-        console.error('Failed to load drives or profile', err);
+        console.error("Failed to load drives", err);
       } finally {
         if (mounted) setLoadingDrives(false);
       }
     };
 
     loadAll();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filteredDrives = drives.filter((drive) => {
+    // Only show Open drives for students
+    if (drive.status && drive.status !== "Open") return false;
     const matchesFilter = filter === "All" || drive.drive_type === filter || drive.type === filter;
-    const searchable = (drive.company?.toLowerCase() || '') + ' ' + (drive.placement_drive?.title || '') + ' ' + (drive.jobs_count || '');
-    const matchesSearch = searchable.includes(searchTerm.toLowerCase());
+
+    const toText = (v) => {
+      if (!v && v !== 0) return "";
+      if (typeof v === "string") return v;
+      if (typeof v === "number") return String(v);
+      if (typeof v === "object") return String(v.title || v.name || v.company || "");
+      return String(v);
+    };
+
+    const searchable = (
+      toText(drive.company).toLowerCase() +
+      " " +
+      toText(drive.placement_drive || drive.placement_drive?.title).toLowerCase() +
+      " " +
+      toText(drive.jobs_count)
+    );
+
+    const matchesSearch = searchable.includes((searchTerm || "").toLowerCase());
     return matchesFilter && matchesSearch;
   });
-
-  const isEligibleForDrive = (drive) => {
-    // drive may not include job details in list view; we will treat eligibility permissively if unknown
-    if (!studentProgramId) return false;
-    // if drive has jobs embedded (some APIs may include), check eligible_programs
-    if (Array.isArray(drive.jobs) && drive.jobs.length > 0) {
-      return drive.jobs.some((job) =>
-        Array.isArray(job.eligible_programs) && job.eligible_programs.some((p) => p.id === studentProgramId || p === studentProgramId)
-      );
-    }
-    // otherwise, try to fetch jobs when rendering or assume not eligible
-    return false;
-  };
 
   return (
     <StudentLayout title="Placement Drives">
@@ -151,37 +119,81 @@ export function StudentDrives() {
             </div>
           </div>
 
-          {/* Drives Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Drives List (compact rows like admin) */}
+          <div className="space-y-4">
             {loadingDrives ? (
-              <div className="col-span-3 text-center py-6">Loading drives...</div>
+              <div className="space-y-4">
+                {[1, 2, 3,4,5,6,7,8].map((i) => (
+                  <CardSkeleton key={i} />
+                ))}
+              </div>
+            ) : filteredDrives.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-lg font-medium mb-2">No drives available</div>
+                <div className={`${isDark ? "text-gray-400" : "text-gray-600"}`}>There are currently no open company drives.</div>
+              </div>
             ) : (
               filteredDrives.map((drive) => (
-                <DriveCard key={drive.id} drive={drive} canApply={isEligibleForDrive(drive)} />
+                <div
+                  key={drive.id}
+                  className={`p-4 rounded-lg border transition-all hover:shadow-sm ${
+                    isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+                  }`}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                        <div className={`p-0 rounded-lg overflow-hidden bg-transparent`}> 
+                          {drive.company?.logo ? (
+                            <img src={drive.company.logo} alt={drive.company?.name || "company logo"} className="w-10 h-10 object-cover rounded" />
+                          ) : (
+                            <div className={`p-2 rounded-lg ${isDark ? "bg-blue-900/30 text-blue-400" : "bg-blue-100 text-blue-600"}`}>
+                              <Building2 className="w-5 h-5" />
+                            </div>
+                          )}
+                        </div>
+                      <div className="flex-1">
+                        <h3 className={`text-md font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+                          {drive.company?.name || drive.company || "Unknown Company"}
+                        </h3>
+                        <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                          {drive.placement_drive?.title || drive.placement_drive || ""}
+                        </p>
+                        <div className="mt-2 flex items-center gap-3 text-sm">
+                          <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+                            <Briefcase className="w-3 h-3" />
+                            <span>{drive.drive_type || drive.type || "-"}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+                            <Briefcase className="w-3 h-3" />
+                            <span>{drive.jobs_count ?? drive.jobs?.length ?? 0} jobs</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">
+                            <Calendar className="w-3 h-3 text-red-700" />
+                            <div className="flex items-center gap-1">
+                              <span className="text-[11px] font-semibold text-red-800">Application deadline:</span>
+                              <span className="text-[11px] text-red-800">{drive.application_deadline ? new Date(drive.application_deadline).toLocaleDateString() : "Open until filled"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => window.location.assign(`/student/company-drives/${drive.id}`)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium ${isDark ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-700"}`}
+                      >
+                        View
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))
             )}
           </div>
-
-          {filteredDrives.length === 0 && (
-            <div
-              className={`text-center py-10 rounded-lg border mt-6 ${
-                isDark
-                  ? "border-gray-700 text-gray-400"
-                  : "border-gray-200 text-gray-600"
-              }`}
-            >
-              No drives found matching your criteria.
-            </div>
-          )}
         </Section>
 
-        <p
-          className={`text-xs text-center mt-8 ${
-            isDark ? "text-gray-500" : "text-gray-500"
-          }`}
-        >
-          Drives shown based on student eligibility, filters, and registration status.
-        </p>
+       
       </PageContainer>
     </StudentLayout>
   );

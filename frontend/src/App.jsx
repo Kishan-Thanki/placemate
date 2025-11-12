@@ -17,6 +17,7 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import { StudentDashboard } from "./pages/student/StudentDashboard";
 import { StudentDrives } from "./pages/student/StudentDrives";
+import StudentCompanyDriveDetails from "./pages/student/StudentCompanyDriveDetails";
 import CompaniesList from "./pages/admin/company/CompaniesList";
 import CompanyDetails from "./pages/admin/company/CompanyDetails";
 import CompanyDrivesList from "./pages/admin/companydrive/CompanyDrivesList";
@@ -284,6 +285,14 @@ export default function App() {
                   element={
                     <ProtectedRoute allowedRoles={["student"]}>
                       <StudentDrives />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/company-drives/:id"
+                  element={
+                    <ProtectedRoute allowedRoles={["student"]}>
+                      <StudentCompanyDriveDetails />
                     </ProtectedRoute>
                   }
                 />
