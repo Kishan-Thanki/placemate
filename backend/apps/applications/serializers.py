@@ -22,11 +22,10 @@ class JobPreferenceSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def validate(self, attrs):
-        print("check 1")
         """
         Validate job preference - requires company_drive in context
         """
-        company_drive = self.context.get('company_drive')
+        company_drive = attrs.get('company_drive')
         job = attrs.get('job')
 
         # Validate job belongs to the same company drive
@@ -56,21 +55,8 @@ class CompanyDriveApplicationBaseSerializer(serializers.ModelSerializer):
             'applied_at', 'updated_at'
         ]
 
-    def validate_company_drive(self, value):
-        print("check 2")
-        """Validate that the drive is active and accepting applications"""
-        # Check drive status
-        if value.status != 'Open':
-            raise serializers.ValidationError("This drive is no longer accepting applications")
-        
-        # Check application deadline
-        if value.application_deadline and value.application_deadline < timezone.now():
-            raise serializers.ValidationError("Application deadline has passed")
-        
-        return value
 
     def validate(self, attrs):
-        print("check 3")
         """Validate student profile and duplicate applications"""
         student_profile = self.context.get('student_profile')
         
@@ -87,7 +73,15 @@ class CompanyDriveApplicationBaseSerializer(serializers.ModelSerializer):
                 'non_field_errors': ['Company drive not found.']
             })
         
+        """Validate that the drive is active and accepting applications"""
+        # Check drive status
+        if company_drive.status != 'Open':
+            raise serializers.ValidationError("This drive is no longer accepting applications")
         
+        # Check application deadline
+        if company_drive.application_deadline and company_drive.application_deadline < timezone.now():
+            raise serializers.ValidationError("Application deadline has passed")
+
         if company_drive and CompanyDriveApplication.objects.filter(
             student=student_profile, 
             company_drive=company_drive
@@ -107,7 +101,6 @@ class CompanyDriveApplicationCreateSerializer(CompanyDriveApplicationBaseSeriali
         fields = CompanyDriveApplicationBaseSerializer.Meta.fields + ['job_preferences']
 
     def validate(self, attrs):
-        print("check 4")
         """
         Comprehensive validation in proper order:
         1. Parent validations (drive status, duplicates)
@@ -118,7 +111,7 @@ class CompanyDriveApplicationCreateSerializer(CompanyDriveApplicationBaseSeriali
         # 1. Run parent validations first
         attrs = super().validate(attrs)
         
-        company_drive = self.context.get('company_drive')
+        company_drive = attrs.get('company_drive')
         student_profile = self.context.get('student_profile')
         job_preferences_data = attrs.get('job_preferences', [])
 
@@ -142,7 +135,6 @@ class CompanyDriveApplicationCreateSerializer(CompanyDriveApplicationBaseSeriali
         return attrs
 
     def _validate_job_eligibility(self, student_profile, job_preferences_data):
-        print("check 5")
         """Validate eligibility for all jobs - stop at first error"""
         for pref_data in job_preferences_data:
             job = pref_data.get('job')
@@ -153,7 +145,6 @@ class CompanyDriveApplicationCreateSerializer(CompanyDriveApplicationBaseSeriali
         return None
 
     def _check_single_job_eligibility(self, student_profile, job):
-        print("check 6")
         """Check eligibility for a single job"""
         # 1. Program eligibility
         if not job.eligible_programs.filter(id=student_profile.program.id).exists():
@@ -182,7 +173,6 @@ class CompanyDriveApplicationCreateSerializer(CompanyDriveApplicationBaseSeriali
 
     @transaction.atomic
     def create(self, validated_data):
-        print("check 7")
         """Create application and job preferences in single transaction"""
         job_preferences_data = validated_data.pop('job_preferences', [])
         
