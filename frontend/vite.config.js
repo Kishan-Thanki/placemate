@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         // Proxy API requests to Render backend
         "/api": {
-          target: "https://placemate-88qn.onrender.com",
+          target: env.VITE_API_URL,
           changeOrigin: true,
           secure: true,
           rewrite: (path) => path,
