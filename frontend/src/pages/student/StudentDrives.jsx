@@ -1,84 +1,100 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StudentLayout } from "../../components/layout/StudentLayout";
 import { PageContainer, Section } from "../../components/layout";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Search } from "lucide-react";
 import { DriveCard } from "../../components//ui/DriveCard"; 
+import { companyDriveService } from "../../services/companyDriveService";
+import { fetchJSON } from "../../lib/api";
 
 export function StudentDrives() {
   const { isDark } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
 
-  const drives = [
-    {
-      id: 1,
-      company: "TechSolutions Inc.",
-      role: "Software Engineer Intern",
-      type: "Internship",
-      location: "Bengaluru, India",
-      stipend: "₹ 20,000 – 30,000 / month",
-      description:
-        "TechSolutions Inc. is a leading tech firm specializing in cloud computing solutions. We are looking for bright minds to join our engineering team.",
-    },
-    {
-      id: 2,
-      company: "Global Innovations",
-      role: "Data Analyst Trainee",
-      type: "Full-time",
-      location: "Hyderabad, India",
-      stipend: "₹ 4.5 – 6.0 LPA",
-      description:
-        "Join Global Innovations, a pioneer in data science. Develop insights from large datasets to drive business decisions.",
-    },
-    {
-      id: 3,
-      company: "FinServe Pro",
-      role: "Financial Consultant",
-      type: "Full-time",
-      location: "Mumbai, India",
-      stipend: "₹ 5.0 – 7.5 LPA",
-      description:
-        "FinServe Pro offers financial advisory services. We seek ambitious graduates passionate about finance and client success.",
-    },
-    {
-      id: 4,
-      company: "HealthBridge Co.",
-      role: "Healthcare IT Support",
-      type: "Full-time",
-      location: "Pune, India",
-      stipend: "₹ 3.8 – 5.2 LPA",
-      description:
-        "HealthBridge Co. leads digital healthcare solutions. Support our mission to provide seamless patient care systems.",
-    },
-    {
-      id: 5,
-      company: "E-Comm Giants",
-      role: "Marketing Specialist",
-      type: "Full-time",
-      location: "Gurugram, India",
-      stipend: "₹ 4.2 – 6.5 LPA",
-      description:
-        "E-Comm Giants is revolutionizing online retail. Drive marketing campaigns and engage with a vast customer base.",
-    },
-    {
-      id: 6,
-      company: "EduTech Future",
-      role: "Content Developer",
-      type: "Internship",
-      location: "Chennai, India",
-      stipend: "₹ 15,000 – 25,000 / month",
-      description:
-        "EduTech Future develops innovative e-learning platforms. Create engaging educational content for global learners.",
-    },
-  ];
+  const [drives, setDrives] = useState([]);
+  const [studentProgramId, setStudentProgramId] = useState(null);
+  const [loadingDrives, setLoadingDrives] = useState(true);
 
-  const filteredDrives = drives.filter(
-    (drive) =>
-      (filter === "All" || drive.type === filter) &&
-      (drive.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        drive.role.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Load drives from API and student profile to compute eligibility
+  useEffect(() => {
+    let mounted = true;
+
+    const loadAll = async () => {
+      setLoadingDrives(true);
+      try {
+        const drivesResp = await companyDriveService.getAllDrives({ status: 'Open' });
+        // normalize wrapper: data may be { results: [...] } or array
+        const allDrives = Array.isArray(drivesResp)
+          ? drivesResp
+          : drivesResp.results || drivesResp.data || [];
+
+        // fetch student profile (program) if available
+        const { ok, data } = await fetchJSON('/api/v1/students/me/', { method: 'GET', credentials: 'include' });
+        let programId = null;
+        if (ok && data && data.data) {
+          // StudentProfileSerializer returns program as string in some endpoints; StudentDetail returns program_details
+          const profile = data.data;
+          if (profile.program && typeof profile.program === 'object' && profile.program.id) {
+            programId = profile.program.id;
+          } else if (profile.program_id) {
+            programId = profile.program_id;
+          } else if (profile.program) {
+            // program might be string; leave null
+            programId = null;
+          }
+        }
+
+        if (mounted) {
+          // Try to enrich each drive with jobs (to determine eligible programs)
+          const enriched = await Promise.all(
+            allDrives.map(async (d) => {
+              try {
+                const jobsResp = await companyDriveService.getDriveJobs(d.id);
+                const jobsList = Array.isArray(jobsResp)
+                  ? jobsResp
+                  : jobsResp.results || jobsResp.data || [];
+                return { ...d, jobs: jobsList };
+              } catch {
+                // If fetching jobs fails, return drive without jobs
+                return { ...d, jobs: [] };
+              }
+            })
+          );
+
+          setDrives(enriched);
+          setStudentProgramId(programId);
+        }
+      } catch (err) {
+        console.error('Failed to load drives or profile', err);
+      } finally {
+        if (mounted) setLoadingDrives(false);
+      }
+    };
+
+    loadAll();
+    return () => { mounted = false; };
+  }, []);
+
+  const filteredDrives = drives.filter((drive) => {
+    const matchesFilter = filter === "All" || drive.drive_type === filter || drive.type === filter;
+    const searchable = (drive.company?.toLowerCase() || '') + ' ' + (drive.placement_drive?.title || '') + ' ' + (drive.jobs_count || '');
+    const matchesSearch = searchable.includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  const isEligibleForDrive = (drive) => {
+    // drive may not include job details in list view; we will treat eligibility permissively if unknown
+    if (!studentProgramId) return false;
+    // if drive has jobs embedded (some APIs may include), check eligible_programs
+    if (Array.isArray(drive.jobs) && drive.jobs.length > 0) {
+      return drive.jobs.some((job) =>
+        Array.isArray(job.eligible_programs) && job.eligible_programs.some((p) => p.id === studentProgramId || p === studentProgramId)
+      );
+    }
+    // otherwise, try to fetch jobs when rendering or assume not eligible
+    return false;
+  };
 
   return (
     <StudentLayout title="Placement Drives">
@@ -137,9 +153,13 @@ export function StudentDrives() {
 
           {/* Drives Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredDrives.map((drive) => (
-              <DriveCard key={drive.id} drive={drive} />
-            ))}
+            {loadingDrives ? (
+              <div className="col-span-3 text-center py-6">Loading drives...</div>
+            ) : (
+              filteredDrives.map((drive) => (
+                <DriveCard key={drive.id} drive={drive} canApply={isEligibleForDrive(drive)} />
+              ))
+            )}
           </div>
 
           {filteredDrives.length === 0 && (
