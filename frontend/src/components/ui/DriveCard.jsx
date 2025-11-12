@@ -2,7 +2,7 @@ import React from "react";
 import { MapPin } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 
-export function DriveCard({ drive }) {
+export function DriveCard({ drive, canApply = false }) {
   const { isDark } = useTheme();
 
   return (
@@ -71,15 +71,27 @@ export function DriveCard({ drive }) {
         >
           {drive.stipend}
         </p>
-        <button
-          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
-            isDark
-              ? "bg-blue-600 hover:bg-blue-500 text-white"
-              : "bg-blue-100 hover:bg-blue-200 text-blue-700"
-          }`}
-        >
-          View
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
+              isDark
+                ? "bg-blue-600 hover:bg-blue-500 text-white"
+                : "bg-blue-100 hover:bg-blue-200 text-blue-700"
+            }`}
+          >
+            View
+          </button>
+
+          {canApply ? (
+            <button className={`px-3 py-1.5 rounded-lg text-sm font-medium ${isDark ? 'bg-green-600 text-white hover:bg-green-500' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}>
+              Apply
+            </button>
+          ) : (
+            <button disabled className={`px-3 py-1.5 rounded-lg text-sm font-medium opacity-60 cursor-not-allowed ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-500'}`} title="Not eligible for this drive">
+              Not eligible
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
