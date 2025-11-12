@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from apps.core.permissions import IsAdminRole
 from .models import PlacementDrive, CompanyDrive, Job
 from django_filters.rest_framework import DjangoFilterBackend
-from apps.core.response import SuccessResponse, ForbiddenResponse  
+from apps.core.response import SuccessResponse  
 from .serializers import (
     PlacementDriveSerializer,
     CompanyDriveReadSerializer,
@@ -12,6 +12,7 @@ from .serializers import (
     JobReadSerializer,
     JobWriteSerializer
 )
+from django.db.models import F
 
 class PlacementDriveViewSet(BaseViewSet):
     """
@@ -39,9 +40,18 @@ class CompanyDriveViewSet(BaseViewSet):
         return CompanyDriveWriteSerializer
     
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        """
+        Permission logic based on HTTP method:
+        - GET requests (read operations): Any authenticated user
+        - POST/PUT/PATCH/DELETE (write operations): Admin only
+        
+        This works for both standard actions (list, retrieve) and custom actions (jobs, etc.)
+        """
+        # SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS') - these are read-only operations
+        if self.request.method in permissions.SAFE_METHODS:
             return [permissions.IsAuthenticated()]
         else:
+            # Write operations require admin role
             return [permissions.IsAuthenticated(), IsAdminRole()]
     
     def get_queryset(self):
@@ -52,21 +62,17 @@ class CompanyDriveViewSet(BaseViewSet):
             
         return queryset
     
-    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['get'])
     def jobs(self, request, pk=None):
         """
         Get all jobs for a specific CompanyDrive
         URL: GET /api/v1/placements/company-drives/{id}/jobs/
+        
+        Note: Permission is handled by get_permissions() based on HTTP method (GET = read = any authenticated user)
+        Access control is handled by get_queryset() which filters to 'Open' drives for students
         """
         company_drive = self.get_object()
         jobs = company_drive.jobs.all().select_related('company_drive').prefetch_related('eligible_programs')
-
-        if hasattr(request.user, 'studentprofile'):
-            if company_drive.status != 'Open':
-                return ForbiddenResponse(
-                    message="This drive is not open for applications.",
-                    error_code="DRIVE_CLOSED"
-                )
         
         serializer = JobReadSerializer(jobs, many=True)
         return SuccessResponse(
@@ -84,7 +90,6 @@ class JobViewSet(BaseViewSet):
     ).prefetch_related('eligible_programs')
 
     def get_queryset(self):
-        from django.db.models import F
         queryset = self.queryset.annotate(
             company_name=F('company_drive__company__name'),
             drive_title=F('company_drive__placement_drive__title')
@@ -105,7 +110,12 @@ class JobViewSet(BaseViewSet):
         return JobWriteSerializer
     
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        """
+        Permission logic based on HTTP method:
+        - GET requests (read operations): Any authenticated user
+        - POST/PUT/PATCH/DELETE (write operations): Admin only
+        """
+        if self.request.method in permissions.SAFE_METHODS:
             return [permissions.IsAuthenticated()]
         else:
             return [permissions.IsAuthenticated(), IsAdminRole()]
