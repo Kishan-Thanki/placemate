@@ -16,7 +16,7 @@ ALLOWED_HOSTS = [
     ".onrender.com",
     "localhost",
     "127.0.0.1",
-    "https://placemate-cvlb.onrender.com",
+    "placemate-cvlb.onrender.com",
 ]
 
 # --- Database ---
@@ -68,8 +68,8 @@ CORS_ALLOW_CREDENTIALS = True
 # Production cookie settings (HTTPS, SameSite=None)
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = True
-SESSION_COOKIE_SAMESITE = True
+CSRF_COOKIE_SAMESITE = "None"  
+SESSION_COOKIE_SAMESITE = "None"  
 SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
