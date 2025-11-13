@@ -27,6 +27,7 @@ DATABASES = {
 # --- CORS & Security ---
 CORS_ALLOWED_ORIGINS = [
     "https://test-placemate-frontend.onrender.com",
+    "https://placemate-cvlb.onrender.com",
 
     "https://localhost:5173",
     "https://127.0.0.1:5173",

@@ -1,5 +1,4 @@
 // Centralized API helpers
-// Use empty string in development to use proxy, or full URL in production
 const API_BASE = import.meta.env.DEV ? "" : import.meta.env.VITE_API_URL || "";
 
 // Global handler for authentication errors
@@ -16,17 +15,15 @@ export function getApiBase() {
 export function buildUrl(path) {
   const base = getApiBase();
   if (!path) return base;
-  // Ensure path starts with /
   return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
 export async function fetchJSON(path, options = {}) {
   const url = path.startsWith("http") ? path : buildUrl(path);
-  console.log("🌐 Fetching URL:", url);
+  console.log("Fetching URL:", url);
 
-  // 🆕 CRITICAL: Always include credentials for cookie-based auth
   const finalOptions = {
-    credentials: 'include', // 🆕 ADD THIS - sends cookies automatically
+    credentials: 'include', // Critical for cookie-based auth
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -41,19 +38,19 @@ export async function fetchJSON(path, options = {}) {
       : JSON.parse(finalOptions.body)
     : null;
 
-  console.log("📤 Request options:", {
+  console.log("Request options:", {
     method: finalOptions.method || "GET",
     headers: finalOptions.headers,
     hasBody: !!finalOptions.body,
     body: bodyLog,
-    credentials: finalOptions.credentials, // 🆕 Log credentials
+    credentials: finalOptions.credentials,
   });
 
   const res = await fetch(url, finalOptions);
 
-  // Check for authentication errors (401 Unauthorized)
+  // Check for authentication errors
   if (res.status === 401) {
-    console.error("🚨 401 Unauthorized - Token expired or invalid");
+    console.error("401 Unauthorized - Token expired or invalid");
     if (authErrorHandler) {
       authErrorHandler();
     }
@@ -63,18 +60,16 @@ export async function fetchJSON(path, options = {}) {
   try {
     data = await res.json();
   } catch {
-    // If response isn't JSON (e.g. empty body)
     data = null;
   }
 
-  // Try to extract a clean message from response
+  // Extract clean message from response
   let message = null;
   if (data) {
     if (typeof data === "string") {
       message = data;
     } else if (data.errors && typeof data.errors === "object") {
-      // PRIORITY 1: Placemate ValidationErrorResponse format with specific field errors
-      // { errors: { password: ["error1", "error2"], email: ["error3"] } }
+      // ValidationErrorResponse format
       message = Object.entries(data.errors)
         .map(([, msgs]) => {
           const messages = Array.isArray(msgs) ? msgs : [msgs];
@@ -82,25 +77,19 @@ export async function fetchJSON(path, options = {}) {
         })
         .join("\n");
     } else if (data.password && Array.isArray(data.password)) {
-      // PRIORITY 2: django-rest-passwordreset specific format for password errors
       message = data.password.join("\n");
     } else if (data.token && Array.isArray(data.token)) {
-      // PRIORITY 3: django-rest-passwordreset specific format for token errors
       message = data.token.join("\n");
     } else if (data.email && Array.isArray(data.email)) {
-      // PRIORITY 4: django-rest-passwordreset specific format for email errors
       message = data.email.join("\n");
     } else if (data.detail) {
-      // PRIORITY 5: DRF default error format
       message = data.detail;
     } else if (data.message) {
-      // PRIORITY 6: Placemate custom API response format (generic message)
       message = data.message;
     } else if (data.error) {
-      // PRIORITY 7: Generic error field
       message = data.error;
     } else {
-      // LAST RESORT: try to extract all field errors
+      // Extract all field errors
       const fieldErrors = Object.entries(data)
         .filter(
           ([key]) =>
@@ -120,13 +109,12 @@ export async function fetchJSON(path, options = {}) {
     }
   }
 
-  console.log("📥 API Response:", {
+  console.log("API Response:", {
     ok: res.ok,
     status: res.status,
     statusText: res.statusText,
     extractedMessage: message,
     rawData: data,
-    rawDataString: JSON.stringify(data, null, 2),
   });
 
   return {
