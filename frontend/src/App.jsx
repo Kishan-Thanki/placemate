@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AuthErrorProvider } from "./contexts/AuthErrorContext";
@@ -30,246 +30,264 @@ import PlacementDriveForm from "./pages/admin/placement/PlacementDriveForm";
 import PlacementDriveDetails from "./pages/admin/placement/PlacementDriveDetails";
 import SPCManagement from "./pages/admin/SPCManagement";
 
-export default function App() {
-  return (
-    <Router>
-      <ThemeProvider>
-        <AuthProvider>
-          <AuthErrorProvider>
-            <div className="min-h-screen">
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/auth/login" element={<LoginPage />} />
-                <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
-                <Route
-                  path="/auth/reset/:token"
-                  element={<ResetPasswordPage />}
-                />
+// 🆕 Component to handle redirects from 404.html
+function RedirectHandler() {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-                {/* Admin routes - protected */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/students/register"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <StudentRegistration />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/students"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <RegisteredStudents />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/students/details/:userId"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <StudentDetails />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/drives"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyDrivesList />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/drives/new"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyDriveForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/drives/new/jobs"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyDriveJobForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/drives/:id/jobs/add"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyDriveJobForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/drives/:driveId/jobs/:jobId/edit"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <JobEditForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/drives/:id/edit"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyDriveForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/drives/:id"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyDriveDetails />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/companies"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompaniesList />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/companies/register"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyRegistration />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/companies/:id/edit"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyRegistration />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/companies/:id"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <CompanyDetails />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/placement-drives"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <PlacementDrivesList />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/placement-drives/new"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <PlacementDriveForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/placement-drives/:id"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <PlacementDriveDetails />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/placement-drives/:id/edit"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <PlacementDriveForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/applications"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <div className="p-6">Applications Page</div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/spc"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <DashboardLayout title="Register Cell Member">
-                        <PageContainer>
-                          <RegisterCellMember />
-                        </PageContainer>
-                      </DashboardLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/spc-management"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <SPCManagement />
-                    </ProtectedRoute>
-                  }
-                />
+  useEffect(() => {
+    // Check if we have a stored redirect path from 404.html
+    const redirectPath = sessionStorage.getItem('redirectPath');
+
+    if (redirectPath && redirectPath !== '/' && location.pathname === '/') {
+      console.log('🔄 Redirecting from 404 to:', redirectPath);
+      sessionStorage.removeItem('redirectPath');
+      navigate(redirectPath, { replace: true });
+    }
+  }, [navigate, location]);
+
+  return null;
+}
+
+function AppRoutes() {
+  return (
+    <>
+      {/* 🆕 Add redirect handler */}
+      <RedirectHandler />
+
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/auth/login" element={<LoginPage />} />
+        <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
+        <Route
+          path="/auth/reset/:token"
+          element={<ResetPasswordPage />}
+        />
+
+        {/* Admin routes - protected */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/students/register"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <StudentRegistration />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/students"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <RegisteredStudents />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/students/details/:userId"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <StudentDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/drives"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyDrivesList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/drives/new"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyDriveForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/drives/new/jobs"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyDriveJobForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/drives/:id/jobs/add"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyDriveJobForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/drives/:driveId/jobs/:jobId/edit"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <JobEditForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/drives/:id/edit"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyDriveForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/drives/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyDriveDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompaniesList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies/register"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyRegistration />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies/:id/edit"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyRegistration />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <CompanyDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/placement-drives"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <PlacementDrivesList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/placement-drives/new"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <PlacementDriveForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/placement-drives/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <PlacementDriveDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/placement-drives/:id/edit"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <PlacementDriveForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/applications"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <div className="p-6">Applications Page</div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/spc"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "student placement cell"]}
+            >
+              <DashboardLayout title="Register Cell Member">
+                <PageContainer>
+                  <RegisterCellMember />
+                </PageContainer>
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/spc-management"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <SPCManagement />
+            </ProtectedRoute>
+          }
+        />
 
                 {/* Student routes - protected */}
                 <Route
@@ -313,9 +331,21 @@ export default function App() {
                   }
                 />
 
-                {/* Fallback */}
-                <Route path="*" element={<Home />} />
-              </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <ThemeProvider>
+        <AuthProvider>
+          <AuthErrorProvider>
+            <div className="min-h-screen">
+              <AppRoutes />
             </div>
           </AuthErrorProvider>
         </AuthProvider>
