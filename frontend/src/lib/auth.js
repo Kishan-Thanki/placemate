@@ -1,35 +1,82 @@
 import { fetchJSON } from "./api";
 
 /**
- * Centralized logout utility function
- * Handles API logout call, token cleanup, and local state clearing
- *
- * @param {Function} logoutCallback - The logout function from AuthContext
- * @returns {Promise<void>}
+ * Login function for cookie-based authentication
+ * Tokens are automatically set as HTTP-only cookies by backend
  */
+export async function login(email, password) {
+  console.log("🔐 Attempting login...");
+
+  const response = await fetchJSON("/api/v1/users/token/", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+    // credentials: 'include' is already set in fetchJSON by default
+  });
+
+  if (response.ok) {
+    console.log("✅ Login successful");
+
+    // Check if role selection is required
+    if (response.data.requires_role_selection) {
+      console.log("🔄 Role selection required");
+      return {
+        success: true,
+        requiresRoleSelection: true,
+        userData: response.data
+      };
+    }
+
+    return {
+      success: true,
+      requiresRoleSelection: false,
+      userData: response.data
+    };
+  }
+
+  console.error("❌ Login failed:", response.message);
+  return {
+    success: false,
+    error: response.message
+  };
+}
+
+/**
+ * Handle role selection for multi-role users
+ */
+export async function selectRole(userId, role) {
+  console.log("🎯 Selecting role:", role);
+
+  const response = await fetchJSON("/api/v1/users/auth/select-role/", {
+    method: "POST",
+    body: JSON.stringify({ user_id: userId, role }),
+  });
+
+  if (response.ok) {
+    console.log("✅ Role selected successfully");
+    return {
+      success: true,
+      userData: response.data
+    };
+  }
+
+  console.error("❌ Role selection failed:", response.message);
+  return {
+    success: false,
+    error: response.message
+  };
+}
+
 /**
  * Centralized logout utility function
- * Handles API logout call, token cleanup, and local state clearing
- *
- * Note: Tokens are stored as httpOnly cookies by the backend,
- * so they're automatically sent with requests and we don't need
- * to manually add Authorization headers.
- *
- * @param {Function} logoutCallback - The logout function from AuthContext
- * @returns {Promise<void>}
+ * Handles API logout call and cookie clearing
  */
 export async function performLogout(logoutCallback) {
   try {
     console.log("🔐 Starting logout process...");
 
-    // Call logout API - uses proxy in development, direct in production
-    // Tokens are in httpOnly cookies, sent automatically via credentials: 'include'
-    const response = await fetchJSON("/api/v1/logout/", {
+    // Call logout API - cookies are automatically sent via credentials: 'include'
+    const response = await fetchJSON("/api/v1/users/logout/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include", // This is crucial - sends cookies with the request
     });
 
     console.log("✅ Logout API response:", response);
@@ -37,67 +84,81 @@ export async function performLogout(logoutCallback) {
     console.error("❌ Error logging out from API:", err);
     // Continue with local logout even if API call fails
   } finally {
-    // Clear any tokens from localStorage (if they exist)
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-
-    console.log("🧹 Cleared local storage");
+    // 🆕 REMOVED: No need to clear localStorage tokens (they don't exist anymore)
+    console.log("🧹 Logout process completed");
 
     // Use AuthContext logout callback (handles user state and navigation)
-    logoutCallback();
+    if (logoutCallback) {
+      logoutCallback();
+    }
   }
 }
 
 /**
- * Add Authorization header with access token to API requests
- *
- * @param {Object} headers - Existing headers object
- * @returns {Object} Headers with Authorization added if token exists
+ * 🆕 DEPRECATED - No longer needed with cookie-based auth
+ * Tokens are automatically sent via cookies, no manual header management
  */
 export function addAuthHeader(headers = {}) {
-  const accessToken = localStorage.getItem("access_token");
-
-  if (accessToken) {
-    return {
-      ...headers,
-      Authorization: `Bearer ${accessToken}`,
-    };
-  }
-
-  return headers;
+  console.warn("⚠️ addAuthHeader is deprecated - cookies handle authentication automatically");
+  return headers; // Just return headers as-is
 }
 
 /**
- * Check if user is authenticated (has valid access token)
- *
- * @returns {boolean}
+ * Check if user is authenticated
+ * 🆕 UPDATED: With cookies, we can't check tokens directly
+ * This should now rely on checking if user data exists in context
+ * or making a lightweight API call to verify authentication
  */
 export function isAuthenticated() {
-  return !!localStorage.getItem("access_token");
+  console.warn("⚠️ isAuthenticated can't check cookies directly - use context/user data instead");
+  return false; // This should be handled by your AuthContext
 }
 
 /**
- * Get the current access token
- *
- * @returns {string|null}
+ * 🆕 DEPRECATED - Tokens are in HTTP-only cookies, not accessible
  */
 export function getAccessToken() {
-  return localStorage.getItem("access_token");
+  console.warn("⚠️ getAccessToken is deprecated - tokens are in HTTP-only cookies");
+  return null;
 }
 
-/**
- * Get the current refresh token
- *
- * @returns {string|null}
- */
 export function getRefreshToken() {
-  return localStorage.getItem("refresh_token");
+  console.warn("⚠️ getRefreshToken is deprecated - tokens are in HTTP-only cookies");
+  return null;
 }
 
 /**
- * Clear all authentication tokens
+ * 🆕 DEPRECATED - No localStorage tokens to clear
  */
 export function clearAuthTokens() {
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
+  console.warn("⚠️ clearAuthTokens is deprecated - tokens are managed by backend cookies");
+  // No action needed - cookies are cleared by backend on logout
+}
+
+/**
+ * 🆕 NEW: Verify authentication by making a lightweight API call
+ */
+export async function verifyAuthentication() {
+  try {
+    const response = await fetchJSON("/api/v1/users/me/");
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * 🆕 NEW: Refresh token (handled automatically by browser)
+ * The browser will automatically send refresh_token cookie
+ * when access_token expires and backend handles rotation
+ */
+export async function refreshToken() {
+  try {
+    const response = await fetchJSON("/api/v1/users/token/refresh/", {
+      method: "POST",
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
 }

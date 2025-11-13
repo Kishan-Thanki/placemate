@@ -24,21 +24,32 @@ export async function fetchJSON(path, options = {}) {
   const url = path.startsWith("http") ? path : buildUrl(path);
   console.log("🌐 Fetching URL:", url);
 
+  // 🆕 CRITICAL: Always include credentials for cookie-based auth
+  const finalOptions = {
+    credentials: 'include', // 🆕 ADD THIS - sends cookies automatically
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  };
+
   // Safe logging that handles FormData
-  const bodyLog = options.body
-    ? options.body instanceof FormData
+  const bodyLog = finalOptions.body
+    ? finalOptions.body instanceof FormData
       ? "[FormData]"
-      : JSON.parse(options.body)
+      : JSON.parse(finalOptions.body)
     : null;
 
   console.log("📤 Request options:", {
-    method: options.method || "GET",
-    headers: options.headers,
-    hasBody: !!options.body,
+    method: finalOptions.method || "GET",
+    headers: finalOptions.headers,
+    hasBody: !!finalOptions.body,
     body: bodyLog,
+    credentials: finalOptions.credentials, // 🆕 Log credentials
   });
 
-  const res = await fetch(url, options);
+  const res = await fetch(url, finalOptions);
 
   // Check for authentication errors (401 Unauthorized)
   if (res.status === 401) {
@@ -52,7 +63,7 @@ export async function fetchJSON(path, options = {}) {
   try {
     data = await res.json();
   } catch {
-    // If response isn’t JSON (e.g. empty body)
+    // If response isn't JSON (e.g. empty body)
     data = null;
   }
 
