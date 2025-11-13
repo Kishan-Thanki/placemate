@@ -162,17 +162,20 @@ SIMPLE_JWT = {
 }
 
 
-# --- CORS (Cross-Origin Resource Sharing) ---
-# Base settings for allowing frontend communication. 
-# Specific origins are defined in local.py and production.py.
-CORS_ALLOW_CREDENTIALS = True 
+# --- CORS & Cookie Base Configuration ---
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT',
 ]
 CORS_ALLOW_HEADERS = [
-    'accept', 'accept-encoding', 'authorization', 'content-type', 'dnt',
-    'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
+    'accept', 'accept-encoding', 'authorization', 'content-type',
+    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
 ]
+
+# CSRF Configuration for API + Cookies
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"  
+SESSION_COOKIE_SAMESITE = "Lax"  
 
 # --- Static Files ---
 # WhiteNoise is used for efficient static file serving in production.
