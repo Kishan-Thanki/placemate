@@ -38,8 +38,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:3000",     
     "http://127.0.0.1:3000",
-
 ]
+
 CSRF_TRUSTED_ORIGINS = [
     "https://test-placemate-frontend.onrender.com",
     "https://placemate-cvlb.onrender.com",
@@ -66,26 +66,11 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_COOKIE_DOMAIN = ".onrender.com"  
-SESSION_COOKIE_DOMAIN = ".onrender.com"  
-
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding', 
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
-
-# Production cookie settings (HTTPS, SameSite=None)
+# Production cookie settings 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SAMESITE = "Lax" 
+CSRF_COOKIE_SAMESITE = "None"  
+SESSION_COOKIE_SAMESITE = "None"  
 SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True

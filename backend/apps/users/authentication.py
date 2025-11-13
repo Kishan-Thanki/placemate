@@ -51,11 +51,22 @@ class CookieJWTAuthentication(JWTAuthentication):
         Returns:
             tuple: (user, token) if authentication successful, None otherwise
         """
-        # Extract access token from cookies
+        # 🆕 ADD DEBUGGING - CRITICAL FOR DIAGNOSIS
         access_token = request.COOKIES.get('access_token')
+        
+        # 🆕 LOG AUTHENTICATION ATTEMPT
+        print("=== COOKIE JWT AUTHENTICATION DEBUG ===")
+        print(f"Request method: {request.method}")
+        print(f"Request path: {request.path}")
+        print(f"Origin: {request.META.get('HTTP_ORIGIN')}")
+        print(f"Referer: {request.META.get('HTTP_REFERER')}")
+        print(f"Access token in cookies: {'YES' if access_token else 'NO'}")
+        print(f"All cookies received: {dict(request.COOKIES)}")
+        print("=======================================")
 
         # Return None if no token is present (authentication will fail)
         if not access_token:
+            print("❌ AUTH FAILED: No access token in cookies")
             return None
 
         try:
@@ -66,10 +77,15 @@ class CookieJWTAuthentication(JWTAuthentication):
             # Resolve the user from the validated token
             user = self.get_user(validated_token)
             
+            # 🆕 LOG SUCCESS
+            print(f"✅ AUTH SUCCESS: User {user.email} authenticated")
+            
             # Return the authenticated user and token
             return (user, validated_token)
             
-        except Exception:
+        except Exception as e:
+            # 🆕 LOG SPECIFIC ERROR
+            print(f"❌ AUTH FAILED: Token validation error - {str(e)}")
             # Token validation failed (invalid signature, expired, etc.)
             # Return None to indicate authentication failure
             return None
