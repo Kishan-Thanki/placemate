@@ -173,8 +173,8 @@ class LogoutView(APIView):
                 pass
 
         response = NoContentResponse(message="Logged out")
-        cookie_settings = get_cookie_settings()
-        response.delete_cookie("access_token", **{k: v for k, v in cookie_settings.items() if k != 'max_age'})
-        response.delete_cookie("refresh_token", **{k: v for k, v in cookie_settings.items() if k != 'max_age'})
+        
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
         
         return response
