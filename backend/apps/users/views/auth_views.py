@@ -19,6 +19,9 @@ class LoginView(APIView):
     serializer_class = LoginUserSerializer
 
     def post(self, request):
+        print("🔄 Login request received from:", request.META.get('HTTP_ORIGIN'))
+        print("📱 User Agent:", request.META.get('HTTP_USER_AGENT'))
+        print("🍪 Cookies received:", request.COOKIES)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
