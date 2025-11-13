@@ -1,16 +1,75 @@
 import { fetchJSON } from "./api";
 
+// Comprehensive mobile device detection
+export function isMobileDevice() {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const mobilePatterns = [
+    /android/, /webos/, /iphone/, /ipad/, /ipod/, /blackberry/,
+    /windows phone/, /mobile/, /tablet/, /samsung/, /huawei/,
+    /xiaomi/, /oppo/, /vivo/, /realme/, /oneplus/, /pixel/
+  ];
+
+  return mobilePatterns.some(pattern => pattern.test(userAgent));
+}
+
+// Get specific browser info
+export function getBrowserInfo() {
+  const userAgent = navigator.userAgent;
+  let browser = "unknown";
+
+  if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) {
+    browser = "chrome";
+  } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+    browser = "safari";
+  } else if (userAgent.includes("Firefox")) {
+    browser = "firefox";
+  } else if (userAgent.includes("Edg")) {
+    browser = "edge";
+  }
+
+  return { browser };
+}
+
 /**
- * Login function for cookie-based authentication
- * Tokens are automatically set as HTTP-only cookies by backend
+ * Provide specific guidance based on browser
+ */
+function getMobileBrowserGuidance(browser) {
+  const guidance = {
+    safari: "Safari has strict privacy settings. Please:\n• Use Chrome browser instead\n• Or enable 'Cross-Site Tracking' in Safari Settings\n• Or use 'Request Desktop Website' option",
+    chrome: "Chrome mobile may block cookies. Please:\n• Try using incognito mode\n• Or disable 'Block third-party cookies' in settings",
+    firefox: "Please try using Chrome browser for best compatibility",
+    edge: "Please try using Chrome browser for best compatibility",
+    unknown: "Your mobile browser has strict privacy settings. Please:\n• Try using Chrome browser\n• Or use desktop mode\n• Or try on laptop/desktop"
+  };
+
+  return guidance[browser] || guidance.unknown;
+}
+
+/**
+ * Verify that mobile session actually works
+ */
+async function verifyMobileSession() {
+  try {
+    const response = await fetchJSON("/api/v1/users/me/");
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Main login function with mobile handling
  */
 export async function login(email, password) {
-  console.log("🔐 Attempting login...");
+  const isMobile = isMobileDevice();
+  const browserInfo = getBrowserInfo();
 
+  console.log("🔐 Login - Mobile:", isMobile, "Browser:", browserInfo.browser);
+
+  // Try normal login first
   const response = await fetchJSON("/api/v1/users/token/", {
     method: "POST",
     body: JSON.stringify({ email, password }),
-    // credentials: 'include' is already set in fetchJSON by default
   });
 
   if (response.ok) {
@@ -24,6 +83,22 @@ export async function login(email, password) {
         requiresRoleSelection: true,
         userData: response.data
       };
+    }
+
+    // If mobile, verify the session actually works
+    if (isMobile) {
+      console.log("📱 Mobile login succeeded, verifying session...");
+      const verified = await verifyMobileSession();
+
+      if (!verified) {
+        console.log("🔄 Mobile session verification failed");
+        return {
+          success: false,
+          error: getMobileBrowserGuidance(browserInfo.browser),
+          mobileIssue: true,
+          browser: browserInfo.browser
+        };
+      }
     }
 
     return {

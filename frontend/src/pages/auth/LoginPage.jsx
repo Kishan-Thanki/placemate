@@ -6,10 +6,11 @@ import { LoadingOverlay } from "../../components/ui/Spinner";
 import logoUrl from "../../assets/placemate.png";
 import { fetchJSON } from "../../lib/api";
 import RoleSelectionModal from "../../components/RoleSelectionModal";
+import { login } from "../../lib/auth"; // 🆕 IMPORT THE UPDATED LOGIN FUNCTION
 
 export default function LoginPage() {
   const { toggleTheme, isDark } = useTheme();
-  const { login } = useAuth();
+  const { login: authLogin } = useAuth(); // 🆕 RENAME TO AVOID CONFLICT
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -18,10 +19,12 @@ export default function LoginPage() {
   const [availableRoles, setAvailableRoles] = useState([]);
   const [userId, setUserId] = useState(null);
   const [userEmail, setUserEmail] = useState("");
+  const [mobileGuide, setMobileGuide] = useState(null); // 🆕 ADD MOBILE GUIDE STATE
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+    setMobileGuide(null); // 🆕 RESET MOBILE GUIDE
     setLoading(true);
 
     const data = new FormData(e.target);
@@ -29,36 +32,35 @@ export default function LoginPage() {
     const password = data.get("password");
 
     try {
-      const {
-        ok,
-        message,
-        data: result,
-      } = await fetchJSON("/api/v1/token/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
-      });
+      // 🆕 USE THE UPDATED LOGIN FUNCTION WITH MOBILE DETECTION
+      const result = await login(email, password);
 
-      if (ok && result?.success) {
-        if (
-          result.data?.requires_role_selection &&
-          result.data?.available_roles
-        ) {
+      // 🆕 HANDLE MOBILE ISSUE
+      if (result.mobileIssue) {
+        setMobileGuide({
+          browser: result.browser,
+          message: result.error
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (result.success) {
+        if (result.requiresRoleSelection && result.userData?.available_roles) {
           // Store user info from role selection response
-          setUserId(result.data.user_id);
-          setUserEmail(result.data.email || email);
-          setAvailableRoles(result.data.available_roles);
+          setUserId(result.userData.user_id);
+          setUserEmail(result.userData.email || email);
+          setAvailableRoles(result.userData.available_roles);
           setShowRoleModal(true);
           setLoading(false);
         } else {
           // Store user info for single role login
-          setUserId(result.data?.user_id || null);
-          setUserEmail(result.data?.email || email);
+          setUserId(result.userData?.user_id || null);
+          setUserEmail(result.userData?.email || email);
           handleSuccessfulLogin(result);
         }
       } else {
-        setErrorMsg(message || "Invalid email or password.");
+        setErrorMsg(result.error || "Invalid email or password.");
         setLoading(false);
       }
     } catch (err) {
@@ -156,7 +158,7 @@ export default function LoginPage() {
         }
 
         console.log("✅ User data stored:", storedUser);
-        login(storedUser);
+        authLogin(storedUser);
         setShowRoleModal(false);
         redirectBasedOnRole(activeRole);
       } else {
@@ -170,7 +172,7 @@ export default function LoginPage() {
           roles: availableRoles,
           activeRole: activeRole,
         };
-        login(storedUser);
+        authLogin(storedUser);
         setShowRoleModal(false);
         redirectBasedOnRole(activeRole);
       }
@@ -185,7 +187,7 @@ export default function LoginPage() {
         roles: availableRoles,
         activeRole: activeRole,
       };
-      login(storedUser);
+      authLogin(storedUser);
       setShowRoleModal(false);
       redirectBasedOnRole(activeRole);
     }
@@ -344,6 +346,68 @@ export default function LoginPage() {
           </footer>
         </div>
       </div>
+
+      {/* 🆕 MOBILE GUIDANCE MODAL */}
+      {mobileGuide && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '20px',
+            borderRadius: '8px',
+            maxWidth: '400px',
+            margin: '20px'
+          }}>
+            <h3 style={{ marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>
+              Mobile Browser Compatibility
+            </h3>
+            <p style={{ 
+              whiteSpace: 'pre-line',
+              margin: '15px 0',
+              lineHeight: '1.5'
+            }}>
+              {mobileGuide.message}
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                onClick={() => setMobileGuide(null)}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  background: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                Understand
+              </button>
+              <button 
+                onClick={() => window.location.reload()}
+                style={{
+                  padding: '8px 16px',
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showRoleModal && (
         <RoleSelectionModal
