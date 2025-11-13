@@ -16,7 +16,7 @@ ALLOWED_HOSTS = [
     ".onrender.com",
     "localhost",
     "127.0.0.1",
-    "placemate-backend.onrender.com",  
+    "https://placemate-cvlb.onrender.com ",
 ]
 
 # --- Database ---
@@ -32,7 +32,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CSRF_TRUSTED_ORIGINS = [
     "https://placemate-coral.vercel.app", 
-    "https://placemate-backend.onrender.com",
+    "https://placemate-cvlb.onrender.com",
 ]
 
 # Strict CORS settings
