@@ -150,8 +150,8 @@ REST_FRAMEWORK = {
 # --- JWT (JSON Web Token) Configuration ---
 # Controls the behavior of our authentication tokens.
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=config('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', default=60, cast=int)),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=config('JWT_REFRESH_TOKEN_LIFETIME_DAYS', default=7, cast=int)),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
@@ -203,4 +203,4 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 # --- Frontend Configuration ---
 # The base URL for your frontend application. 
 # This is used to construct absolute URLs in emails (e.g., for password reset links).
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
