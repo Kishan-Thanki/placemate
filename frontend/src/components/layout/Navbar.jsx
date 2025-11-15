@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import logoUrl from "../../../src/assets/placemate_logo.png";
+import logoUrl from "../../../src/assets/placemate.png";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { Bell } from "lucide-react";
@@ -51,7 +51,6 @@ export function Navbar({ onMenuClick }) {
     : email
     ? email[0].toUpperCase()
     : "U";
-  
 
   // Close dropdowns when clicking outside
   useEffect(() => {
