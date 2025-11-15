@@ -125,6 +125,36 @@ export default function LoginPage() {
           activeRole: activeRole,
         };
 
+        // If the user logged in as a student, try to fetch and store student profile once
+        if (activeRole && activeRole.toLowerCase() === "student") {
+          try {
+            const { ok: studentOk, data: studentResp } = await fetchJSON("/api/v1/students/me/", {
+              method: "GET",
+              credentials: "include",
+            });
+
+            if (studentOk && studentResp?.data) {
+              const profile = studentResp.data;
+              // normalise program id if present
+              let programId = null;
+              if (profile.program && typeof profile.program === "object" && profile.program.id) {
+                programId = profile.program.id;
+              } else if (profile.program_id) {
+                programId = profile.program_id;
+              }
+
+              storedUser.studentProfile = {
+                programId,
+                program: profile.program || profile.program_details || null,
+                enrollmentNumber: profile.enrollment_number || null,
+              };
+            }
+          } catch (e) {
+            // ignore student profile fetch failures - login still succeeds
+            console.warn("Could not fetch student profile during login:", e);
+          }
+        }
+
         console.log("✅ User data stored:", storedUser);
         login(storedUser);
         setShowRoleModal(false);
