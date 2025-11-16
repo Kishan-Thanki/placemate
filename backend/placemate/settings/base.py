@@ -204,3 +204,8 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 # The base URL for your frontend application. 
 # This is used to construct absolute URLs in emails (e.g., for password reset links).
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+import sys
+
+if 'test' in sys.argv:
+    from .test import *

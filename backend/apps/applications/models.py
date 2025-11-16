@@ -24,7 +24,7 @@ class CompanyDriveApplication(models.Model):
         ordering = ['-applied_at']
         
     def __str__(self):
-        return f"Application for {self.job.title} by {self.student}"
+        return f"Application for {self.company_drive} by {self.student}"
     
     
 class JobPreference(models.Model):
