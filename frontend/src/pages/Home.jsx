@@ -18,7 +18,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import logoUrl from "../assets/placemate_logo.png";
+import logoUrl from "../assets/placemate.png";
 
 export default function Home() {
   const { isDark, toggleTheme } = useTheme();
