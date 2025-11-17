@@ -12,6 +12,11 @@ from unittest.mock import patch, MagicMock
 from apps.users.models import Role
 from rest_framework_simplejwt.tokens import RefreshToken
 
+LOGIN_URL = '/api/v1/token/'
+REFRESH_URL = '/api/v1/token/refresh/'
+LOGOUT_URL = '/api/v1/logout/'
+ROLE_SELECT_URL = '/api/v1/auth/select-role/'
+
 User = get_user_model()
 
 
@@ -55,7 +60,7 @@ class AuthenticationTest(TestCase):
         )
         single_role_user.roles.add(self.student_role)
         
-        response = self.client.post('/api/v1/auth/login/', {
+        response = self.client.post(LOGIN_URL, {
             'email': 'single@example.com',
             'password': 'testpass123'
         })
@@ -74,7 +79,7 @@ class AuthenticationTest(TestCase):
         Test Case ID: USERS-AUTH-001-001-002
         Test login when user has multiple roles (requires role selection)
         """
-        response = self.client.post('/api/v1/auth/login/', {
+        response = self.client.post(LOGIN_URL, {
             'email': 'test@example.com',
             'password': 'testpass123'
         })
@@ -90,7 +95,7 @@ class AuthenticationTest(TestCase):
         Test Case ID: USERS-AUTH-001-001-003
         Test login with invalid credentials
         """
-        response = self.client.post('/api/v1/auth/login/', {
+        response = self.client.post(LOGIN_URL, {
             'email': 'test@example.com',
             'password': 'wrongpassword'
         })
@@ -109,7 +114,7 @@ class AuthenticationTest(TestCase):
         self.user.is_active = False
         self.user.save()
         
-        response = self.client.post('/api/v1/auth/login/', {
+        response = self.client.post(LOGIN_URL, {
             'email': 'test@example.com',
             'password': 'testpass123'
         })
@@ -133,7 +138,7 @@ class AuthenticationTest(TestCase):
             password='testpass123'
         )
         
-        response = self.client.post('/api/v1/auth/login/', {
+        response = self.client.post(LOGIN_URL, {
             'email': 'norole@example.com',
             'password': 'testpass123'
         })
@@ -161,7 +166,7 @@ class TokenManagementTest(TestCase):
         self.user.roles.add(self.role)
         
         # Login to get tokens in cookies
-        login_response = self.client.post('/api/v1/auth/login/', {
+        login_response = self.client.post(LOGIN_URL, {
             'email': 'token@example.com',
             'password': 'testpass123'
         })
@@ -175,7 +180,7 @@ class TokenManagementTest(TestCase):
         # Set refresh token cookie - APIClient uses SimpleCookie
         self.client.cookies['refresh_token'] = self.refresh_token
         
-        response = self.client.post('/api/v1/auth/token/refresh/')
+        response = self.client.post(REFRESH_URL)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # New access token should be in cookies
@@ -186,7 +191,8 @@ class TokenManagementTest(TestCase):
         Test Case ID: USERS-AUTH-001-002-002
         Test token refresh without refresh token
         """
-        response = self.client.post('/api/v1/auth/token/refresh/')
+        self.client.cookies.clear()
+        response = self.client.post(REFRESH_URL)
         
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
@@ -196,7 +202,7 @@ class TokenManagementTest(TestCase):
         Test successful logout
         """
         # Login first to get tokens in cookies
-        login_response = self.client.post('/api/v1/auth/login/', {
+        login_response = self.client.post(LOGIN_URL, {
             'email': 'token@example.com',
             'password': 'testpass123'
         })
@@ -208,10 +214,10 @@ class TokenManagementTest(TestCase):
         if refresh_token_value:
             self.client.cookies['refresh_token'] = refresh_token_value
         
-        response = self.client.post('/api/v1/auth/logout/')
+        response = self.client.post(LOGOUT_URL)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], 'Logout successful')
+        self.assertEqual(response.data['message'], 'Logged out')
         # Cookies should be deleted
         self.assertEqual(response.cookies.get('access_token').value, '')
         self.assertEqual(response.cookies.get('refresh_token').value, '')
@@ -237,7 +243,7 @@ class RoleSelectionTest(TestCase):
         self.user.roles.add(self.admin_role, self.student_role)
         
         # Login first - will return requires_role_selection=True
-        login_response = self.client.post('/api/v1/auth/login/', {
+        login_response = self.client.post(LOGIN_URL, {
             'email': 'multirole@example.com',
             'password': 'testpass123'
         })
@@ -249,7 +255,7 @@ class RoleSelectionTest(TestCase):
         Test Case ID: USERS-AUTH-001-003-001
         Test valid role selection
         """
-        response = self.client.post('/api/v1/auth/select-role/', {
+        response = self.client.post(ROLE_SELECT_URL, {
             'user_id': self.user_id,
             'role': 'Admin'
         })
@@ -265,7 +271,7 @@ class RoleSelectionTest(TestCase):
         Test Case ID: USERS-AUTH-001-003-002
         Test role selection with invalid role
         """
-        response = self.client.post('/api/v1/auth/select-role/', {
+        response = self.client.post(ROLE_SELECT_URL, {
             'user_id': self.user_id,
             'role': 'InvalidRole'
         })
@@ -282,7 +288,7 @@ class RoleSelectionTest(TestCase):
         Test role selection without user_id (invalid request)
         """
         # Don't provide user_id
-        response = self.client.post('/api/v1/auth/select-role/', {
+        response = self.client.post(ROLE_SELECT_URL, {
             'role': 'Admin'
         })
         

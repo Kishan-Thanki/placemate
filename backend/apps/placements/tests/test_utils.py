@@ -18,6 +18,22 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+def create_verified_student(user, program, enrollment_number, joining_year, **overrides):
+    profile_data = {
+        'program': program,
+        'enrollment_number': enrollment_number,
+        'joining_year': joining_year,
+        'current_cgpa': 8.5,
+        'tenth_percentage': 85.0,
+        'twelfth_percentage': 80.0,
+        'active_backlogs': 0,
+        'is_placed': False,
+        'is_verified': True,
+    }
+    profile_data.update(overrides)
+    return StudentProfile.objects.create(user=user, **profile_data)
+
+
 class SendDriveNotificationTest(TestCase):
     """
     TEST SUITE: send_drive_notification
@@ -61,13 +77,11 @@ class SendDriveNotificationTest(TestCase):
             last_name='Year',
             password='pass123'
         )
-        self.final_year_profile = StudentProfile.objects.create(
+        self.final_year_profile = create_verified_student(
             user=self.final_year_student,
             program=self.program_4yr,
             enrollment_number='EN2021001',
-            joining_year=current_year - 3,
-            is_placed=False,
-            is_verified=True
+            joining_year=current_year - 3
         )
         
         # Not final year student (joining_year = current_year - 2)
@@ -78,13 +92,11 @@ class SendDriveNotificationTest(TestCase):
             last_name='Final',
             password='pass123'
         )
-        self.not_final_profile = StudentProfile.objects.create(
+        self.not_final_profile = create_verified_student(
             user=self.not_final_student,
             program=self.program_4yr,
             enrollment_number='EN2022001',
-            joining_year=current_year - 2,
-            is_placed=False,
-            is_verified=True
+            joining_year=current_year - 2
         )
         
         # Placed student (should not receive notification)
@@ -95,13 +107,12 @@ class SendDriveNotificationTest(TestCase):
             last_name='Student',
             password='pass123'
         )
-        self.placed_profile = StudentProfile.objects.create(
+        self.placed_profile = create_verified_student(
             user=self.placed_student,
             program=self.program_4yr,
             enrollment_number='EN2021002',
             joining_year=current_year - 3,
-            is_placed=True,  # Already placed
-            is_verified=True
+            is_placed=True  # Already placed
         )
         
         # Inactive user (should not receive notification)
@@ -113,16 +124,14 @@ class SendDriveNotificationTest(TestCase):
             password='pass123',
             is_active=False  # Inactive
         )
-        self.inactive_profile = StudentProfile.objects.create(
+        self.inactive_profile = create_verified_student(
             user=self.inactive_student,
             program=self.program_4yr,
             enrollment_number='EN2021003',
-            joining_year=current_year - 3,
-            is_placed=False,
-            is_verified=True
+            joining_year=current_year - 3
         )
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.placements.utils.send_email_in_background')
     def test_send_drive_notification_final_year_students(self, mock_send_email):
         """
         Test Case ID: PLACEMENTS-UTILS-001-001-001
@@ -147,7 +156,7 @@ class SendDriveNotificationTest(TestCase):
         recipient_list = call_args[1].get('recipient_list', [])
         self.assertEqual(recipient_list, ['finalyear@example.com'])
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.placements.utils.send_email_in_background')
     def test_send_drive_notification_excludes_placed_students(self, mock_send_email):
         """
         Test Case ID: PLACEMENTS-UTILS-001-001-002
@@ -172,7 +181,7 @@ class SendDriveNotificationTest(TestCase):
                 all_recipients.extend(recipient_list)
         self.assertNotIn('placed@example.com', all_recipients)
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.placements.utils.send_email_in_background')
     def test_send_drive_notification_excludes_inactive_users(self, mock_send_email):
         """
         Test Case ID: PLACEMENTS-UTILS-001-001-003
@@ -197,7 +206,7 @@ class SendDriveNotificationTest(TestCase):
                 all_recipients.extend(recipient_list)
         self.assertNotIn('inactive@example.com', all_recipients)
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.placements.utils.send_email_in_background')
     def test_send_drive_notification_multiple_programs(self, mock_send_email):
         """
         Test Case ID: PLACEMENTS-UTILS-001-001-004
@@ -216,13 +225,11 @@ class SendDriveNotificationTest(TestCase):
             last_name='Final',
             password='pass123'
         )
-        pg_final_profile = StudentProfile.objects.create(
+        pg_final_profile = create_verified_student(
             user=pg_final_student,
             program=self.program_2yr,
             enrollment_number='EN2023001',
-            joining_year=current_year - 1,  # Final year for 2-year program
-            is_placed=False,
-            is_verified=True
+            joining_year=current_year - 1
         )
         
         program_ids = [self.program_4yr.id, self.program_2yr.id]
@@ -244,7 +251,7 @@ class SendDriveNotificationTest(TestCase):
         self.assertIn('finalyear@example.com', all_recipients)
         self.assertIn('pgfinal@example.com', all_recipients)
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.placements.utils.send_email_in_background')
     def test_send_drive_notification_email_context(self, mock_send_email):
         """
         Test Case ID: PLACEMENTS-UTILS-001-001-005

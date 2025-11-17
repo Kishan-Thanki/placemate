@@ -1,7 +1,7 @@
 from rest_framework import permissions
 from apps.core.views import BaseViewSet
 from rest_framework.decorators import action  
-from apps.core.permissions import IsAdminRole, IsStudentRole, IsPlacementTeam
+from apps.core.permissions import IsAdminRole, IsStudentRole, IsPlacementTeam, _get_active_role
 from .models import CompanyDriveApplication, JobPreference
 from apps.placements.models import CompanyDrive, Job
 from apps.students.models import StudentProfile
@@ -54,9 +54,10 @@ class CompanyDriveApplicationViewSet(BaseViewSet):
     def get_queryset(self):
         """Secure queryset - users only see what they should"""
         queryset = CompanyDriveApplication.objects.all()
+        active_role = _get_active_role(self.request)
         
         # Students only see their own applications
-        if hasattr(self.request.user, 'active_role') and self.request.user.active_role == 'Student':
+        if active_role == 'Student':
             try:
                 student_profile = StudentProfile.objects.get(user=self.request.user)
                 queryset = queryset.filter(student=student_profile)

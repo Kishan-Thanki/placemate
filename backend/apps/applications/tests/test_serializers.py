@@ -24,6 +24,20 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+def create_student_profile(user, program, enrollment_number, **overrides):
+    defaults = {
+        'program': program,
+        'enrollment_number': enrollment_number,
+        'current_cgpa': 8.5,
+        'tenth_percentage': 85.0,
+        'twelfth_percentage': 80.0,
+        'active_backlogs': 0,
+        'is_verified': True,
+    }
+    defaults.update(overrides)
+    return StudentProfile.objects.create(user=user, **defaults)
+
+
 class JobPreferenceSerializerTest(TestCase):
     """
     TEST SUITE: JobPreference Serializer
@@ -74,20 +88,21 @@ class JobPreferenceSerializerTest(TestCase):
         Test job preference serialization with read-only fields
         """
         # Create an application first (required for JobPreference)
+        student = create_student_profile(
+            user=User.objects.create_user(
+                email='test@example.com',
+                phone_number='9999999999',
+                first_name='Test',
+                last_name='User',
+                password='pass123'
+            ),
+            program=self.program,
+            enrollment_number='APP-SER-001',
+            joining_year=2024
+        )
         application = CompanyDriveApplication.objects.create(
             company_drive=self.company_drive,
-            student=StudentProfile.objects.create(
-                user=User.objects.create_user(
-                    email='test@example.com',
-                    phone_number='9999999999',
-                    first_name='Test',
-                    last_name='User',
-                    password='pass123'
-                ),
-                program=self.program,
-                enrollment_number='EN999',
-                joining_year=2024
-            ),
+            student=student,
             status='Applied',
             resume='resume.pdf'
         )
@@ -118,7 +133,10 @@ class JobPreferenceSerializerTest(TestCase):
             'preference_order': 1
         })
         
-        self.assertTrue(serializer.is_valid())
+        is_valid = serializer.is_valid()
+        if not is_valid:
+            raise AssertionError(serializer.errors)
+        self.assertTrue(is_valid)
     
     def test_job_preference_default_order(self):
         """
@@ -161,11 +179,10 @@ class CompanyDriveApplicationBaseSerializerTest(TestCase):
             degree=self.degree
         )
         
-        self.student_profile = StudentProfile.objects.create(
+        self.student_profile = create_student_profile(
             user=self.user,
             program=self.program,
-            current_cgpa=8.5,
-            is_verified=True
+            enrollment_number='APP-SER-010'
         )
         
         self.company = Company.objects.create(
@@ -184,6 +201,7 @@ class CompanyDriveApplicationBaseSerializerTest(TestCase):
             drive_type='FullTime',
             job_mode='Onsite',
             status='Open',
+            multiple_allowed=True,
             application_deadline=timezone.now() + timezone.timedelta(days=7)
         )
     
@@ -204,7 +222,7 @@ class CompanyDriveApplicationBaseSerializerTest(TestCase):
         data = serializer.data
         self.assertEqual(data['id'], application.id)
         self.assertEqual(data['company_drive'], self.company_drive.id)
-        self.assertEqual(data['student'], self.student_profile.id)
+        self.assertEqual(data['student'], self.student_profile.user_id)
         self.assertEqual(data['student_name'], 'John Doe')
         self.assertEqual(data['company_name'], 'Test Company')
         self.assertEqual(data['drive_title'], 'Campus Drive 2024')
@@ -253,14 +271,10 @@ class CompanyDriveApplicationCreateSerializerTest(TestCase):
             degree=self.degree
         )
         
-        self.student_profile = StudentProfile.objects.create(
+        self.student_profile = create_student_profile(
             user=self.user,
             program=self.program,
-            current_cgpa=8.5,
-            tenth_percentage=85.0,
-            twelfth_percentage=80.0,
-            active_backlogs=0,
-            is_verified=True
+            enrollment_number='APP-SER-020'
         )
         
         self.company = Company.objects.create(
@@ -279,6 +293,7 @@ class CompanyDriveApplicationCreateSerializerTest(TestCase):
             drive_type='FullTime',
             job_mode='Onsite',
             status='Open',
+            multiple_allowed=True,
             application_deadline=timezone.now() + timezone.timedelta(days=7)
         )
         
@@ -311,29 +326,26 @@ class CompanyDriveApplicationCreateSerializerTest(TestCase):
         Test Case ID: APPLICATIONS-SERIALIZER-001-003-001
         Test create serializer with valid data
         """
-        serializer = CompanyDriveApplicationCreateSerializer(data={
-            'company_drive': self.company_drive.id,
-            'resume': 'resume.pdf',
-            'job_preferences': [
-                {
-                    'job': self.job1.id,
-                    'preference_order': 1
-                },
-                {
-                    'job': self.job2.id,
-                    'preference_order': 2
-                }
-            ]
-        }, context=self.context)
-        
-        self.assertTrue(serializer.is_valid())
+        serializer = CompanyDriveApplicationCreateSerializer(
+            data={
+                'company_drive': self.company_drive.id,
+                'resume': 'resume.pdf',
+                'job_preferences': [
+                    {'job': self.job1.id, 'preference_order': 1},
+                    {'job': self.job2.id, 'preference_order': 2},
+                ],
+            },
+            context=self.context,
+        )
+
+        self.assertTrue(serializer.is_valid(), msg=f"{serializer.errors}")
     
     def test_create_serializer_unverified_student(self):
         """
         Test Case ID: APPLICATIONS-SERIALIZER-001-003-002
         Test validation with unverified student profile
         """
-        unverified_profile = StudentProfile.objects.create(
+        unverified_profile = create_student_profile(
             user=User.objects.create_user(
                 email='unverified@example.com',
                 phone_number='1111111111',
@@ -342,8 +354,8 @@ class CompanyDriveApplicationCreateSerializerTest(TestCase):
                 password='testpass123'
             ),
             program=self.program,
-            current_cgpa=8.5,
-            is_verified=False  # Not verified
+            enrollment_number='APP-SER-021',
+            is_verified=False
         )
         
         context = {'student_profile': unverified_profile}
@@ -486,11 +498,10 @@ class CompanyDriveApplicationDetailSerializerTest(TestCase):
             degree=self.degree
         )
         
-        self.student_profile = StudentProfile.objects.create(
+        self.student_profile = create_student_profile(
             user=self.user,
             program=self.program,
-            current_cgpa=8.5,
-            is_verified=True
+            enrollment_number='APP-SER-030'
         )
         
         self.company = Company.objects.create(

@@ -95,6 +95,9 @@ class LoginUserSerializer(serializers.Serializer):
 
         user = authenticate(username=email, password=password)
         if not user:
+            existing_user = User.objects.filter(email=email).first()
+            if existing_user and not existing_user.is_active:
+                raise serializers.ValidationError("Account is disabled.")
             raise serializers.ValidationError("Invalid credentials.")
         if not user.is_active:
             raise serializers.ValidationError("Account is disabled.")
@@ -220,13 +223,19 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'email', 'phone_number', 'roles']
 
     def validate_first_name(self, value):
-        return sanitize_input(value).title()
+        value = sanitize_input(value)
+        if value == '':
+            raise serializers.ValidationError("First name cannot be blank.")
+        return value.title()
 
     def validate_middle_name(self, value):
         return sanitize_input(value).title()
 
     def validate_last_name(self, value):
-        return sanitize_input(value).title()
+        value = sanitize_input(value)
+        if value == '':
+            raise serializers.ValidationError("Last name cannot be blank.")
+        return value.title()
 
 
 class UserRoleUpdateSerializer(serializers.ModelSerializer):
@@ -283,10 +292,16 @@ class UserDetailSerializer(serializers.ModelSerializer):
         ]
 
     def validate_first_name(self, value):
-        return sanitize_input(value).title()
+        value = sanitize_input(value)
+        if value == '':
+            raise serializers.ValidationError("First name cannot be blank.")
+        return value.title()
 
     def validate_middle_name(self, value):
         return sanitize_input(value).title()
 
     def validate_last_name(self, value):
-        return sanitize_input(value).title()
+        value = sanitize_input(value)
+        if value == '':
+            raise serializers.ValidationError("Last name cannot be blank.")
+        return value.title()

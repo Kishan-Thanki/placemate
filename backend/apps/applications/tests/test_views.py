@@ -21,6 +21,20 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+def create_student_profile(user, program, enrollment_number, **overrides):
+    defaults = {
+        'program': program,
+        'enrollment_number': enrollment_number,
+        'current_cgpa': 8.5,
+        'tenth_percentage': 85.0,
+        'twelfth_percentage': 80.0,
+        'active_backlogs': 0,
+        'is_verified': True,
+    }
+    defaults.update(overrides)
+    return StudentProfile.objects.create(user=user, **defaults)
+
+
 class CompanyDriveApplicationViewSetTest(APITestCase):
     """
     TEST SUITE: CompanyDriveApplication ViewSet
@@ -77,14 +91,10 @@ class CompanyDriveApplicationViewSetTest(APITestCase):
         )
         
         # Create student profiles
-        self.student_profile = StudentProfile.objects.create(
+        self.student_profile = create_student_profile(
             user=self.student_user,
             program=self.program,
-            current_cgpa=8.5,
-            tenth_percentage=85.0,
-            twelfth_percentage=80.0,
-            active_backlogs=0,
-            is_verified=True
+            enrollment_number='APP-VIEW-001'
         )
         
         # Create company and drive
@@ -166,11 +176,13 @@ class CompanyDriveApplicationViewSetTest(APITestCase):
             password='testpass123'
         )
         other_student_user.roles.add(self.student_role)
-        other_student_profile = StudentProfile.objects.create(
+        other_student_profile = create_student_profile(
             user=other_student_user,
             program=self.program,
+            enrollment_number='APP-VIEW-002',
             current_cgpa=8.0,
-            is_verified=True
+            tenth_percentage=82.0,
+            twelfth_percentage=78.0
         )
         other_application = CompanyDriveApplication.objects.create(
             company_drive=self.company_drive,
@@ -250,7 +262,7 @@ class CompanyDriveApplicationViewSetTest(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['data']['company_drive'], new_drive.id)
-        self.assertEqual(response.data['data']['student'], self.student_profile.id)
+        self.assertEqual(response.data['data']['student'], self.student_profile.user_id)
     
     def test_create_application_unauthenticated(self):
         """
@@ -302,7 +314,7 @@ class CompanyDriveApplicationViewSetTest(APITestCase):
         self.assertIn('job_preferences', response.data['data'])
         self.assertEqual(len(response.data['data']['job_preferences']), 2)
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.applications.views.send_email_in_background')
     def test_withdraw_application(self, mock_send_email):
         """
         Test Case ID: APPLICATIONS-VIEW-001-001-007
@@ -339,7 +351,7 @@ class CompanyDriveApplicationViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Can only withdraw', response.data['message'])
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.applications.views.send_email_in_background')
     def test_accept_offer(self, mock_send_email):
         """
         Test Case ID: APPLICATIONS-VIEW-001-001-009
@@ -380,7 +392,7 @@ class CompanyDriveApplicationViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('No job offer to accept', response.data['message'])
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.applications.views.send_email_in_background')
     def test_offer_job_by_placement_team(self, mock_send_email):
         """
         Test Case ID: APPLICATIONS-VIEW-001-001-011

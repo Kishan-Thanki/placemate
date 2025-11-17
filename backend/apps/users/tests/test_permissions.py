@@ -8,10 +8,18 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient, APIRequestFactory
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 from apps.users.models import Role
 from apps.core.permissions import IsAdminRole, IsPlacementTeam, IsStudentRole
 
 User = get_user_model()
+
+
+def set_access_cookie(client, user, role_name):
+    refresh = RefreshToken.for_user(user)
+    refresh['active_role'] = role_name
+    client.cookies.clear()
+    client.cookies['access_token'] = str(refresh.access_token)
 
 
 class RoleBasedPermissionsTest(TestCase):
@@ -56,6 +64,10 @@ class RoleBasedPermissionsTest(TestCase):
             password='studentpass123'
         )
         self.student_user.roles.add(self.student_role)
+
+    def _set_request_role(self, request, user, role_name):
+        request.user = user
+        request.auth = type('Token', (), {'payload': {'active_role': role_name}})()
     
     def test_admin_role_permission(self):
         """
@@ -66,15 +78,15 @@ class RoleBasedPermissionsTest(TestCase):
         request = self.factory.get('/')
         
         # Test with admin user
-        request.user = self.admin_user
+        self._set_request_role(request, self.admin_user, 'Admin')
         self.assertTrue(permission.has_permission(request, None))
         
-        # Test with placement user
-        request.user = self.placement_user
+        # Test with placement user (active role mismatch)
+        self._set_request_role(request, self.placement_user, 'Student Placement Cell')
         self.assertFalse(permission.has_permission(request, None))
         
         # Test with student user
-        request.user = self.student_user
+        self._set_request_role(request, self.student_user, 'Student')
         self.assertFalse(permission.has_permission(request, None))
     
     def test_placement_team_permission(self):
@@ -85,16 +97,13 @@ class RoleBasedPermissionsTest(TestCase):
         permission = IsPlacementTeam()
         request = self.factory.get('/')
         
-        # Test with admin user
-        request.user = self.admin_user
+        self._set_request_role(request, self.admin_user, 'Admin')
         self.assertTrue(permission.has_permission(request, None))
         
-        # Test with placement user
-        request.user = self.placement_user
+        self._set_request_role(request, self.placement_user, 'Student Placement Cell')
         self.assertTrue(permission.has_permission(request, None))
         
-        # Test with student user
-        request.user = self.student_user
+        self._set_request_role(request, self.student_user, 'Student')
         self.assertFalse(permission.has_permission(request, None))
     
     def test_student_role_permission(self):
@@ -105,16 +114,13 @@ class RoleBasedPermissionsTest(TestCase):
         permission = IsStudentRole()
         request = self.factory.get('/')
         
-        # Test with student user
-        request.user = self.student_user
+        self._set_request_role(request, self.student_user, 'Student')
         self.assertTrue(permission.has_permission(request, None))
         
-        # Test with admin user
-        request.user = self.admin_user
+        self._set_request_role(request, self.admin_user, 'Admin')
         self.assertFalse(permission.has_permission(request, None))
         
-        # Test with placement user
-        request.user = self.placement_user
+        self._set_request_role(request, self.placement_user, 'Student Placement Cell')
         self.assertFalse(permission.has_permission(request, None))
 
 
@@ -149,13 +155,8 @@ class SecurityValidationTest(TestCase):
         )
         self.other_user.roles.add(self.student_role)
         
-        # Login as admin
-        login_response = self.client.post('/api/v1/auth/login/', {
-            'email': 'admin@example.com',
-            'password': 'adminpass123'
-        })
-        access_token = login_response.data['access']
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+        # Authenticate admin using cookie-based JWT
+        set_access_cookie(self.client, self.admin_user, 'Admin')
     
     def test_cannot_modify_own_roles(self):
         """
@@ -163,7 +164,7 @@ class SecurityValidationTest(TestCase):
         Test user cannot modify their own roles
         """
         response = self.client.patch(
-            f'/api/v1/users/{self.admin_user.id}/roles/',
+            f'/api/v1/users/manage/{self.admin_user.id}/roles/',
             {'roles': [self.student_role.id]},
             format='json'
         )
@@ -177,7 +178,7 @@ class SecurityValidationTest(TestCase):
         Test user cannot deactivate their own account
         """
         response = self.client.patch(
-            f'/api/v1/users/{self.admin_user.id}/',
+            f'/api/v1/users/manage/{self.admin_user.id}/activation/',
             {'is_active': False},
             format='json'
         )
@@ -189,7 +190,7 @@ class SecurityValidationTest(TestCase):
         Test Case ID: USERS-PERMISSIONS-001-002-003
         Test user cannot delete their own account
         """
-        response = self.client.delete(f'/api/v1/users/{self.admin_user.id}/')
+        response = self.client.delete(f'/api/v1/users/manage/{self.admin_user.id}/')
         
         self.assertIn(response.status_code, [status.HTTP_403_FORBIDDEN, status.HTTP_400_BAD_REQUEST])
     
@@ -199,7 +200,7 @@ class SecurityValidationTest(TestCase):
         Test admin can modify other users' roles
         """
         response = self.client.patch(
-            f'/api/v1/users/{self.other_user.id}/roles/',
+            f'/api/v1/users/manage/{self.other_user.id}/roles/',
             {'roles': [self.student_role.id]},
             format='json'
         )
@@ -213,7 +214,7 @@ class SecurityValidationTest(TestCase):
         Test admin can deactivate other users
         """
         response = self.client.patch(
-            f'/api/v1/users/{self.other_user.id}/',
+            f'/api/v1/users/manage/{self.other_user.id}/activation/',
             {'is_active': False},
             format='json'
         )
@@ -247,17 +248,14 @@ class AuthenticationRequiredTest(TestCase):
         Test unauthenticated access to protected endpoints is denied
         """
         endpoints = [
-            '/api/v1/users/me/',
-            '/api/v1/users/manage/',
-            '/api/v1/auth/logout/',
-            '/api/v1/auth/select-role/'
+            ('GET', '/api/v1/users/me/'),
+            ('GET', '/api/v1/users/manage/'),
+            ('POST', '/api/v1/logout/'),
         ]
         
-        for endpoint in endpoints:
-            if endpoint == '/api/v1/auth/logout/':
+        for method, endpoint in endpoints:
+            if method == 'POST':
                 response = self.client.post(endpoint)
-            elif endpoint == '/api/v1/auth/select-role/':
-                response = self.client.post(endpoint, {'role': 'Student'})
             else:
                 response = self.client.get(endpoint)
             
@@ -268,16 +266,6 @@ class AuthenticationRequiredTest(TestCase):
         Test Case ID: USERS-PERMISSIONS-001-003-002
         Test authenticated access to profile endpoint is allowed
         """
-        # Login first
-        login_response = self.client.post('/api/v1/auth/login/', {
-            'email': 'test@example.com',
-            'password': 'testpass123'
-        })
-        access_token = login_response.data['access']
-        
-        # Set authorization header
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
-        
-        # Profile endpoint should be accessible
+        set_access_cookie(self.client, self.user, 'Student')
         response = self.client.get('/api/v1/users/me/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

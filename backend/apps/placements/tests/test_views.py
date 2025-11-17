@@ -15,9 +15,25 @@ from apps.placements.models import PlacementDrive, CompanyDrive, Job, JobProgram
 from apps.companies.models import Company
 from apps.core.models import Program, Degree
 from apps.users.models import Role
+from apps.students.models import StudentProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
+
+
+def create_verified_profile(user, enrollment_number, program=None, **overrides):
+    payload = {
+        'program': program,
+        'enrollment_number': enrollment_number,
+        'current_cgpa': 8.0,
+        'tenth_percentage': 80.0,
+        'twelfth_percentage': 78.0,
+        'active_backlogs': 0,
+        'is_verified': True,
+    }
+    payload.update(overrides)
+    profile, _ = StudentProfile.objects.update_or_create(user=user, defaults=payload)
+    return profile
 
 
 class PlacementDriveViewSetTest(TestCase):
@@ -120,6 +136,8 @@ class CompanyDriveViewSetTest(TestCase):
         )
         student_role = Role.objects.create(name='Student')
         self.student_user.roles.add(student_role)
+        create_verified_profile(self.student_user, 'PLAC-STU-010')
+        create_verified_profile(self.student_user, 'PLAC-STU-001')
         
         # Create placement drive and company
         self.placement_drive = PlacementDrive.objects.create(
@@ -147,7 +165,8 @@ class CompanyDriveViewSetTest(TestCase):
             company=self.company,
             drive_type='Internship',
             job_mode='Remote',
-            status='Closed'
+            status='Closed',
+            application_deadline=timezone.now() + timezone.timedelta(days=14)
         )
     
     def test_list_company_drives_authenticated(self):
@@ -327,7 +346,8 @@ class JobViewSetTest(TestCase):
             company=self.company,
             drive_type='FullTime',
             job_mode='Onsite',
-            status='Open'
+            status='Open',
+            application_deadline=timezone.now() + timezone.timedelta(days=10)
         )
         
         # Create degree and program

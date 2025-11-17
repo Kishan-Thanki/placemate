@@ -8,7 +8,14 @@ from apps.core.cookies import get_cookie_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from ..serializers import LoginUserSerializer, LoginRoleSerializer, SelectRoleSerializer
-from apps.core.response import SuccessResponse, NoContentResponse, ValidationErrorResponse, ForbiddenResponse
+from apps.core.response import (
+    SuccessResponse,
+    NoContentResponse,
+    ValidationErrorResponse,
+    ForbiddenResponse,
+    UnauthorizedResponse,
+    ServerErrorResponse,
+)
 
 User = get_user_model()
 
@@ -112,10 +119,7 @@ class MyTokenRefreshView(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
-            return ValidationErrorResponse(
-                "No refresh token found", 
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return UnauthorizedResponse(message="No refresh token found")
 
         try:
             refresh = RefreshToken(refresh_token)
@@ -150,15 +154,9 @@ class MyTokenRefreshView(APIView):
             return response
             
         except TokenError:
-            return ValidationErrorResponse(
-                "Invalid or expired refresh token", 
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return UnauthorizedResponse(message="Invalid or expired refresh token")
         except Exception:
-            return ValidationErrorResponse(
-                "Token refresh failed", 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return ServerErrorResponse(message="Token refresh failed")
 
 
 class LogoutView(APIView):
