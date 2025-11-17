@@ -1,5 +1,5 @@
 #!/bin/bash
-# run_tests.sh - Enhanced Placemate Test Suite Runner
+# run_tests.sh - Placemate Test Suite Runner
 
 # Color codes for output
 RED='\033[0;31m'
@@ -8,7 +8,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # Function to print colored output
 print_color() {
@@ -55,7 +55,7 @@ run_app_tests() {
     local app_name=$1
     local display_name=$2
     
-    print_color "🧪 TESTING: $display_name" "$PURPLE"
+    print_color "TESTING: $display_name" "$PURPLE"
     echo "==================================================="
     
     # Run tests and capture output
@@ -74,12 +74,12 @@ run_app_tests() {
     
     # Print results
     if [ "$TEST_RESULT" -eq 0 ] && [ "$FAILURES" -eq 0 ] && [ "$ERRORS" -eq 0 ]; then
-        print_color "✅ ALL $TEST_COUNT $display_name TESTS PASSED! 🎉" "$GREEN"
+        print_color "✅ ALL $TEST_COUNT $display_name TESTS PASSED!" "$GREEN"
         return 0
     else
         print_color "❌ $FAILURES failures and $ERRORS errors out of $TEST_COUNT tests in $display_name" "$RED"
         echo ""
-        print_color "📋 DETAILED ERROR REPORT:" "$YELLOW"
+        print_color "DETAILED ERROR REPORT:" "$YELLOW"
         echo "==================================================="
         
         # Extract and show test case IDs of failing tests
@@ -131,7 +131,7 @@ run_app_tests() {
         rm -f "$TEMP_FILE"
         
         echo ""
-        print_color "💡 TIP: Run individual test for more details:" "$CYAN"
+        print_color "TIP: Run individual test for more details:" "$CYAN"
         echo "   python manage.py test <specific.test.class> --verbosity=2"
         echo ""
         return 1
@@ -140,13 +140,13 @@ run_app_tests() {
 
 # Function to setup test environment
 setup_test_environment() {
-    print_color "🔧 SETUP PHASE" "$BLUE"
+    print_color "SETUP PHASE" "$BLUE"
     echo "==================================================="
     
-    print_color "📦 Checking test dependencies..." "$CYAN"
+    print_color "Checking test dependencies..." "$CYAN"
     python manage.py check --verbosity=0
     if [ $? -ne 0 ]; then
-        print_color "❌ Django check failed!" "$RED"
+        print_color "Django check failed!" "$RED"
         exit 1
     fi
     
@@ -154,12 +154,12 @@ setup_test_environment() {
     python manage.py makemigrations --verbosity=0
     MIGRATE_OUTPUT=$(python manage.py migrate --verbosity=0 2>&1)
     if [ $? -ne 0 ]; then
-        print_color "❌ Database migration failed!" "$RED"
+        print_color "Database migration failed!" "$RED"
         echo "$MIGRATE_OUTPUT"
         exit 1
     fi
     
-    print_color "✅ Environment setup completed" "$GREEN"
+    print_color "Environment setup completed" "$GREEN"
     echo ""
 }
 
@@ -209,7 +209,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         -*)
-            print_color "❌ Unknown option: $1" "$RED"
+            print_color "Unknown option: $1" "$RED"
             show_usage
             exit 1
             ;;
@@ -244,16 +244,16 @@ else
 fi
 
 # Banner
-print_color "🧪 ===================================================" "$PURPLE"
-print_color "🧪 PLACEMATE TEST SUITE" "$PURPLE"
-print_color "🧪 ===================================================" "$PURPLE"
+print_color "===================================================" "$PURPLE"
+print_color "PLACEMATE TEST SUITE" "$PURPLE"
+print_color "===================================================" "$PURPLE"
 echo ""
 
 # Setup environment
 setup_test_environment
 
 # Test execution
-print_color "🚀 TEST EXECUTION PHASE" "$BLUE"
+print_color "TEST EXECUTION PHASE" "$BLUE"
 echo "==================================================="
 
 OVERALL_RESULT=0
@@ -274,13 +274,13 @@ for app in "${TEST_APPS[@]}"; do
 done
 
 # Final summary
-print_color "📊 FINAL RESULTS SUMMARY" "$BLUE"
+print_color "FINAL RESULTS SUMMARY" "$BLUE"
 echo "==================================================="
 
 if [ $OVERALL_RESULT -eq 0 ]; then
-    print_color "🎉 ALL TESTS PASSED! $PASSED_APPS app(s) completed successfully." "$GREEN"
+    print_color "ALL TESTS PASSED! $PASSED_APPS app(s) completed successfully." "$GREEN"
 else
-    print_color "❌ TEST SUITE COMPLETED WITH FAILURES" "$RED"
+    print_color "TEST SUITE COMPLETED WITH FAILURES" "$RED"
     print_color "   Passed: $PASSED_APPS app(s)" "$GREEN"
     print_color "   Failed: $FAILED_APPS app(s)" "$RED"
 fi
@@ -290,7 +290,7 @@ echo ""
 print_color "📍 NEXT STEPS:" "$CYAN"
 if [ $OVERALL_RESULT -eq 0 ]; then
     if [ "$RUN_ALL" = true ] || [ ${#TEST_APPS[@]} -eq 6 ]; then
-        print_color "   All app tests completed! Ready for deployment. 🚀" "$GREEN"
+        print_color "   All app tests completed! Ready for deployment." "$GREEN"
     else
         remaining_apps=()
         for app in "apps.core" "apps.users" "apps.students" "apps.companies" "apps.placements" "apps.applications"; do
