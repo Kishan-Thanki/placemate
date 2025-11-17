@@ -20,6 +20,15 @@ import {
 import { useEffect, useState } from "react";
 import logoUrl from "../assets/placemate.png";
 
+// 🆕 Helper function to normalize roles (extract name from objects)
+const normalizeRole = (role) => {
+  if (!role) return null;
+  if (typeof role === 'object' && role !== null) {
+    return role.name ? String(role.name).toLowerCase() : null;
+  }
+  return String(role).toLowerCase();
+};
+
 export default function Home() {
   const { isDark, toggleTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
@@ -57,6 +66,32 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [location.state, location.pathname, navigate, isAuthenticated]);
+
+  // 🆕 Helper function to determine dashboard path
+  const getDashboardPath = () => {
+    const activeRole = normalizeRole(user?.activeRole);
+    const userRoles = user?.roles || [];
+    
+    console.log("🏠 Dashboard path calculation:", {
+      activeRole,
+      userRoles,
+      userActiveRole: user?.activeRole
+    });
+
+    if (activeRole === "admin" || activeRole === "student placement cell") {
+      return "/admin";
+    } else if (activeRole === "student") {
+      return "/student";
+    } else if (userRoles.some(role => 
+      normalizeRole(role) === "admin" || 
+      normalizeRole(role) === "student placement cell"
+    )) {
+      return "/admin";
+    } else if (userRoles.some(role => normalizeRole(role) === "student")) {
+      return "/student";
+    }
+    return "/";
+  };
 
   const features = [
     {
@@ -206,38 +241,14 @@ export default function Home() {
 
               {isAuthenticated ? (
                 <Link
-                  to={
-                    user?.activeRole?.toLowerCase() === "admin" ||
-                    user?.activeRole?.toLowerCase() === "student placement cell"
-                      ? "/admin"
-                      : user?.activeRole?.toLowerCase() === "student"
-                      ? "/student"
-                      : user?.roles?.some(
-                          (r) =>
-                            r.toLowerCase() === "admin" ||
-                            r.toLowerCase() === "student placement cell"
-                        )
-                      ? "/admin"
-                      : "/student"
-                  }
+                  to={getDashboardPath()}
                   onClick={() => {
                     console.log("🏠 Go to Dashboard clicked:", {
                       activeRole: user?.activeRole,
+                      normalizedActiveRole: normalizeRole(user?.activeRole),
                       roles: user?.roles,
-                      navigatingTo:
-                        user?.activeRole?.toLowerCase() === "admin" ||
-                        user?.activeRole?.toLowerCase() ===
-                          "student placement cell"
-                          ? "/admin"
-                          : user?.activeRole?.toLowerCase() === "student"
-                          ? "/student"
-                          : user?.roles?.some(
-                              (r) =>
-                                r.toLowerCase() === "admin" ||
-                                r.toLowerCase() === "student placement cell"
-                            )
-                          ? "/admin"
-                          : "/student",
+                      normalizedRoles: user?.roles?.map(normalizeRole),
+                      navigatingTo: getDashboardPath(),
                     });
                   }}
                   className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
