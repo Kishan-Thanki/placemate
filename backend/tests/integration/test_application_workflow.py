@@ -145,7 +145,7 @@ class ApplicationWorkflowTest(TestCase):
         self.client.cookies['access_token'] = str(refresh.access_token)
         self.client.cookies['refresh_token'] = str(refresh)
     
-    @patch('apps.core.tasks.send_email_in_background')
+    @patch('apps.applications.views.send_email_in_background')
     def test_complete_application_workflow(self, mock_email):
         """
         Test Case ID: INTEGRATION-APP-001-001-001
@@ -235,8 +235,8 @@ class ApplicationWorkflowTest(TestCase):
         }
         
         response = self.client.post(apply_url, apply_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('eligibility', str(response.data).lower())
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertIn('not eligible for senior engineer', str(response.data.get('errors', {})).lower())
     
     def test_duplicate_application_prevention(self):
         """
@@ -269,7 +269,7 @@ class ApplicationWorkflowTest(TestCase):
         }
         
         response = self.client.post(apply_url, apply_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertIn('already applied', str(response.data).lower())
     
     def test_application_withdrawal_workflow(self):

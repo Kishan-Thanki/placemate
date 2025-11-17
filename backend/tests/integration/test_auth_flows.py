@@ -203,8 +203,7 @@ class AuthenticationFlowTest(TestCase):
         }
         
         response = self.client.post(url, data, format='json')
-        
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertNotIn('access_token', response.cookies)
     
     def test_inactive_user_login(self):
@@ -228,6 +227,6 @@ class AuthenticationFlowTest(TestCase):
         
         response = self.client.post(url, data, format='json')
         
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertIn('disabled', str(response.data).lower() or 'inactive' in str(response.data).lower())
 

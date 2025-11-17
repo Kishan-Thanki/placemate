@@ -95,7 +95,7 @@ class AdminJourneyE2ETest(TestCase):
         self.client.cookies['access_token'] = str(refresh.access_token)
         self.client.cookies['refresh_token'] = str(refresh)
     
-    @patch('apps.placements.utils.send_drive_notification')
+    @patch('apps.placements.serializers.send_drive_notification')
     def test_complete_admin_journey(self, mock_notification):
         """
         Test Case ID: E2E-ADMIN-001-001-001
