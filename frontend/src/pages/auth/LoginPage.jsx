@@ -70,9 +70,14 @@ export default function LoginPage() {
           setLoading(false);
         } else {
           console.log("✅ Single role login, userData:", result.userData);
+          // 🎯 FIX: Pass the single role immediately for processing
+          const singleRole = result.userData?.available_roles?.[0] || null;
+          
           setUserId(result.userData?.user_id || null);
           setUserEmail(result.userData?.email || email);
-          handleSuccessfulLogin(result);
+          
+          // Pass the determined single role to the successful handler
+          handleSuccessfulLogin(result, singleRole);
         }
       } else {
         console.log("❌ Login failed:", result.error);
@@ -119,11 +124,11 @@ export default function LoginPage() {
   const handleSuccessfulLogin = async (result, selectedRole = null) => {
     console.log("🎯 handleSuccessfulLogin called with:", { result, selectedRole });
     
-    // 🆕 IMPROVED DATA EXTRACTION
+    // Determine the active role. In single-role cases, it might be the selectedRole 
+    // passed from the login (which is the only role).
     const activeRole = selectedRole || 
-                      result.data?.active_role || 
-                      result.userData?.active_role ||
-                      (result.data?.available_roles?.length === 1 ? result.data.available_roles[0] : null);
+                      (result.userData?.available_roles?.length === 1 ? result.userData.available_roles[0] : null) ||
+                      (result.data?.available_roles?.length === 1 ? result.data.available_roles[0] : null); // Fallback logic
     
     const availableRoles = result.data?.available_roles || 
                           result.userData?.available_roles || 
@@ -152,12 +157,12 @@ export default function LoginPage() {
           lastName: userData.last_name || "",
           phoneNumber: userData.phone_number || "",
           roles: availableRoles.length > 0 ? availableRoles : (userData.roles || []),
-          activeRole: activeRole || userData.active_role || (availableRoles.length === 1 ? availableRoles[0] : null),
+          // Use the determined active role, falling back to userData.roles[0] if needed
+          activeRole: activeRole || userData.active_role || (userData.roles?.length > 0 ? userData.roles[0] : null),
         };
 
         console.log("✅ FINAL User data to store in AuthContext:", storedUser);
         
-        // 🆕 VERIFY BEFORE STORING
         if (!storedUser.roles || storedUser.roles.length === 0) {
           console.error("🚨 CRITICAL: No roles found for user!");
         }
@@ -169,7 +174,8 @@ export default function LoginPage() {
         setShowRoleModal(false);
         redirectBasedOnRole(storedUser.activeRole);
       } else {
-        console.warn("⚠️ /me endpoint failed, using fallback data");
+        // Fallback case: /me failed, but we assume activeRole from login/selection worked
+        console.warn("⚠️ /me endpoint failed or returned empty data, using fallback user structure");
         const storedUser = {
           id: userId,
           email: userEmail,
@@ -186,6 +192,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error("❌ Error in handleSuccessfulLogin:", err);
+      // Final error fallback: still try to redirect with what we know
       const storedUser = {
         id: userId,
         email: userEmail,
@@ -203,9 +210,11 @@ export default function LoginPage() {
   };
 
   const redirectBasedOnRole = (role) => {
-    console.log("🔄 Redirecting based on role:", role);
-    const normalizedRole = role?.toLowerCase();
+    // 🎯 CRITICAL FIX: Add null/undefined check before using toLowerCase()
+    const normalizedRole = role ? String(role).toLowerCase() : null;
 
+    console.log("🔄 Redirecting based on role:", role);
+    
     if (normalizedRole === "admin") {
       console.log("➡️ Redirecting to /admin");
       navigate("/admin");
