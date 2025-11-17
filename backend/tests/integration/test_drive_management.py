@@ -21,6 +21,21 @@ from rest_framework_simplejwt.tokens import RefreshToken
 User = get_user_model()
 
 
+def create_verified_profile(user, program, enrollment_number, **overrides):
+    defaults = {
+        'program': program,
+        'enrollment_number': enrollment_number,
+        'current_cgpa': 8.5,
+        'tenth_percentage': 85.0,
+        'twelfth_percentage': 80.0,
+        'active_backlogs': 0,
+        'is_verified': True,
+    }
+    defaults.update(overrides)
+    profile, _ = StudentProfile.objects.update_or_create(user=user, defaults=defaults)
+    return profile
+
+
 class DriveManagementWorkflowTest(TestCase):
     """
     TEST SUITE: Complete Drive Management Workflow
@@ -79,13 +94,18 @@ class DriveManagementWorkflowTest(TestCase):
             password='studentpass123'
         )
         self.final_year_student.roles.add(self.student_role)
-        self.final_year_profile = StudentProfile.objects.create(
+        self.student_profile = create_verified_profile(
+            user=self.student_user,
+            program=self.program,
+            enrollment_number='EN2020001',
+            joining_year=current_year - 2
+        )
+        self.final_year_profile = create_verified_profile(
             user=self.final_year_student,
             program=self.program,
             enrollment_number='EN2021001',
             joining_year=current_year - 3,  # Final year for 4-year program
-            is_placed=False,
-            is_verified=True
+            is_placed=False
         )
         
         # Create company
@@ -132,7 +152,7 @@ class DriveManagementWorkflowTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(PlacementDrive.objects.filter(title='Campus Drive 2024').exists())
     
-    @patch('apps.placements.utils.send_drive_notification')
+    @patch('apps.placements.serializers.send_drive_notification')
     def test_create_company_drive_with_jobs_workflow(self, mock_notification):
         """
         Test Case ID: INTEGRATION-DRIVE-001-001-002
@@ -203,7 +223,8 @@ class DriveManagementWorkflowTest(TestCase):
             company=self.company,
             drive_type='FullTime',
             job_mode='Onsite',
-            status='Open'
+            status='Open',
+            application_deadline=timezone.now() + timezone.timedelta(days=7)
         )
         
         # Create closed drive
@@ -212,7 +233,8 @@ class DriveManagementWorkflowTest(TestCase):
             company=self.company,
             drive_type='Internship',
             job_mode='Remote',
-            status='Closed'
+            status='Closed',
+            application_deadline=timezone.now() + timezone.timedelta(days=10)
         )
         
         self._authenticate_student()
@@ -246,7 +268,8 @@ class DriveManagementWorkflowTest(TestCase):
             company=self.company,
             drive_type='FullTime',
             job_mode='Onsite',
-            status='Open'
+            status='Open',
+            application_deadline=timezone.now() + timezone.timedelta(days=7)
         )
         
         closed_drive = CompanyDrive.objects.create(
@@ -254,7 +277,8 @@ class DriveManagementWorkflowTest(TestCase):
             company=self.company,
             drive_type='Internship',
             job_mode='Remote',
-            status='Closed'
+            status='Closed',
+            application_deadline=timezone.now() + timezone.timedelta(days=10)
         )
         
         self._authenticate_admin()
@@ -286,7 +310,8 @@ class DriveManagementWorkflowTest(TestCase):
             company=self.company,
             drive_type='FullTime',
             job_mode='Onsite',
-            status='Open'
+            status='Open',
+            application_deadline=timezone.now() + timezone.timedelta(days=7)
         )
         
         # Create jobs
@@ -333,7 +358,8 @@ class DriveManagementWorkflowTest(TestCase):
             company=self.company,
             drive_type='FullTime',
             job_mode='Onsite',
-            status='Open'
+            status='Open',
+            application_deadline=timezone.now() + timezone.timedelta(days=7)
         )
         
         self._authenticate_admin()
