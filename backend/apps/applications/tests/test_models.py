@@ -17,6 +17,21 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+def create_student_profile(user, program, enrollment_number, **overrides):
+    """Helper to create a verified student profile with required fields."""
+    default_data = {
+        'program': program,
+        'enrollment_number': enrollment_number,
+        'current_cgpa': 8.5,
+        'tenth_percentage': 85.0,
+        'twelfth_percentage': 80.0,
+        'active_backlogs': 0,
+        'is_verified': True,
+    }
+    default_data.update(overrides)
+    return StudentProfile.objects.create(user=user, **default_data)
+
+
 class CompanyDriveApplicationModelTest(TestCase):
     """
     TEST SUITE: CompanyDriveApplication Model
@@ -47,14 +62,10 @@ class CompanyDriveApplicationModelTest(TestCase):
         )
         
         # Create student profile
-        self.student_profile = StudentProfile.objects.create(
+        self.student_profile = create_student_profile(
             user=self.student_user,
             program=self.program,
-            current_cgpa=8.5,
-            tenth_percentage=85.0,
-            twelfth_percentage=80.0,
-            active_backlogs=0,
-            is_verified=True
+            enrollment_number='ENR-APP-001'
         )
         
         # Create company and drive
@@ -187,14 +198,13 @@ class CompanyDriveApplicationModelTest(TestCase):
             last_name='Smith',
             password='testpass123'
         )
-        student_profile2 = StudentProfile.objects.create(
+        student_profile2 = create_student_profile(
             user=student_user2,
             program=self.program,
+            enrollment_number='ENR-APP-002',
             current_cgpa=8.0,
             tenth_percentage=80.0,
-            twelfth_percentage=75.0,
-            active_backlogs=0,
-            is_verified=True
+            twelfth_percentage=75.0
         )
         
         app2 = CompanyDriveApplication.objects.create(
@@ -246,14 +256,10 @@ class JobPreferenceModelTest(TestCase):
             degree=self.degree
         )
         
-        self.student_profile = StudentProfile.objects.create(
+        self.student_profile = create_student_profile(
             user=self.student_user,
             program=self.program,
-            current_cgpa=8.5,
-            tenth_percentage=85.0,
-            twelfth_percentage=80.0,
-            active_backlogs=0,
-            is_verified=True
+            enrollment_number='ENR-APP-101'
         )
         
         self.company = Company.objects.create(

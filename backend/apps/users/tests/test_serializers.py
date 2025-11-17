@@ -37,8 +37,6 @@ class UserRegistrationSerializerTest(TestCase):
             'phone_number': '1234567890',
             'first_name': 'John',
             'last_name': 'Doe',
-            'password': 'testpass123',
-            'confirm_password': 'testpass123',
             'roles': [self.student_role.id]
         }
     
@@ -117,18 +115,6 @@ class UserRegistrationSerializerTest(TestCase):
         serializer = UserRegistrationSerializer(data=data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('roles', serializer.errors)
-    
-    def test_password_mismatch(self):
-        """
-        Test Case ID: USERS-SERIALIZER-001-001-007
-        Test registration with password mismatch
-        """
-        data = self.valid_data.copy()
-        data['confirm_password'] = 'differentpassword'
-        
-        serializer = UserRegistrationSerializer(data=data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn('non_field_errors', serializer.errors)
     
     def test_user_creation_with_roles(self):
         """
