@@ -1,5 +1,10 @@
 import { fetchJSON } from "./api";
 
+// NEW: Helper function to introduce a small delay
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Comprehensive mobile device detection
 export function isMobileDevice() {
   const userAgent = navigator.userAgent.toLowerCase();
@@ -88,6 +93,10 @@ export async function login(email, password) {
     // If mobile, verify the session actually works
     if (isMobile) {
       console.log("📱 Mobile login succeeded, verifying session...");
+      
+      // FIX: Wait for cookies to propagate after Set-Cookie header is received
+      await delay(500); 
+
       const verified = await verifyMobileSession();
 
       if (!verified) {
