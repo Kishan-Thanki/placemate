@@ -28,6 +28,7 @@ DATABASES = {
 CORS_ALLOWED_ORIGINS = [
     "https://test-placemate-frontend.onrender.com",
     "https://placemate-cvlb.onrender.com",
+    "https://placemate-coral.vercel.app",
 
     "https://localhost:5173",
     "https://127.0.0.1:5173",
@@ -43,6 +44,7 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://test-placemate-frontend.onrender.com",
     "https://placemate-cvlb.onrender.com",
+    "https://placemate-coral.vercel.app",
 
     "https://localhost:5173",
     "https://127.0.0.1:5173",
@@ -59,7 +61,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://[\w-]+-placemate-frontend\.onrender\.com$",
     r"^https://[\w-]+-placemate-[\w-]+\.onrender\.com$",
     r"^http://localhost:\d+$",  
-    r"^http://192\.168\.\d+\.\d+:\d+$", 
+    r"^http://192\.168\.\d+\.\d+:\d+$",
 ]
 
 # Strict CORS settings
