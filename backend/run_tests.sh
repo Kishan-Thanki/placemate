@@ -74,10 +74,10 @@ run_app_tests() {
     
     # Print results
     if [ "$TEST_RESULT" -eq 0 ] && [ "$FAILURES" -eq 0 ] && [ "$ERRORS" -eq 0 ]; then
-        print_color "✅ ALL $TEST_COUNT $display_name TESTS PASSED!" "$GREEN"
+        print_color "ALL $TEST_COUNT $display_name TESTS PASSED!" "$GREEN"
         return 0
     else
-        print_color "❌ $FAILURES failures and $ERRORS errors out of $TEST_COUNT tests in $display_name" "$RED"
+        print_color "$FAILURES failures and $ERRORS errors out of $TEST_COUNT tests in $display_name" "$RED"
         echo ""
         print_color "DETAILED ERROR REPORT:" "$YELLOW"
         echo "==================================================="

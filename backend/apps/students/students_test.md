@@ -6,7 +6,7 @@
 |--------|-------|
 | **Test Suite** | Students (Profiles, Registration Serializers, Views) |
 | **Total Tests** | 26 |
-| **Status** | ✅ ALL TESTS PASSED |
+| **Status** | ALL TESTS PASSED |
 | **Execution Time** | 38.217 seconds |
 | **Test Database** | `test_postgres` |
 
@@ -18,24 +18,24 @@
 
 | Test Case IDs | Coverage | Status |
 |---------------|----------|--------|
-| STUDENTS-MODEL-001-001-* | `StudentProfile` creation, constraints (`verified_student_has_required_data`), ordering | ✅ |
-| STUDENTS-MODEL-001-002-* | String representations, verification flags | ✅ |
+| STUDENTS-MODEL-001-001-* | `StudentProfile` creation, constraints (`verified_student_has_required_data`), ordering | PASS |
+| STUDENTS-MODEL-001-002-* | String representations, verification flags | PASS |
 
 ### 2. SERIALIZER TESTS (`apps/students/tests/test_serializers.py`)
 
 | Serializer | Focus | Status |
 |------------|-------|--------|
-| `StudentRegistrationSerializer` | Uniqueness, CGPA/phone validation | ✅ |
-| `StudentProfileSerializer` | Nested user data, writable fields, CGPA ranges | ✅ |
-| `StudentProfileUpdateSerializer` | Partial updates, verification toggles | ✅ |
+| `StudentRegistrationSerializer` | Uniqueness, CGPA/phone validation | PASS |
+| `StudentProfileSerializer` | Nested user data, writable fields, CGPA ranges | PASS |
+| `StudentProfileUpdateSerializer` | Partial updates, verification toggles | PASS |
 
 ### 3. VIEW TESTS (`apps/students/tests/test_views.py`)
 
 | Test Class | Endpoints Covered | Status |
 |------------|-------------------|--------|
-| `StudentRegistrationViewTest` | `/api/v1/students/register/` | ✅ |
-| `StudentProfileViewTest` | `/api/v1/students/profile/` GET/PATCH | ✅ |
-| `StudentViewSetTest` | Admin listing/filtering, `/mark-as-placed/` action | ✅ |
+| `StudentRegistrationViewTest` | `/api/v1/students/register/` | PASS |
+| `StudentProfileViewTest` | `/api/v1/students/profile/` GET/PATCH | PASS |
+| `StudentViewSetTest` | Admin listing/filtering, `/mark-as-placed/` action | PASS |
 
 Cookie-based JWT auth is used via `RefreshToken` for every request, ensuring middleware + permissions behave exactly like production.
 
@@ -59,7 +59,7 @@ source venv/bin/activate
 
 ---
 
-**Status**: ✅ Students app test documentation complete.  
+**Status**: Students app test documentation complete.  
 **Owner**: Backend/QA.  
 **Notes**: Keep fixtures in sync with `students/models.py` when constraints change.
 
