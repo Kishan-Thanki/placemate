@@ -1,26 +1,75 @@
-# Placemate Backend - Comprehensive Understanding Document
+# Placemate Backend
+
+Django REST API for placement management system with JWT authentication, role-based access control, and Docker deployment.
+
+## Quick Start
+
+### Local Development (Without Docker)
+```bash
+# Setup
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env  # Edit with your values
+
+# Database
+python manage.py migrate
+python manage.py createsuperuser
+
+# Run
+python manage.py runserver
+```
+
+### Local Development (With Docker)
+```bash
+# Build and run
+docker-compose up --build
+
+# Access
+# API: http://localhost:8000
+# Admin: http://localhost:8000/admin
+```
+
+### Deploy to Render
+1. Connect GitHub repository
+2. Render auto-detects Dockerfile
+3. Add environment variables in dashboard
+4. Deploy automatically on push
+
+---
 
 ## Table of Contents
-1. [Architecture Overview](#architecture-overview)
-2. [Core Components](#core-components)
-3. [Application Structure](#application-structure)
-4. [Authentication & Authorization](#authentication--authorization)
-5. [Models & Data Flow](#models--data-flow)
-6. [API Endpoints](#api-endpoints)
-7. [Business Logic](#business-logic)
-8. [Testing Strategy](#testing-strategy)
+
+### Getting Started
+- [Quick Start](#quick-start)
+- [Docker Deployment](#docker-deployment)
+- [Environment Variables](#environment-variables)
+
+### Development
+- [Architecture Overview](#architecture-overview)
+- [API Endpoints](#api-endpoints-summary)
+- [Authentication & Authorization](#authentication--authorization)
+- [Testing Strategy](#testing-strategy)
+
+### Reference
+- [Core Components](#core-components)
+- [Business Logic](#business-logic-highlights)
+- [Deployment Platforms](#deployment-platforms)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Architecture Overview
 
 ### Technology Stack
-- **Framework**: Django 5.2.6 + Django REST Framework 3.16.1
+- **Framework**: Django 5.2.8 + Django REST Framework 3.16.1
 - **Database**: PostgreSQL (via Supabase)
 - **Authentication**: JWT (Simple JWT) with HTTP-only cookies
 - **File Storage**: Cloudinary (production) / Local filesystem (development)
 - **Email**: Brevo (via django-anymail)
-- **Deployment**: Render (Gunicorn + WhiteNoise)
+- **Deployment**: Docker + Gunicorn + WhiteNoise (Render, Railway, Fly.io, etc.)
 
 ### Key Design Patterns
 1. **Cookie-based JWT Authentication** - Secure token storage in HTTP-only cookies
@@ -593,22 +642,279 @@
 
 ---
 
-## Summary
+---
 
-The Placemate backend is a well-structured Django REST API with:
-- **6 main apps**: core, users, students, companies, placements, applications
-- **Cookie-based JWT authentication** with role-based access control
-- **Standardized API responses** and error handling
-- **Complex business logic** for placement management
-- **Email notifications** for key events
-- **File uploads** via Cloudinary
-- **Comprehensive permission system**
+## Docker Deployment
 
-The codebase follows Django best practices with:
-- Custom user model
-- Reusable base classes (BaseViewSet)
-- Centralized utilities
-- Background task processing
-- Security best practices
+### Overview
+The backend is fully containerized with Docker, supporting both local development and production deployments on any Docker-compatible platform (Render, Railway, Fly.io, AWS, etc.).
 
-Ready for comprehensive testing implementation!
+### Prerequisites
+- Docker installed (version 20.x or higher)
+- Docker Compose installed (version 1.29 or higher)
+- `.env` file configured with required variables
+
+### Local Development Testing
+
+**Prerequisites:** Docker and Docker Compose installed
+
+**Quick Start:**
+```bash
+# 1. Create .env file (see Environment Variables section)
+# 2. Build and start
+docker-compose up --build
+
+# 3. Verify
+curl http://localhost:8000/health/
+```
+
+**Common Commands:**
+```bash
+docker-compose up              # Start
+docker-compose down            # Stop
+docker-compose logs -f backend # View logs
+docker-compose exec backend python manage.py migrate  # Run migrations
+docker-compose exec backend python manage.py createsuperuser  # Create admin
+```
+
+### Production Deployment
+
+**Build and run locally (for testing):**
+```bash
+docker build -t placemate-backend:latest .
+docker run -d --name placemate-backend -p 8000:8000 --env-file .env \
+  -e DJANGO_SETTINGS_MODULE=placemate.settings.production \
+  placemate-backend:latest
+```
+
+**Or use production compose:**
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+**For Render:** See [Deployment Platforms](#deployment-platforms) section below.
+
+### Docker Files
+
+- `Dockerfile` - Multi-stage build for optimized production image
+- `docker-compose.yml` - Local development with hot reload
+- `docker-compose.prod.yml` - Production-like configuration
+- `entrypoint.sh` - Startup script (migrations, static files, database wait)
+- `.dockerignore` - Excludes unnecessary files from build context
+- `test-docker.sh` - Automated testing script
+
+### Environment Variables
+
+**Required for production:**
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DEBUG` | Debug mode | `False` |
+| `SECRET_KEY` | Django secret key | Generate with Django |
+| `DJANGO_SETTINGS_MODULE` | Settings module | `placemate.settings.production` |
+| `DATABASE_URL` | Supabase PostgreSQL connection | `postgresql://user:pass@host:port/db` |
+| `FRONTEND_URL` | Frontend application URL | `https://your-frontend.com` |
+| `BREVO_API_KEY` | Brevo email API key | From Brevo dashboard |
+| `DEFAULT_FROM_EMAIL` | Default sender email | `noreply@yourdomain.com` |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | From Cloudinary |
+| `CLOUDINARY_API_KEY` | Cloudinary API key | From Cloudinary |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret | From Cloudinary |
+
+**Optional:**
+- `JWT_ACCESS_TOKEN_LIFETIME_MINUTES` (default: 60)
+- `JWT_REFRESH_TOKEN_LIFETIME_DAYS` (default: 7)
+
+### Deployment Strategies
+
+There are two main approaches to deploy:
+
+#### Strategy 1: Build from Source (Recommended for Most Cases)
+
+**How it works:**
+- Platform (Render/Railway) connects to your GitHub repo
+- On every commit, platform builds Docker image from source
+- Platform runs the built image
+
+**Pros:**
+- Simple setup - just connect repo
+- Automatic deployments on every commit
+- No need to manage container registry
+- Free for most platforms
+
+**Best for:** Most projects, especially Render and Railway
+
+#### Strategy 2: Push to Container Registry
+
+**How it works:**
+- Build Docker image locally or in CI
+- Push image to registry (Docker Hub, GitHub Container Registry)
+- Platform pulls pre-built image from registry
+
+**Pros:**
+- Faster deployments (no build on platform)
+- Build once, deploy anywhere
+- Can test image before deploying
+
+**Best for:** When you need faster deployments or multiple deployment targets
+
+**Detailed comparison:**
+
+| Feature | Build from Source | Container Registry |
+|---------|------------------|-------------------|
+| Setup Complexity | Low | Medium |
+| Deployment Speed | Slower (builds on platform) | Faster (pre-built) |
+| Cost | Free (usually) | Free tier available |
+| Version Control | Git commits | Image tags |
+| Best For | Most projects | Production/Enterprise |
+
+**Recommendation:** Start with Build from Source (GitHub commit) because it's simpler and works great with Render/Railway. You can always switch to Container Registry later if needed.
+
+#### Using Container Registry (Optional)
+
+If you want to use a pre-built image from a registry:
+
+**Docker Hub:**
+```bash
+# Build and tag
+docker build -t yourusername/placemate-backend:latest .
+docker build -t yourusername/placemate-backend:v1.0.0 .
+
+# Login
+docker login
+
+# Push
+docker push yourusername/placemate-backend:latest
+docker push yourusername/placemate-backend:v1.0.0
+```
+
+**GitHub Container Registry (GHCR):**
+```bash
+# Build and tag
+docker build -t ghcr.io/yourusername/placemate-backend:latest .
+
+# Login (use GitHub Personal Access Token)
+echo $GITHUB_TOKEN | docker login ghcr.io -u yourusername --password-stdin
+
+# Push
+docker push ghcr.io/yourusername/placemate-backend:latest
+```
+
+**Then on Render:**
+- Select "Docker" service type
+- Specify image: `yourusername/placemate-backend:latest`
+- Set environment variables
+- Deploy
+
+**Auto-push with GitHub Actions:**
+Create `.github/workflows/docker-push.yml` to automatically build and push on every commit to main branch.
+
+### Deployment Platforms
+
+#### Render (Recommended)
+
+1. Connect GitHub repository
+2. Render auto-detects Dockerfile
+3. Add environment variables in dashboard "Environment" section (see Environment Variables table above)
+4. Auto-deploy on push to main branch
+
+**Note:** Render does NOT use .env files. Add variables individually in dashboard.
+
+#### Railway
+
+1. Connect repository
+2. Railway auto-detects Dockerfile
+3. Add environment variables in dashboard
+4. Auto-deploy on push
+
+#### Fly.io
+
+```bash
+flyctl install
+fly launch  # Auto-detects Dockerfile
+fly secrets set KEY=value
+fly deploy
+```
+
+#### AWS ECS / Fargate
+
+Requires container registry. Build and push to ECR, then create ECS task definition.
+
+### Production Considerations
+
+- **Gunicorn Workers**: Default is 4 workers. Adjust based on CPU cores: (2 × CPU) + 1
+  - 1 CPU: `--workers 2`
+  - 2 CPU: `--workers 4`
+  - 4 CPU: `--workers 8`
+- **Static Files**: Collected automatically on container startup via `entrypoint.sh`
+- **Database Migrations**: Run automatically on container startup
+- **Security**: Container runs as non-root user (`appuser`)
+- **Health**: Database connection checked before startup (30 attempts, 2s intervals)
+- **Timeout**: Default 120s. Increase for heavy operations: `--timeout 300`
+- **Memory Limits**: Set in docker-compose or platform settings
+
+### Performance Tuning
+
+**Gunicorn Workers:** Default 4. Adjust: (2 × CPU) + 1
+
+**Memory Limits:** Set in docker-compose or platform settings. Monitor with `docker stats placemate-backend`
+
+### Troubleshooting
+
+#### Database Connection Issues
+- Verify `DATABASE_URL` is correct
+- Check Supabase connection settings
+- Ensure network connectivity from container
+- Test connection outside Docker: `psql $DATABASE_URL`
+
+#### Container Won't Start
+- Check logs: `docker logs placemate-backend`
+- Verify environment variables are set
+- Ensure `DATABASE_URL` is accessible from container
+
+#### Port Already in Use
+- Change port mapping in docker-compose.yml: `"8080:8000"`
+- Or use platform's port variable: `$PORT`
+
+#### Static Files Not Loading
+- Check `STATIC_ROOT` permissions
+- Verify `collectstatic` ran successfully: `docker exec placemate-backend ls -la /app/staticfiles`
+- Re-collect static files: `docker-compose exec backend python manage.py collectstatic --noinput`
+- Check WhiteNoise configuration
+
+#### Environment Variables Not Loading
+- For local: Ensure `.env` file exists and is properly formatted
+- For Render: Verify all variables are set in Render dashboard "Environment" section (not from .env file)
+- Check `DJANGO_SETTINGS_MODULE` is set correctly
+- Ensure variable names match exactly (case-sensitive)
+- Verify variables are set in platform dashboard (for production)
+
+#### Permission Denied on entrypoint.sh
+```bash
+chmod +x entrypoint.sh
+```
+
+#### Module Not Found Errors
+- Rebuild image: `docker-compose build --no-cache`
+- Check `requirements.txt` includes all dependencies
+
+#### High Memory Usage
+- Reduce Gunicorn workers: `--workers 2`
+- Monitor with: `docker stats placemate-backend`
+
+### Testing
+
+**Automated test:**
+```bash
+./test-docker.sh
+```
+
+**Manual checklist:**
+- Docker installed and running
+- `.env` file configured
+- Image builds successfully
+- Container starts without errors
+- Database connection works
+- Migrations run
+- Static files collected
+- Health endpoint responds
+- API endpoints work
