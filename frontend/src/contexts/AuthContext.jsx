@@ -3,23 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext(null);
 
-// 🆕 Helper function to normalize roles (extract name from objects)
-const normalizeRole = (role) => {
-  if (!role) return null;
-  if (typeof role === 'object' && role !== null) {
-    return role.name ? String(role.name).toLowerCase() : null;
-  }
-  return String(role).toLowerCase();
-};
-
-// 🆕 Helper function to extract role names from role objects
-const extractRoleNames = (roles) => {
-  if (!roles || !Array.isArray(roles)) return [];
-  return roles.map(role => 
-    typeof role === 'object' && role !== null ? role.name : role
-  );
-};
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -41,11 +24,6 @@ export const AuthProvider = ({ children }) => {
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-
-        // 🆕 Extract role names from role objects if needed
-        if (parsedUser.roles && Array.isArray(parsedUser.roles)) {
-          parsedUser.roles = extractRoleNames(parsedUser.roles);
-        }
 
         // Ensure activeRole is set - if missing, set it based on available roles
         if (
@@ -80,36 +58,21 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
-    // 🆕 Extract role names from role objects if needed
-    if (userData.roles && Array.isArray(userData.roles)) {
-      userData.roles = extractRoleNames(userData.roles);
-    }
-
     // Ensure activeRole is set during login
     if (!userData.activeRole && userData.roles && userData.roles.length > 0) {
-      // 🆕 Extract active role name if it's an object
-      let activeRole = userData.activeRole;
-      if (activeRole && typeof activeRole === 'object') {
-        activeRole = activeRole.name;
+      // Prioritize admin/cell member roles over student
+      if (
+        userData.roles.includes("admin") ||
+        userData.roles.includes("student placement cell")
+      ) {
+        userData.activeRole = userData.roles.includes("admin")
+          ? "admin"
+          : "student placement cell";
+      } else if (userData.roles.includes("student")) {
+        userData.activeRole = "student";
+      } else {
+        userData.activeRole = userData.roles[0]; // Fallback to first role
       }
-
-      if (!activeRole) {
-        // Prioritize admin/cell member roles over student
-        if (
-          userData.roles.includes("admin") ||
-          userData.roles.includes("student placement cell")
-        ) {
-          activeRole = userData.roles.includes("admin")
-            ? "admin"
-            : "student placement cell";
-        } else if (userData.roles.includes("student")) {
-          activeRole = "student";
-        } else {
-          activeRole = userData.roles[0]; // Fallback to first role
-        }
-      }
-      
-      userData.activeRole = activeRole;
     }
 
     setUser(userData);
@@ -118,13 +81,10 @@ export const AuthProvider = ({ children }) => {
 
   const switchRole = (newRole) => {
     setIsSwitchingRole(true);
-    // 🆕 Extract role name if it's an object
-    const normalizedRole = typeof newRole === 'object' ? newRole.name : newRole;
-    
     // Update user with new active role
     const updatedUser = {
       ...user,
-      activeRole: normalizedRole,
+      activeRole: newRole,
     };
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -144,13 +104,14 @@ export const AuthProvider = ({ children }) => {
 
   const hasRole = (role) => {
     if (!user || !user.roles) return false;
-    const targetRole = normalizeRole(role);
-    return user.roles.some((r) => normalizeRole(r) === targetRole);
+    // Case-insensitive comparison
+    return user.roles.some((r) => r.toLowerCase() === role.toLowerCase());
   };
 
   const isActiveRole = (role) => {
     if (!user || !user.activeRole) return false;
-    return normalizeRole(user.activeRole) === normalizeRole(role);
+    // Case-insensitive comparison
+    return user.activeRole.toLowerCase() === role.toLowerCase();
   };
 
   const hasAnyRole = (roles) => {

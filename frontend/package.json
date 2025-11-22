@@ -1,17 +1,13 @@
 {
-  "name": "placemate-frontend",
+  "name": "admin",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 3000",
-    "serve": "serve dist -s -l 3000",
-    "start": "serve dist -s -l 3000",
-    "deploy:netlify": "npm run build && npx netlify deploy --prod --dir=dist",
-    "deploy:vercel": "npm run build && npx vercel --prod",
-    "deploy:render": "npm run build"
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.14",
@@ -42,7 +38,6 @@
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
     "postcss": "^8.5.6",
-    "serve": "^14.2.5",
     "tailwindcss": "^4.1.14",
     "vite": "^7.1.7"
   }
