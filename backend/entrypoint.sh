@@ -3,7 +3,6 @@ set -e
 
 echo "Starting Placemate Backend..."
 
-# Wait for database to be ready (if using external DB, this will timeout gracefully)
 echo "Waiting for database connection..."
 python << END
 import sys
@@ -53,18 +52,7 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear || echo "Static files collection failed, continuing..."
 
-# Create superuser if it doesn't exist (optional, for initial setup)
-# Uncomment if needed:
-# echo "Creating superuser (if not exists)..."
-# python manage.py shell << END
-# from apps.users.models import User
-# if not User.objects.filter(email='admin@example.com').exists():
-#     User.objects.create_superuser('admin@example.com', 'admin123')
-#     print("Superuser created!")
-# END
-
 echo "Setup complete! Starting server..."
 
 # Execute the command passed as arguments
 exec "$@"
-

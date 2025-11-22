@@ -13,16 +13,12 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-placemate.settings.local}
     volumes:
-      # Mount source code for hot reload (development only)
       - .:/app
-      # Exclude these from volume mount to use container versions
       - /app/venv
       - /app/__pycache__
       - /app/.pytest_cache
       - /app/staticfiles
       - /app/media
-    # Entrypoint handles: DB wait, migrations, static files
-    # Command just starts the dev server
     command: python manage.py runserver 0.0.0.0:8000
     restart: unless-stopped
     networks:
@@ -31,4 +27,3 @@ services:
 networks:
   placemate-network:
     driver: bridge
-

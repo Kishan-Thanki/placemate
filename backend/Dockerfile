@@ -35,7 +35,7 @@ FROM python:3.13-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH="/home/appuser/.local/bin:$PATH"
+    PATH="/home/appuser/.local/bin:/root/.local/bin:$PATH"
 
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -49,8 +49,9 @@ RUN useradd --create-home --shell /bin/bash appuser
 # Set working directory
 WORKDIR /app
 
-# Copy Python packages from builder
+# Copy Python packages from builder (for both root and appuser)
 COPY --from=builder /root/.local /home/appuser/.local
+COPY --from=builder /root/.local /root/.local
 
 # Copy application code
 COPY --chown=appuser:appuser . .
@@ -74,4 +75,3 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Default command (can be overridden)
 CMD ["gunicorn", "placemate.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-"]
-

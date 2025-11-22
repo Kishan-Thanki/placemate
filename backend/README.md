@@ -33,10 +33,11 @@ docker-compose up --build
 ```
 
 ### Deploy to Render
-1. Connect GitHub repository
-2. Render auto-detects Dockerfile
-3. Add environment variables in dashboard
-4. Deploy automatically on push
+1. New Web Service → Select "Docker"
+2. Connect GitHub repository
+3. Set Root Directory to `backend/`
+4. Add environment variables in "Environment Variables" section
+5. Deploy automatically on push
 
 ---
 
@@ -812,12 +813,36 @@ Create `.github/workflows/docker-push.yml` to automatically build and push on ev
 
 #### Render (Recommended)
 
-1. Connect GitHub repository
-2. Render auto-detects Dockerfile
-3. Add environment variables in dashboard "Environment" section (see Environment Variables table above)
-4. Auto-deploy on push to main branch
+**Setup Steps:**
 
-**Note:** Render does NOT use .env files. Add variables individually in dashboard.
+1. **New Web Service** → Select "Docker" as Language
+2. **Source Code:** Connect your GitHub repository
+3. **Branch:** Select your branch (e.g., `main` or `kishan/cookies`)
+4. **Root Directory:** Set to `backend/` (important for monorepo)
+5. **Instance Type:** Choose Free (for testing) or paid tier
+6. **Environment Variables:** Click "Add Environment Variable" and add each variable:
+   - `DEBUG=False`
+   - `SECRET_KEY=your-secret-key`
+   - `DJANGO_SETTINGS_MODULE=placemate.settings.production`
+   - `DATABASE_URL=your-supabase-connection-string`
+   - `FRONTEND_URL=your-frontend-url`
+   - `BREVO_API_KEY=your-brevo-key`
+   - `DEFAULT_FROM_EMAIL=your-email`
+   - `CLOUDINARY_CLOUD_NAME=your-cloud-name`
+   - `CLOUDINARY_API_KEY=your-api-key`
+   - `CLOUDINARY_API_SECRET=your-api-secret`
+   - `JWT_ACCESS_TOKEN_LIFETIME_MINUTES=60` (optional)
+   - `JWT_REFRESH_TOKEN_LIFETIME_DAYS=7` (optional)
+7. **Build & Deploy:** Render auto-detects Dockerfile and deploys
+
+**Important Notes:**
+- **Root Directory:** Must be `backend/` if your Dockerfile is in the backend folder (required for monorepo)
+- **Environment Variables:** 
+  - Click "Add Environment Variable" for each variable
+  - The "Add from .env" button is just a helper to paste .env content - you still need to add each variable manually
+  - Render does NOT automatically read .env files from your repository
+- **Build/Start Commands:** Leave empty - Render auto-detects from Dockerfile
+- **Auto-Deploy:** Enabled by default on push to selected branch
 
 #### Railway
 
