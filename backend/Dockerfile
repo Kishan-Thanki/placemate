@@ -74,4 +74,4 @@ RUN chmod +x /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Default command (can be overridden)
-CMD ["gunicorn", "placemate.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-"]
+CMD ["gunicorn", "placemate.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "90", "--preload", "--access-logfile", "-", "--error-logfile", "-"]

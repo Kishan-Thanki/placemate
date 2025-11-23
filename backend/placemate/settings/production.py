@@ -16,22 +16,26 @@ ALLOWED_HOSTS = [
     ".onrender.com",
     "localhost",
     "127.0.0.1",
+    "placemate-cnc3.onrender.com",
 ]
 
 # --- Database ---
 DATABASES = {
     "default": dj_database_url.parse(config("DATABASE_URL"))
 }
+# Render Free Tier optimizations
+DATABASES['default']['CONN_MAX_AGE'] = 60
+DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 
 # --- CORS & Security ---
 CORS_ALLOWED_ORIGINS = [
     "https://placemate-coral.vercel.app",
-
+    "https://placemate-cnc3.onrender.com",
+    
     "https://localhost:5173",
     "https://127.0.0.1:5173",
     "https://localhost:3000",     
     "https://127.0.0.1:3000",
-
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",     
@@ -40,12 +44,12 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://placemate-coral.vercel.app",
+    "https://placemate-cnc3.onrender.com",
 
     "https://localhost:5173",
     "https://127.0.0.1:5173",
     "https://localhost:3000",     
     "https://127.0.0.1:3000",
-
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",     
@@ -75,3 +79,16 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # --- File Storage ---
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# --- Render Free Tier Optimizations ---
+# Reduce memory usage
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# Optimize file upload limits for low memory
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  
