@@ -1,10 +1,10 @@
 # Contributing to Placemate
 Welcome to the Placemate project! We're excited to have you on board. This guide will help you get started with the project and understand our workflow, ensuring that your contributions are integrated smoothly.
 
-🤝 **Our Code of Conduct**  
+**Our Code of Conduct**  
 Welcome to the Placemate project! We're excited to have you on board. This guide will help you get started with the project and understand our workflow, ensuring that your contributions are integrated smoothly.
 
-🚀 **Getting Started**  
+**Getting Started**  
 To begin contributing, please follow this standard workflow. It helps us keep the project organized and ensures everyone's work is integrated smoothly.
 
 ### Step 1: Clone the Repository
@@ -82,7 +82,7 @@ git push -u origin your-username/feature-name
 
 ---
 
-## 📝 Pull Request (PR) Workflow
+## Pull Request (PR) Workflow
 When you're ready to submit your changes, follow these steps to create a pull request on GitHub:
 
 1. **Open a Pull Request:** On GitHub, you'll see a prompt to open a pull request from your feature branch to the `dev` branch.  
@@ -115,7 +115,7 @@ After resolving them, `git add .`, `git commit`, and `git push`.
 
 ---
 
-## 🐛 Issues and Task Tracking
+## Issues and Task Tracking
 We use GitHub's **Issues** to track bugs and tasks.
 
 - **Reporting a Bug:** If you find a bug, please check the existing issues to see if it has already been reported. If not, open a new issue and provide a clear, detailed description of the problem, including steps to reproduce it.  
@@ -124,7 +124,7 @@ We use GitHub's **Issues** to track bugs and tasks.
 
 ---
 
-## ⚠️ Troubleshooting `git pull` Issues
+## Troubleshooting `git pull` Issues
 Sometimes, a simple `git pull` might fail with a message about "divergent branches" if there are new commits on the remote branch that you don't have. This means your local and remote branches have different histories.
 
 To fix this, use the `--rebase` option:
