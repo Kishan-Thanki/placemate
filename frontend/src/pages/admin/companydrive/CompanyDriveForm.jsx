@@ -28,6 +28,7 @@ export default function CompanyDriveForm() {
     company: "",
     drive_type: "",
     job_mode: "",
+    multiple_allowed: false,
     application_deadline: "",
     status: "Open",
     rounds: [""], // Array of round strings
@@ -77,6 +78,7 @@ export default function CompanyDriveForm() {
         company: driveData.company?.id || driveData.company || "",
         drive_type: driveData.drive_type || "",
         job_mode: driveData.job_mode || "",
+        multiple_allowed: driveData.multiple_allowed || false,
         application_deadline: driveData.application_deadline
           ? new Date(driveData.application_deadline).toISOString().slice(0, 16)
           : "",
@@ -206,6 +208,7 @@ export default function CompanyDriveForm() {
       company: parseInt(formData.company),
       drive_type: formData.drive_type,
       job_mode: formData.job_mode,
+      multiple_allowed: formData.multiple_allowed,
       application_deadline: formData.application_deadline || null,
       status: formData.status || "Open",
       rounds: roundsArray.length > 0 ? roundsArray : null,
@@ -243,6 +246,7 @@ export default function CompanyDriveForm() {
         company: parseInt(formData.company),
         drive_type: formData.drive_type,
         job_mode: formData.job_mode,
+        multiple_allowed: formData.multiple_allowed,
         application_deadline: formData.application_deadline || null,
         status: formData.status || "Open",
         rounds: roundsArray.length > 0 ? roundsArray : null,
@@ -641,6 +645,52 @@ export default function CompanyDriveForm() {
                   <p className={`mt-1 text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                     Select posting locations from the dropdown
                   </p>
+                </div>
+
+                {/* Multiple Role Applications */}
+                <div
+                  className={`p-4 rounded-lg border-2 ${
+                    formData.multiple_allowed
+                      ? isDark
+                        ? "bg-blue-900/20 border-blue-500"
+                        : "bg-blue-50 border-blue-500"
+                      : isDark
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-gray-50 border-gray-300"
+                  } transition-all duration-200`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-center h-6">
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="multiple_allowed"
+                          name="multiple_allowed"
+                          checked={formData.multiple_allowed}
+                          onChange={(e) => setFormData(prev => ({ ...prev, multiple_allowed: e.target.checked }))}
+                          className="sr-only peer"
+                        />
+                        <div className={`w-11 h-6 rounded-full peer peer-focus:ring-4 ${
+                          isDark 
+                            ? "bg-gray-700 peer-focus:ring-blue-800 peer-checked:bg-blue-600" 
+                            : "bg-gray-300 peer-focus:ring-blue-300 peer-checked:bg-blue-600"
+                        } peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}></div>
+                      </label>
+                    </div>
+                    <div className="flex-1">
+                      <label
+                        htmlFor="multiple_allowed"
+                        className={`block text-sm font-semibold mb-1 cursor-pointer ${
+                          isDark ? "text-gray-200" : "text-gray-900"
+                        }`}
+                      >
+                        Multiple Role Applications
+                      </label>
+                      <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                        Allow students to apply for multiple job roles within this company drive
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
