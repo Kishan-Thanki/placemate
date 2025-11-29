@@ -4,7 +4,6 @@ from cloudinary.models import CloudinaryField
 class CompanyDriveApplication(models.Model):
     STATUS_CHOICES = [
         ('Applied', 'Applied'),
-        ('Withdrawn', 'Withdrawn'),
         ('Offered', 'Offered'),
         ('Rejected', 'Rejected'),
         ('Accepted', 'Accepted'),
