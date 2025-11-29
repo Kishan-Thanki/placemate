@@ -90,6 +90,29 @@ export default function StudentCompanyDriveDetails() {
     setShowApplyModal(true);
   };
 
+  const handleEditClick = () => {
+    if (!existingApplication) return;
+    
+    // Populate modal with existing application data
+    setResumeUrl(existingApplication.resume || "");
+    
+    // Populate job preferences from existing application
+    if (existingApplication.job_preferences && Array.isArray(existingApplication.job_preferences)) {
+      const prefs = existingApplication.job_preferences
+        .sort((a, b) => a.preference_order - b.preference_order)
+        .map(pref => ({
+          job: pref.job?.id || pref.job,
+          preference_order: pref.preference_order
+        }));
+      setJobPreferences(prefs);
+    } else if (existingApplication.offered_job) {
+      // Fallback: if only offered_job is available
+      setJobPreferences([{ job: existingApplication.offered_job?.id || existingApplication.offered_job, preference_order: 1 }]);
+    }
+    
+    setShowApplyModal(true);
+  };
+
   const handleCloseModal = () => {
     setShowApplyModal(false);
     setResumeUrl("");
@@ -152,13 +175,18 @@ export default function StudentCompanyDriveDetails() {
 
     try {
       setIsSubmitting(true);
-      const result = await applicationService.createApplication({
+      
+      const payload = {
         company_drive: parseInt(id),
         resume: resumeUrl,
         job_preferences: jobPreferences,
-      });
+      };
+      
+      // If editing existing application, we'll create a new one (backend handles withdrawal of old one)
+      const result = await applicationService.createApplication(payload);
+      
       setExistingApplication(result?.data || result);
-      success("Application submitted successfully!");
+      success(existingApplication ? "Application updated successfully!" : "Application submitted successfully!");
       handleCloseModal();
       // Optionally navigate to applications page
       setTimeout(() => navigate("/student/applications"), 2000);
@@ -275,9 +303,9 @@ export default function StudentCompanyDriveDetails() {
           ) : error ? (
             <div className={`p-6 rounded ${isDark ? "bg-gray-800" : "bg-gray-50"}`}>{error}</div>
           ) : (
-            <div className="flex gap-6">
+            <div className="flex flex-col lg:flex-row gap-6">
               {/* Left Sidebar - Package Details & Rounds */}
-              <div className="w-80 flex-shrink-0 space-y-4">
+              <div className="w-full lg:w-80 flex-shrink-0 space-y-4 order-2 lg:order-1">
                 {/* Package Details */}
                 <div className={`p-4 rounded-lg border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
                   <div className={`text-xs font-semibold uppercase mb-3 ${isDark ? "text-blue-400" : "text-blue-600"}`}>
@@ -335,35 +363,44 @@ export default function StudentCompanyDriveDetails() {
               </div>
 
               {/* Main Content Area */}
-              <div className="flex-1 space-y-4">
+              <div className="flex-1 space-y-4 order-1 lg:order-2">
                 {/* Company Header */}
                 <div className={`p-4 rounded-lg border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
                     {companyLogo && (
                       <img src={companyLogo} alt={companyName} className="w-16 h-16 object-contain rounded" />
                     )}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <h2 className={`text-xl font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{selectedJob?.title || "Position"}</h2>
                       <div className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>{companyName}</div>
                       <div className={`text-xs mt-1 ${isDark ? "text-gray-500" : "text-gray-500"}`}>
                         {driveType} • {location}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="w-full sm:w-auto sm:text-right">
                       <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Apply by:</div>
                       <div className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{deadline}</div>
                       {isDeadlinePassed ? (
                         <div className={`mt-2 text-xs font-medium ${isDark ? "text-red-400" : "text-red-600"}`}>Deadline Passed</div>
                       ) : existingApplication ? (
-                        <Button 
-                          variant="danger" 
-                          size="md" 
-                          className="mt-2"
-                          onClick={handleWithdraw}
-                          disabled={isWithdrawing}
-                        >
-                          {isWithdrawing ? "Withdrawing..." : "Withdraw Application"}
-                        </Button>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="md"
+                            onClick={handleEditClick}
+                            disabled={isWithdrawing}
+                          >
+                            Edit Application
+                          </Button>
+                          <Button 
+                            variant="danger" 
+                            size="md"
+                            onClick={handleWithdraw}
+                            disabled={isWithdrawing}
+                          >
+                            {isWithdrawing ? "Withdrawing..." : "Withdraw"}
+                          </Button>
+                        </div>
                       ) : canApply ? (
                         <Button 
                           variant="primary" 
@@ -383,12 +420,12 @@ export default function StudentCompanyDriveDetails() {
 
                 {/* Job Tabs */}
                 {jobs.length > 1 && (
-                  <div className={`flex gap-2 p-2 rounded-lg ${isDark ? "bg-gray-800" : "bg-gray-100"}`}>
+                  <div className={`flex gap-2 p-2 rounded-lg overflow-x-auto ${isDark ? "bg-gray-800" : "bg-gray-100"}`}>
                     {jobs.map((job, idx) => (
                       <button
                         key={job.id}
                         onClick={() => setSelectedJobIndex(idx)}
-                        className={`px-4 py-2 text-sm font-medium rounded transition ${
+                        className={`px-4 py-2 text-sm font-medium rounded transition whitespace-nowrap flex-shrink-0 ${
                           selectedJobIndex === idx
                             ? isDark
                               ? "bg-blue-600 text-white"
@@ -424,7 +461,7 @@ export default function StudentCompanyDriveDetails() {
         <Modal
           isOpen={showApplyModal}
           onClose={handleCloseModal}
-          title="Apply for Position"
+          title={existingApplication ? "Edit Application" : "Apply for Position"}
         >
           <div className="space-y-6">
             {/* Resume URL Input */}
