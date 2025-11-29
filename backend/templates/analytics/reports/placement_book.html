@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annual Placement Report {{ academic_year }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #1a1a1a;
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        h2 {
+            color: #0066cc;
+            margin-top: 30px;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 5px;
+        }
+        
+        .stat-box {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #0066cc;
+        }
+        
+        .stat-box h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #0066cc;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Annual Placement Report</h1>
+        <div class="subtitle">Academic Year {{ academic_year }}</div>
+    </div>
+    
+    <section>
+        <h2>Executive Summary</h2>
+        <div class="stat-box">
+            <h3>Overall Statistics</h3>
+            <p><strong>Total Students:</strong> {{ season_summary.total_students }}</p>
+            <p><strong>Placed Students:</strong> {{ season_summary.placed_students }}</p>
+            <p><strong>Placement Rate:</strong> {{ season_summary.placement_rate }}%</p>
+            <p><strong>Average Salary:</strong> ₹{{ season_summary.average_salary }} LPA</p>
+            <p><strong>Total Drives:</strong> {{ season_summary.total_drives }}</p>
+            <p><strong>Active Drives:</strong> {{ season_summary.active_drives }}</p>
+        </div>
+    </section>
+    
+    <section>
+        <h2>Program-Wise Performance</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Program</th>
+                    <th>Total Students</th>
+                    <th>Placed Students</th>
+                    <th>Placement Rate (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for program in program_stats %}
+                <tr>
+                    <td>{{ program.program_name }}</td>
+                    <td>{{ program.total_students }}</td>
+                    <td>{{ program.placed_students }}</td>
+                    <td>{{ program.placement_rate }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    
+    <section>
+        <h2>Top Recruiters</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Number of Offers</th>
+                    <th>Average Salary (LPA)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recruiter in top_recruiters %}
+                <tr>
+                    <td>{{ recruiter.name }}</td>
+                    <td>{{ recruiter.offers_count }}</td>
+                    <td>₹{{ recruiter.avg_salary|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    
+    <div class="footer">
+        <p>Generated on {{ generated_at|date:"F d, Y" }} at {{ generated_at|time:"H:i" }}</p>
+        <p>Placemate Placement Management System</p>
+    </div>
+</body>
+</html>
+

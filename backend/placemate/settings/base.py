@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.companies.apps.CompaniesConfig',
     'apps.placements.apps.PlacementsConfig',
     'apps.applications.apps.ApplicationsConfig',
+    'apps.analytics.apps.AnalyticsConfig',
 ]
 
 # --- Middleware Configuration ---
