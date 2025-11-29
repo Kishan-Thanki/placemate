@@ -5,28 +5,29 @@ import { PageContainer, Section } from "../../components/layout";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { companyDriveService } from "../../services/companyDriveService";
-import { CardSkeleton } from "../../components/ui";
+import { CardSkeleton, Button } from "../../components/ui";
 import { DriveCard } from "../../components/ui/DriveCard";
 import { fetchJSON } from "../../lib/api";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 
-function extractProgramIdFromProfile(profile) {
+function extractProgramFromProfile(profile) {
   if (!profile) return null;
-  if (profile.program && typeof profile.program === "object" && profile.program.id) return profile.program.id;
-  if (profile.program_id) return profile.program_id;
-  if (profile.programId) return profile.programId; // our stored normalised key
+  // Return program name directly (it's a string from the backend)
+  if (profile.program && typeof profile.program === "string") return profile.program;
+  // If it's an object, get the name
+  if (profile.program && typeof profile.program === "object") return profile.program.name || profile.program.abbreviation;
   return null;
 }
 
-function jobIncludesProgram(job, programId) {
-  if (!programId || !job) return false;
-  const programs = job.eligible_programs || job.eligible_programs_ids || [];
+function jobIncludesProgram(job, programName) {
+  if (!programName || !job) return false;
+  const programs = job.eligible_programs || [];
   if (!Array.isArray(programs)) return false;
   return programs.some((p) => {
     if (p === null || p === undefined) return false;
-    if (typeof p === "number") return p === programId;
-    if (typeof p === "string") return String(p) === String(programId);
-    if (typeof p === "object") return p.id === programId || String(p.id) === String(programId);
+    // Compare by name or abbreviation
+    if (typeof p === "string") return p === programName;
+    if (typeof p === "object") return p.name === programName || p.abbreviation === programName;
     return false;
   });
 }
@@ -80,18 +81,18 @@ export default function StudentCompanyDriveDetails() {
         setDrive(driveData);
         setJobs(jobsData);
 
-        // Determine student's program id from stored user profile first
-        let programId = null;
+        // Determine student's program name from stored user profile first
+        let programName = null;
         if (user && user.studentProfile) {
-          programId = extractProgramIdFromProfile(user.studentProfile);
+          programName = extractProgramFromProfile(user.studentProfile);
         }
 
-        // Fallback: try fetching /students/me/ if programId still missing
-        if (!programId) {
+        // Fallback: try fetching /students/me/ if program name still missing
+        if (!programName) {
           try {
             const { ok: studentOk, data: studentResp } = await fetchJSON("/api/v1/students/me/", { method: "GET", credentials: "include" });
             if (studentOk && studentResp?.data) {
-              programId = extractProgramIdFromProfile(studentResp.data);
+              programName = extractProgramFromProfile(studentResp.data);
             }
           } catch (e) {
             // ignore student profile fallback failure, log for debugging
@@ -100,7 +101,7 @@ export default function StudentCompanyDriveDetails() {
         }
 
         // Compute eligibility: any job that includes the student's program
-        const eligible = jobsData.some((job) => jobIncludesProgram(job, programId));
+        const eligible = jobsData.some((job) => jobIncludesProgram(job, programName));
         setCanApply(Boolean(eligible));
       } catch (err) {
         console.error("Failed to load company drive detail", err);
@@ -231,7 +232,14 @@ export default function StudentCompanyDriveDetails() {
                       <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Apply by:</div>
                       <div className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{deadline}</div>
                       {canApply ? (
-                        <button className="mt-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700">Apply</button>
+                        <Button 
+                          variant="primary" 
+                          size="md" 
+                          className="mt-2"
+                        >
+                          <Send size={16} className="mr-2" />
+                          Apply Now
+                        </Button>
                       ) : (
                         <div className={`mt-2 text-xs ${isDark ? "text-gray-500" : "text-gray-600"}`}>Not Eligible</div>
                       )}

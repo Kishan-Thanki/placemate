@@ -100,12 +100,6 @@ export function Sidebar({ isOpen, onClose }) {
       href: "/admin/drives/new",
     },
     {
-      id: "register-cell-member",
-      name: "Register Cell Member",
-      icon: <Users size={18} />,
-      href: "/admin/spc",
-    },
-    {
       id: "register-student",
       name: "Register Student",
       icon: <Users size={18} />,

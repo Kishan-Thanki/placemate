@@ -135,17 +135,10 @@ export default function LoginPage() {
 
             if (studentOk && studentResp?.data) {
               const profile = studentResp.data;
-              // normalise program id if present
-              let programId = null;
-              if (profile.program && typeof profile.program === "object" && profile.program.id) {
-                programId = profile.program.id;
-              } else if (profile.program_id) {
-                programId = profile.program_id;
-              }
 
               storedUser.studentProfile = {
-                programId,
-                program: profile.program || profile.program_details || null,
+                program: profile.program || null,
+                programDetails: profile.program_details || null,
                 enrollmentNumber: profile.enrollment_number || null,
               };
             }

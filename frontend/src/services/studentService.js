@@ -1,19 +1,11 @@
 import { fetchJSON } from "../lib/api";
 
-/**
- * Student Service
- * Handles all API calls related to students
- */
 
 const STUDENTS_ENDPOINT = "/api/v1/students";
 const PROFILES_ENDPOINT = "/api/v1/students/profiles";
 
 export const studentService = {
-  /**
-   * Register a new student
-   * @param {Object} studentData - Student registration data
-   * @returns {Promise<Object>} Response with student data
-   */
+ 
   registerStudent: async (studentData) => {
     try {
       const { ok, data, status, message } = await fetchJSON(
@@ -40,10 +32,6 @@ export const studentService = {
     }
   },
 
-  /**
-   * Get all students
-   * @returns {Promise<Array>} Students array
-   */
   getAllStudents: async () => {
     try {
       const { ok, data, status, message } = await fetchJSON(
@@ -66,11 +54,6 @@ export const studentService = {
     }
   },
 
-  /**
-   * Get student by ID
-   * @param {number} id - Student ID
-   * @returns {Promise<Object>} Student data
-   */
   getStudentById: async (id) => {
     try {
       const { ok, data, status, message } = await fetchJSON(
@@ -93,12 +76,6 @@ export const studentService = {
     }
   },
 
-  /**
-   * Update student
-   * @param {number} id - Student ID
-   * @param {Object} studentData - Updated student data
-   * @returns {Promise<Object>} Updated student data
-   */
   updateStudent: async (id, studentData) => {
     try {
       const { ok, data, status, message } = await fetchJSON(
@@ -125,11 +102,6 @@ export const studentService = {
     }
   },
 
-  /**
-   * Delete student
-   * @param {number} id - Student ID
-   * @returns {Promise<Object>} Delete confirmation
-   */
   deleteStudent: async (id) => {
     try {
       const { ok, data, status, message } = await fetchJSON(
@@ -152,12 +124,6 @@ export const studentService = {
     }
   },
 
-  /**
-   * Get all student profiles with pagination
-   * @param {number} page - Page number (optional)
-   * @param {number} page_size - Number of items per page (optional)
-   * @returns {Promise<Object>} Response with students data and pagination
-   */
   getStudentProfiles: async (page = 1, page_size = 20) => {
     try {
       const params = new URLSearchParams();
@@ -192,11 +158,6 @@ export const studentService = {
     }
   },
 
-  /**
-   * Get student profile by user ID
-   * @param {string} userId - User ID
-   * @returns {Promise<Object>} Student profile data
-   */
   getStudentProfileByUser: async (userId) => {
     try {
       const { ok, data, status, message } = await fetchJSON(
@@ -279,6 +240,35 @@ export const studentService = {
       return data;
     } catch (error) {
       console.error("❌ Error updating placement status:", error);
+      throw error;
+    }
+  },
+
+  // Mark student as verified/not verified
+  markAsVerified: async (userId, isVerified) => {
+    try {
+      const { ok, data, status, message } = await fetchJSON(
+        `${PROFILES_ENDPOINT}/${userId}/mark_as_verified/`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ is_verified: isVerified }),
+        }
+      );
+
+      if (!ok) {
+        throw new Error(
+          message || `Failed to update verification status (${status})`
+        );
+      }
+
+      console.log("✅ Verification status updated successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Error updating verification status:", error);
       throw error;
     }
   },

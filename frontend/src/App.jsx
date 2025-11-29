@@ -9,7 +9,6 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { StudentRegistration } from "./pages/admin/student/StudentRegistration";
 import { RegisteredStudents } from "./pages/admin/student/RegisteredStudents";
 import StudentDetails from "./pages/admin//student/StudentDetails";
-import RegisterCellMember from "./components/RegisterCellMember";
 import { DashboardLayout, PageContainer } from "./components/layout";
 import CompanyRegistration from "./pages/admin/company/CompanyRegistration";
 import LoginPage from "./pages/auth/LoginPage";
@@ -245,20 +244,6 @@ export default function App() {
                       allowedRoles={["admin", "student placement cell"]}
                     >
                       <div className="p-6">Applications Page</div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/spc"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <DashboardLayout title="Register Cell Member">
-                        <PageContainer>
-                          <RegisterCellMember />
-                        </PageContainer>
-                      </DashboardLayout>
                     </ProtectedRoute>
                   }
                 />
