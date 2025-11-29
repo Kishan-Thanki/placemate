@@ -131,7 +131,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
             'profile_picture', 'address_line1', 'address_line2', 'postal_code',
             'city', 'current_cgpa', 'graduation_cgpa', 'active_backlogs',
             'tenth_percentage', 'twelfth_percentage', 'is_placed',
-            'created_at', 'updated_at', 'joining_year'
+            'created_at', 'updated_at', 'joining_year','is_verified'
         ]
         read_only_fields = [
             'user', 'enrollment_number', 'program', 'is_placed',
