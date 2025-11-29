@@ -6,9 +6,13 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { companyDriveService } from "../../services/companyDriveService";
 import { CardSkeleton, Button } from "../../components/ui";
+import { Modal } from "../../components/ui/Modal";
+import { ToastContainer } from "../../components/ui/Toast";
 import { DriveCard } from "../../components/ui/DriveCard";
 import { fetchJSON } from "../../lib/api";
-import { ArrowLeft, Send } from "lucide-react";
+import { useToast } from "../../hooks/useToast";
+import { applicationService } from "../../services/applicationService";
+import { ArrowLeft, Send, X } from "lucide-react";
 
 function extractProgramFromProfile(profile) {
   if (!profile) return null;
@@ -57,12 +61,114 @@ export default function StudentCompanyDriveDetails() {
   const { isDark } = useTheme();
   const { user } = useAuth();
 
+  const { toasts, removeToast, success, error: showError } = useToast();
   const [drive, setDrive] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canApply, setCanApply] = useState(false);
   const [error, setError] = useState(null);
   const [selectedJobIndex, setSelectedJobIndex] = useState(0);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState("");
+  const [jobPreferences, setJobPreferences] = useState([]);
+  const [existingApplication, setExistingApplication] = useState(null);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+
+  const handleApplyClick = () => {
+    // Initialize job preferences based on drive settings
+    if (jobs.length === 1) {
+      // Single job - no need for preferences
+      setJobPreferences([{ job: jobs[0].id, preference_order: 1 }]);
+    } else if (drive?.multiple_allowed) {
+      // Multiple jobs allowed - let user select
+      setJobPreferences([]);
+    } else {
+      // Multiple jobs but only one allowed - pre-select current job
+      setJobPreferences([{ job: jobs[selectedJobIndex]?.id, preference_order: 1 }]);
+    }
+    setShowApplyModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowApplyModal(false);
+    setResumeUrl("");
+    setJobPreferences([]);
+  };
+
+  const handleAddJobPreference = () => {
+    setJobPreferences([...jobPreferences, { job: "", preference_order: jobPreferences.length + 1 }]);
+  };
+
+  const handleRemoveJobPreference = (index) => {
+    setJobPreferences(jobPreferences.filter((_, i) => i !== index));
+  };
+
+  const handleJobPreferenceChange = (index, jobId) => {
+    const updated = [...jobPreferences];
+    updated[index] = { ...updated[index], job: parseInt(jobId) };
+    setJobPreferences(updated);
+  };
+
+  const handleWithdraw = async () => {
+    if (!existingApplication?.id) return;
+    
+    setIsWithdrawing(true);
+    try {
+      await applicationService.withdrawApplication(existingApplication.id);
+      success("Application withdrawn successfully");
+      setExistingApplication(null);
+    } catch (err) {
+      console.error("Failed to withdraw application:", err);
+      showError(err.message || "Failed to withdraw application");
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
+
+  const handleSubmitApplication = async () => {
+    if (!resumeUrl.trim()) {
+      showError("Please provide a resume URL");
+      return;
+    }
+
+    if (jobPreferences.length === 0) {
+      showError("Please select at least one job preference");
+      return;
+    }
+
+    // Validate job preferences
+    const selectedJobIds = jobPreferences.map(p => p.job).filter(Boolean);
+    if (selectedJobIds.length !== jobPreferences.length) {
+      showError("Please select a job for all preferences");
+      return;
+    }
+
+    // Check for duplicates
+    if (new Set(selectedJobIds).size !== selectedJobIds.length) {
+      showError("Please select different jobs for each preference");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const result = await applicationService.createApplication({
+        company_drive: parseInt(id),
+        resume: resumeUrl,
+        job_preferences: jobPreferences,
+      });
+      setExistingApplication(result?.data || result);
+      success("Application submitted successfully!");
+      handleCloseModal();
+      // Optionally navigate to applications page
+      setTimeout(() => navigate("/student/applications"), 2000);
+    } catch (err) {
+      console.error("Application error:", err);
+      showError(err.message || "Failed to submit application");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -80,6 +186,18 @@ export default function StudentCompanyDriveDetails() {
         if (!mounted) return;
         setDrive(driveData);
         setJobs(jobsData);
+
+        // Check if user has already applied to this drive
+        try {
+          const myApplications = await applicationService.getMyApplications();
+          const applicationsArray = Array.isArray(myApplications) ? myApplications : myApplications?.results || myApplications?.data || [];
+          const existingApp = applicationsArray.find(app => app.company_drive?.id === parseInt(id) || app.company_drive === parseInt(id));
+          if (existingApp && mounted) {
+            setExistingApplication(existingApp);
+          }
+        } catch (err) {
+          console.warn("Could not check existing applications:", err);
+        }
 
         // Determine student's program name from stored user profile first
         let programName = null;
@@ -124,6 +242,9 @@ export default function StudentCompanyDriveDetails() {
   const driveType = drive?.drive_type || "Job";
   const location = drive?.locations || drive?.company?.headquarters_city || "India";
   const deadline = drive?.application_deadline ? new Date(drive.application_deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : "";
+
+  // Check if deadline has passed
+  const isDeadlinePassed = drive?.application_deadline ? new Date(drive.application_deadline) < new Date() : false;
 
   // Parse rounds if available
   const rounds = drive?.rounds ? (Array.isArray(drive.rounds) ? drive.rounds : JSON.parse(drive.rounds || '[]')) : [];
@@ -231,11 +352,24 @@ export default function StudentCompanyDriveDetails() {
                     <div className="text-right">
                       <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Apply by:</div>
                       <div className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{deadline}</div>
-                      {canApply ? (
+                      {isDeadlinePassed ? (
+                        <div className={`mt-2 text-xs font-medium ${isDark ? "text-red-400" : "text-red-600"}`}>Deadline Passed</div>
+                      ) : existingApplication ? (
+                        <Button 
+                          variant="danger" 
+                          size="md" 
+                          className="mt-2"
+                          onClick={handleWithdraw}
+                          disabled={isWithdrawing}
+                        >
+                          {isWithdrawing ? "Withdrawing..." : "Withdraw Application"}
+                        </Button>
+                      ) : canApply ? (
                         <Button 
                           variant="primary" 
                           size="md" 
                           className="mt-2"
+                          onClick={handleApplyClick}
                         >
                           <Send size={16} className="mr-2" />
                           Apply Now
@@ -284,6 +418,173 @@ export default function StudentCompanyDriveDetails() {
           )}
         </Section>
       </PageContainer>
+
+      {/* Apply Modal */}
+      {showApplyModal && (
+        <Modal
+          isOpen={showApplyModal}
+          onClose={handleCloseModal}
+          title="Apply for Position"
+        >
+          <div className="space-y-6">
+            {/* Resume URL Input */}
+            <div>
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  isDark ? "text-gray-200" : "text-gray-700"
+                }`}
+              >
+                Resume URL <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="url"
+                value={resumeUrl}
+                onChange={(e) => setResumeUrl(e.target.value)}
+                placeholder="https://drive.google.com/..."
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark
+                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-blue-500"
+                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+              />
+              <p className={`mt-1 text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                Provide a link to your resume (Google Drive, Dropbox, etc.)
+              </p>
+            </div>
+
+            {/* Job Preferences - Only for multiple jobs */}
+            {jobs.length > 1 && (
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-2 ${
+                    isDark ? "text-gray-200" : "text-gray-700"
+                  }`}
+                >
+                  Job Preferences
+                  {drive?.multiple_allowed && (
+                    <span className="text-red-500"> *</span>
+                  )}
+                </label>
+
+                {drive?.multiple_allowed ? (
+                  // Multiple jobs allowed - show preference list
+                  <div className="space-y-3">
+                    {jobPreferences.map((pref, index) => (
+                      <div key={index} className="flex gap-2 items-center">
+                        <span
+                          className={`w-8 text-sm font-medium ${
+                            isDark ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
+                          {index + 1}.
+                        </span>
+                        <select
+                          value={pref.job}
+                          onChange={(e) =>
+                            handleJobPreferenceChange(index, parseInt(e.target.value))
+                          }
+                          className={`flex-1 px-4 py-2 rounded-lg border ${
+                            isDark
+                              ? "bg-gray-700 border-gray-600 text-white focus:border-blue-500"
+                              : "bg-white border-gray-300 text-gray-900 focus:border-blue-500"
+                          } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                        >
+                          <option value="">Select a job role</option>
+                          {jobs
+                            .filter((job) => {
+                              // Show the job if it's the current selection or not selected elsewhere
+                              const selectedJobs = jobPreferences.map(p => p.job).filter(Boolean);
+                              return job.id === pref.job || !selectedJobs.includes(job.id);
+                            })
+                            .map((job) => (
+                              <option key={job.id} value={job.id}>
+                                {job.title}
+                              </option>
+                            ))}
+                        </select>
+                        {jobPreferences.length > 1 && (
+                          <button
+                            onClick={() => handleRemoveJobPreference(index)}
+                            className={`p-2 rounded-lg ${
+                              isDark
+                                ? "text-gray-400 hover:text-red-400 hover:bg-gray-700"
+                                : "text-gray-500 hover:text-red-600 hover:bg-gray-100"
+                            } transition-colors`}
+                          >
+                            <X size={20} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {jobPreferences.length < jobs.length && (
+                      <Button
+                        onClick={handleAddJobPreference}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        {jobPreferences.length === 0 ? "Add Job Preference" : "Add Another Preference"}
+                      </Button>
+                    )}
+                    <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                      Select your preferred job roles in order of preference
+                    </p>
+                  </div>
+                ) : (
+                  // Single job allowed - show dropdown
+                  <div>
+                    <select
+                      value={jobPreferences[0]?.job || ""}
+                      onChange={(e) =>
+                        setJobPreferences([
+                          { job: parseInt(e.target.value), preference_order: 1 },
+                        ])
+                      }
+                      className={`w-full px-4 py-2 rounded-lg border ${
+                        isDark
+                          ? "bg-gray-700 border-gray-600 text-white focus:border-blue-500"
+                          : "bg-white border-gray-300 text-gray-900 focus:border-blue-500"
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                    >
+                      <option value="">Select a job role</option>
+                      {jobs.map((job) => (
+                        <option key={job.id} value={job.id}>
+                          {job.title}
+                        </option>
+                      ))}
+                    </select>
+                    <p className={`mt-1 text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                      You can apply for only one job role
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleCloseModal}
+                variant="outline"
+                className="flex-1"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitApplication}
+                variant="primary"
+                className="flex-1"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit Application"}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </StudentLayout>
   );
 }
