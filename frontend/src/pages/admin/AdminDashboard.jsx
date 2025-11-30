@@ -1,271 +1,441 @@
-import React from "react";
-import { Building2, CalendarDays, FileText, GraduationCap, Shield } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Building2, CalendarDays, FileText, GraduationCap, TrendingUp, Briefcase } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DashboardLayout,
   PageContainer,
   Section,
 } from "../../components/layout";
-import { StatCard, StatsGrid, Button, CardSkeleton } from "../../components/ui";
+import { StatCard, CardSkeleton } from "../../components/ui";
 import { useTheme } from "../../contexts/ThemeContext";
+import { companyService } from "../../services/companyService";
+import { companyDriveService } from "../../services/companyDriveService";
+import { applicationService } from "../../services/applicationService";
+import { studentService } from "../../services/studentService";
 
 /**
- * Admin Dashboard component matching the design from the screenshot
- * Features key statistics, charts, and quick actions
+ * Admin Dashboard component with dynamic data
+ * Features key statistics, recent activities, and quick actions
  */
 export function AdminDashboard() {
   const { isDark } = useTheme();
   const navigate = useNavigate();
-  const loading = false; // Set to true when fetching real data
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalCompanies: 0,
+    totalDrives: 0,
+    openDrives: 0,
+    totalApplications: 0,
+    studentsPlaced: 0,
+  });
+  const [recentDrives, setRecentDrives] = useState([]);
+  const [recentApplications, setRecentApplications] = useState([]);
 
-  // Mock data matching the screenshot
-  const stats = [
-    {
-      title: "Companies Visited",
-      value: 15,
-      icon: <Building2 className="w-6 h-6" />,
-      color: "blue",
-      trend: "+2 this month",
-      trendDirection: "up",
-    },
-    {
-      title: "Drives Conducted",
-      value: 48,
-      icon: <CalendarDays className="w-6 h-6" />,
-      color: "purple",
-      trend: "+8 this month",
-      trendDirection: "up",
-    },
-    {
-      title: "Total Applications",
-      value: 250,
-      icon: <FileText className="w-6 h-6" />,
-      color: "red",
-      trend: "+45 this week",
-      trendDirection: "up",
-    },
-    {
-      title: "Students Placed",
-      value: 120,
-      icon: <GraduationCap className="w-6 h-6" />,
-      color: "green",
-      trend: "+12 this month",
-      trendDirection: "up",
-    },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  // Quick action buttons as shown in the screenshot
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch companies
+      const companiesResponse = await companyService.getAllCompanies();
+      console.log("📊 Companies Response:", companiesResponse);
+      // Handle different response structures
+      let companies = [];
+      if (Array.isArray(companiesResponse)) {
+        companies = companiesResponse;
+      } else if (companiesResponse?.results) {
+        companies = companiesResponse.results;
+      } else if (companiesResponse?.data) {
+        companies = Array.isArray(companiesResponse.data) ? companiesResponse.data : companiesResponse.data.results || [];
+      }
+      console.log("📊 Companies Count:", companies.length);
+      
+      // Fetch drives
+      const drivesResponse = await companyDriveService.getAllDrives();
+      console.log("📊 Drives Response:", drivesResponse);
+      let drives = [];
+      if (Array.isArray(drivesResponse)) {
+        drives = drivesResponse;
+      } else if (drivesResponse?.results) {
+        drives = drivesResponse.results;
+      } else if (drivesResponse?.data) {
+        drives = Array.isArray(drivesResponse.data) ? drivesResponse.data : drivesResponse.data.results || [];
+      }
+      const openDrives = drives.filter(d => d.status === 'Open');
+      console.log("📊 Drives Count:", drives.length, "Open:", openDrives.length);
+      
+      // Fetch applications
+      const appsResponse = await applicationService.getMyApplications();
+      console.log("📊 Applications Response:", appsResponse);
+      let applications = [];
+      if (Array.isArray(appsResponse)) {
+        applications = appsResponse;
+      } else if (appsResponse?.results) {
+        applications = appsResponse.results;
+      } else if (appsResponse?.data) {
+        applications = Array.isArray(appsResponse.data) ? appsResponse.data : appsResponse.data.results || [];
+      }
+      console.log("📊 Applications Count:", applications.length);
+      
+      // Fetch students - try profiles endpoint first
+      let studentsResponse;
+      try {
+        studentsResponse = await studentService.getStudentProfiles();
+      } catch {
+        console.log("⚠️ Profiles endpoint failed, trying students endpoint");
+        studentsResponse = await studentService.getAllStudents();
+      }
+      console.log("📊 Students Response:", studentsResponse);
+      let students = [];
+      if (Array.isArray(studentsResponse)) {
+        students = studentsResponse;
+      } else if (studentsResponse?.results) {
+        students = studentsResponse.results;
+      } else if (studentsResponse?.data) {
+        students = Array.isArray(studentsResponse.data) ? studentsResponse.data : studentsResponse.data.results || [];
+      }
+      console.log("📊 Students Array:", students);
+      console.log("📊 First Student Sample:", students[0]);
+      const placedStudents = students.filter(s => {
+        console.log(`Student ${s.enrollment_number || s.id}: is_placed = ${s.is_placed}`);
+        return s.is_placed === true;
+      });
+      console.log("📊 Students Count:", students.length, "Placed:", placedStudents.length);
+      
+      setStats({
+        totalCompanies: companies.length,
+        totalDrives: drives.length,
+        openDrives: openDrives.length,
+        totalApplications: applications.length,
+        studentsPlaced: placedStudents.length,
+      });
+      
+      // Get recent drives (last 5)
+      const sortedDrives = [...drives].sort((a, b) => 
+        new Date(b.created_at) - new Date(a.created_at)
+      ).slice(0, 5);
+      setRecentDrives(sortedDrives);
+      
+      // Get recent applications (last 5)
+      const sortedApps = [...applications].sort((a, b) => 
+        new Date(b.created_at) - new Date(a.created_at)
+      ).slice(0, 5);
+      setRecentApplications(sortedApps);
+      
+    } catch (error) {
+      console.error("❌ Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
+  const getStatusBadge = (status) => {
+    const colors = {
+      'Open': isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700',
+      'Closed': isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700',
+      'Applied': isDark ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700',
+      'Shortlisted': isDark ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700',
+      'Offered': isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700',
+      'Rejected': isDark ? 'bg-red-900 text-red-300' : 'bg-red-100 text-red-700',
+      'Accepted': isDark ? 'bg-emerald-900 text-emerald-300' : 'bg-emerald-100 text-emerald-700',
+    };
+    return colors[status] || (isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700');
+  };
+
   const quickActions = [
-    {
-      id: "manage-placement-drives",
-      label: "Manage Placement Drives",
-      icon: <CalendarDays className="w-5 h-5" />,
-      variant: "primary",
-      to: "/admin/placement-drives",
-    },
     {
       id: "add-drive",
       label: "Add New Drive",
       icon: <CalendarDays className="w-5 h-5" />,
-      variant: "primary",
       to: "/admin/drives/new",
-    },
-    {
-      id: "view-drives",
-      label: "View All Drives",
-      icon: <FileText className="w-5 h-5" />,
-      variant: "primary",
-      to: "/admin/drives",
     },
     {
       id: "register-company",
       label: "Register Company",
       icon: <Building2 className="w-5 h-5" />,
-      variant: "warning",
-      to: "/admin/companies",
+      to: "/admin/companies/new",
     },
     {
       id: "register-student",
       label: "Register Student",
       icon: <GraduationCap className="w-5 h-5" />,
-      variant: "success",
       to: "/admin/students/register",
     },
     {
-      id: "spc-management",
-      label: "Manage SPC Roles",
-      icon: <Shield className="w-5 h-5" />,
-      variant: "primary",
-      to: "/admin/spc-management",
+      id: "view-applications",
+      label: "View Applications",
+      icon: <FileText className="w-5 h-5" />,
+      to: "/admin/applications",
     },
   ];
-
-  const handleQuickAction = (action) => {
-    if (action.to) navigate(action.to);
-  };
-
-  // Mock chart data for placement trends (we'll create a simple visual representation)
-  const PlacementTrendChart = () => (
-    <div
-      className={`
-      h-64 rounded-lg flex items-end justify-between p-4 space-x-2
-      ${isDark ? "bg-gray-800" : "bg-gray-50"}
-    `}
-    >
-      {/* Simple bar chart representation */}
-      {[40, 55, 35, 70, 45, 80, 60, 90, 75, 85, 95, 100].map(
-        (height, index) => (
-          <div
-            key={index}
-            className="bg-blue-500 rounded-t flex-1 transition-all duration-300 hover:bg-blue-600"
-            style={{ height: `${height}%` }}
-            title={`Month ${index + 1}: ${height}%`}
-          />
-        )
-      )}
-    </div>
-  );
-
-  // Mock chart data for placement distribution
-  const PlacementDistributionChart = () => {
-    const segments = [
-      { label: "IT & Software", percentage: 60, color: "bg-blue-500" },
-      { label: "Core Engineering", percentage: 25, color: "bg-green-500" },
-      { label: "Consulting", percentage: 10, color: "bg-yellow-500" },
-      { label: "Finance", percentage: 5, color: "bg-purple-500" },
-    ];
-
-    return (
-      <div className="space-y-4">
-        {/* Simple donut chart representation */}
-        <div className="relative w-48 h-48 mx-auto">
-          <div
-            className={`
-            w-full h-full rounded-full border-8
-            ${isDark ? "border-gray-700" : "border-gray-200"}
-          `}
-          >
-            {/* This would be replaced with an actual chart library */}
-            <div className="w-full h-full rounded-full bg-gradient-to-r from-blue-500 via-yellow-500 to-purple-500 opacity-80"></div>
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="space-y-2">
-          {segments.map((segment, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${segment.color}`}></div>
-                <span
-                  className={`text-sm ${
-                    isDark ? "text-gray-300" : "text-gray-600"
-                  }`}
-                >
-                  {segment.label}
-                </span>
-              </div>
-              <span
-                className={`text-sm font-medium ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
-                {segment.percentage}%
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <DashboardLayout title="Placement Dashboard">
       <PageContainer>
+        {/* Welcome Section */}
+        <div
+          className={`rounded-lg md:rounded-xl p-4 md:p-6 mb-4 md:mb-6 ${
+            isDark ? "bg-gradient-to-r from-indigo-900 to-purple-900" : "bg-gradient-to-r from-indigo-600 to-purple-600"
+          } text-white`}
+        >
+          <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2">
+            {getGreeting()}, Admin!
+          </h2>
+          <p className="text-xs md:text-sm opacity-90">
+            {stats.openDrives > 0 
+              ? `${stats.openDrives} active placement ${stats.openDrives === 1 ? 'drive' : 'drives'} • ${stats.totalApplications} total applications received`
+              : "Manage placements, companies, and student applications efficiently."
+            }
+          </p>
+        </div>
+
         {/* Key Statistics */}
         <Section>
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+              {[...Array(5)].map((_, i) => (
                 <CardSkeleton key={i} />
               ))}
             </div>
           ) : (
-            <StatsGrid>
-              {stats.map((stat, index) => (
-                <StatCard
-                  key={index}
-                  title={stat.title}
-                  value={stat.value}
-                  icon={stat.icon}
-                  color={stat.color}
-                  trend={stat.trend}
-                  trendDirection={stat.trendDirection}
-                />
-              ))}
-            </StatsGrid>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+              <StatCard
+                title="Total Companies"
+                value={stats.totalCompanies}
+                icon={<Building2 className="w-6 h-6" />}
+                color="blue"
+                trend="Registered"
+              />
+              <StatCard
+                title="Total Drives"
+                value={stats.totalDrives}
+                icon={<CalendarDays className="w-6 h-6" />}
+                color="purple"
+                trend={`${stats.openDrives} active`}
+              />
+              <StatCard
+                title="Applications"
+                value={stats.totalApplications}
+                icon={<FileText className="w-6 h-6" />}
+                color="red"
+                trend="All time"
+              />
+              <StatCard
+                title="Students Placed"
+                value={stats.studentsPlaced}
+                icon={<GraduationCap className="w-6 h-6" />}
+                color="green"
+                trend="Success!"
+              />
+              <StatCard
+                title="Open Drives"
+                value={stats.openDrives}
+                icon={<TrendingUp className="w-6 h-6" />}
+                color="orange"
+                trend="Active now"
+              />
+            </div>
           )}
         </Section>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Placement Trend Chart */}
-          <Section
-            title="Placement Trend"
-            description="Monthly placement statistics"
+        {/* Quick Actions */}
+        <Section title="Quick Actions" description="Frequently used actions">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {quickActions.map((action) => (
+              <button
+                key={action.id}
+                onClick={() => navigate(action.to)}
+                className={`
+                  p-3 md:p-4 rounded-lg border transition-all hover:shadow-lg flex items-center gap-2 md:gap-3
+                  ${isDark 
+                    ? "bg-gray-800 border-gray-700 hover:border-blue-600" 
+                    : "bg-white border-gray-200 hover:border-blue-400"
+                  }
+                `}
+              >
+                <div className={`p-1.5 md:p-2 rounded-lg flex-shrink-0 ${isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-600"}`}>
+                  {action.icon}
+                </div>
+                <span className={`font-medium text-xs md:text-sm text-left ${isDark ? "text-white" : "text-gray-900"}`}>
+                  {action.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Section>
+
+        {/* Recent Activities */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          {/* Recent Drives */}
+          <Section 
+            title="Recent Placement Drives" 
+            description="Latest company drives"
+            action={
+              <button
+                onClick={() => navigate("/admin/drives")}
+                className={`text-xs md:text-sm font-medium ${isDark ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"}`}
+              >
+                View All →
+              </button>
+            }
           >
-            <div
-              className={`
-              p-6 rounded-lg border
-              ${
-                isDark
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-200"
-              }
-            `}
-            >
-              <PlacementTrendChart />
-              <div className="mt-4 flex justify-between text-sm">
-                <span className={isDark ? "text-gray-400" : "text-gray-500"}>
-                  Jan
-                </span>
-                <span className={isDark ? "text-gray-400" : "text-gray-500"}>
-                  Dec
-                </span>
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
               </div>
-            </div>
+            ) : recentDrives.length === 0 ? (
+              <div className={`rounded-lg border p-8 md:p-12 text-center ${isDark ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}>
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isDark ? "bg-gray-700" : "bg-gray-200"}`}>
+                  <CalendarDays className={`w-8 h-8 ${isDark ? "text-gray-500" : "text-gray-400"}`} />
+                </div>
+                <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>No drives yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentDrives.map((drive, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => navigate(`/admin/drives/${drive.id}`)}
+                    className={`
+                      group relative p-4 rounded-lg border cursor-pointer transition-all
+                      ${isDark 
+                        ? "bg-gray-800 border-gray-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10" 
+                        : "bg-white border-gray-200 hover:border-blue-400 hover:shadow-lg"
+                      }
+                    `}
+                  >
+                    <div className="flex items-start gap-3">
+                      {drive.company?.logo ? (
+                        <img 
+                          src={drive.company.logo} 
+                          alt={drive.company.name}
+                          className="w-12 h-12 object-contain rounded-lg flex-shrink-0"
+                        />
+                      ) : (
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? "bg-gray-700" : "bg-gray-100"}`}>
+                          <Building2 className={`w-6 h-6 ${isDark ? "text-gray-400" : "text-gray-500"}`} />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className={`font-semibold truncate ${isDark ? "text-white group-hover:text-blue-400" : "text-gray-900 group-hover:text-blue-600"} transition-colors`}>
+                            {drive.company?.name || "Company"}
+                          </h4>
+                          <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getStatusBadge(drive.status)}`}>
+                            {drive.status}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-xs">
+                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                            <Briefcase className="w-3.5 h-3.5" />
+                            <span>{drive.drive_type}</span>
+                          </div>
+                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                            <CalendarDays className="w-3.5 h-3.5" />
+                            <span>{formatDate(drive.application_deadline)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Section>
 
-          {/* Placement Distribution Chart */}
-          <Section
-            title="Placement Distribution"
-            description="By industry sectors"
+          {/* Recent Applications */}
+          <Section 
+            title="Recent Applications" 
+            description="Latest student applications"
+            action={
+              <button
+                onClick={() => navigate("/admin/applications")}
+                className={`text-xs md:text-sm font-medium ${isDark ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"}`}
+              >
+                View All →
+              </button>
+            }
           >
-            <div
-              className={`
-              p-6 rounded-lg border
-              ${
-                isDark
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-200"
-              }
-            `}
-            >
-              <PlacementDistributionChart />
-            </div>
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+              </div>
+            ) : recentApplications.length === 0 ? (
+              <div className={`rounded-lg border p-8 md:p-12 text-center ${isDark ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}>
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isDark ? "bg-gray-700" : "bg-gray-200"}`}>
+                  <FileText className={`w-8 h-8 ${isDark ? "text-gray-500" : "text-gray-400"}`} />
+                </div>
+                <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>No applications yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentApplications.map((app, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => navigate(`/admin/applications/${app.id}`)}
+                    className={`
+                      group relative p-4 rounded-lg border cursor-pointer transition-all
+                      ${isDark 
+                        ? "bg-gray-800 border-gray-700 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10" 
+                        : "bg-white border-gray-200 hover:border-purple-400 hover:shadow-lg"
+                      }
+                    `}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-lg ${
+                        isDark ? "bg-gradient-to-br from-purple-900 to-blue-900 text-purple-300" : "bg-gradient-to-br from-purple-100 to-blue-100 text-purple-700"
+                      }`}>
+                        {(app.student?.user?.first_name?.[0] || "S").toUpperCase()}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className={`font-semibold truncate ${isDark ? "text-white group-hover:text-purple-400" : "text-gray-900 group-hover:text-purple-600"} transition-colors`}>
+                            {app.student?.user?.first_name || "Student"} {app.student?.user?.last_name || ""}
+                          </h4>
+                          <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getStatusBadge(app.status)}`}>
+                            {app.status}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-xs">
+                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                            <GraduationCap className="w-3.5 h-3.5" />
+                            <span>{app.student?.enrollment_number || "N/A"}</span>
+                          </div>
+                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                            <CalendarDays className="w-3.5 h-3.5" />
+                            <span>{formatDate(app.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Section>
-        </div>
-
-        {/* Footer */}
-        <div
-          className={`mt-10 border-t ${
-            isDark ? "border-gray-700" : "border-gray-200"
-          } pt-6 text-center`}
-        >
-          <p
-            className={`${isDark ? "text-gray-400" : "text-gray-600"} text-sm`}
-          >
-            © {new Date().getFullYear()} Placemate. All rights reserved.
-          </p>
         </div>
       </PageContainer>
     </DashboardLayout>
