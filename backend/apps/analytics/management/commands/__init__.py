@@ -1,4 +1,0 @@
-"""
-Management commands package
-"""
-
