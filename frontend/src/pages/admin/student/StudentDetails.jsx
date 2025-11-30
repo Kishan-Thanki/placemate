@@ -10,6 +10,7 @@ import { LoadingOverlay } from "../../../components/ui/Spinner";
 import { ToastContainer } from "../../../components/ui/Toast";
 import { useToast } from "../../../hooks/useToast";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import {
   ArrowLeft,
   User,
@@ -35,6 +36,7 @@ const StudentDetails = () => {
   const { userId } = useParams();
   const [searchParams] = useSearchParams();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const { toasts, removeToast, success, error: showError } = useToast();
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -534,22 +536,24 @@ const StudentDetails = () => {
                   </Button>
                 </>
               ) : (
-                <>
-                  <Button
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                    onClick={handleEditToggle}
-                  >
-                    <Edit size={16} className="mr-2" />
-                    Edit Details
-                  </Button>
-                  <Button
-                    className="bg-red-500 hover:bg-red-600 text-white"
-                    onClick={() => setShowDeleteConfirm(true)}
-                  >
-                    <Trash2 size={16} className="mr-2" />
-                    Delete
-                  </Button>
-                </>
+                user?.activeRole === "Admin" && (
+                  <>
+                    <Button
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                      onClick={handleEditToggle}
+                    >
+                      <Edit size={16} className="mr-2" />
+                      Edit Details
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      <Trash2 size={16} className="mr-2" />
+                      Delete
+                    </Button>
+                  </>
+                )
               )}
             </div>
           </div>

@@ -62,9 +62,11 @@ export function Button({
       focus:ring-yellow-500
     `,
     danger: `
-      bg-transparent text-red-600 border border-red-200
-      hover:bg-red-600 hover:text-white
-      focus:ring-red-500
+      ${isDark 
+        ? 'bg-red-600 text-white hover:bg-red-700' 
+        : 'bg-red-600 text-white hover:bg-red-700'
+      }
+      border-0 focus:ring-red-500
     `,
     outline: `
       ${isDark 
