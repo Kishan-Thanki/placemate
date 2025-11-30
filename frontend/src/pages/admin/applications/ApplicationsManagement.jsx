@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { DashboardLayout, PageContainer, Section } from "../../../components/layout";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import { applicationService } from "../../../services/applicationService";
 import { companyDriveService } from "../../../services/companyDriveService";
 import { CardSkeleton, Button } from "../../../components/ui";
@@ -23,6 +24,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Briefcase,
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -66,6 +68,7 @@ function ApplicationCard({
   formatDate,
   onOfferJob,
   onReject,
+  onViewPreferences,
 }) {
   return (
     <div
@@ -125,34 +128,41 @@ function ApplicationCard({
       </div>
 
       {/* Actions */}
-      {(application.status === "Applied" || application.status === "Offered") && (
-        <div className={`flex gap-3 pt-4 border-t ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-          {application.status === "Applied" && (
-            <>
-              <Button variant="primary" onClick={onOfferJob} className="flex-1">
-                <CheckCircle size={18} className="mr-2" />
-                Offer Job
-              </Button>
+      <div className={`flex flex-col sm:flex-row gap-3 pt-4 border-t ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+        <Button variant="outline" onClick={onViewPreferences} className="flex-1">
+          <Briefcase size={18} className="mr-2" />
+          View Preferences
+        </Button>
+        {(application.status === "Applied" || application.status === "Offered") && (
+          <>
+            {application.status === "Applied" && (
+              <>
+                <Button variant="primary" onClick={onOfferJob} className="flex-1">
+                  <CheckCircle size={18} className="mr-2" />
+                  Offer Job
+                </Button>
+                <Button variant="danger" onClick={onReject} className="flex-1">
+                  <XCircle size={18} className="mr-2" />
+                  Reject
+                </Button>
+              </>
+            )}
+            {application.status === "Offered" && (
               <Button variant="danger" onClick={onReject} className="flex-1">
                 <XCircle size={18} className="mr-2" />
                 Reject
               </Button>
-            </>
-          )}
-          {application.status === "Offered" && (
-            <Button variant="danger" onClick={onReject} className="flex-1">
-              <XCircle size={18} className="mr-2" />
-              Reject
-            </Button>
-          )}
-        </div>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
 export default function ApplicationsManagement() {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const { toasts, removeToast, success, error: showError } = useToast();
 
   const [applications, setApplications] = useState([]);
@@ -167,9 +177,11 @@ export default function ApplicationsManagement() {
   // Modal states
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [selectedJobId, setSelectedJobId] = useState("");
   const [availableJobs, setAvailableJobs] = useState([]);
+  const [loadingPreferences, setLoadingPreferences] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -274,9 +286,28 @@ export default function ApplicationsManagement() {
     setShowRejectModal(true);
   };
 
+  const openPreferencesModal = async (application) => {
+    setLoadingPreferences(true);
+    setShowPreferencesModal(true);
+    
+    try {
+      // Fetch full application details with job preferences
+      const response = await applicationService.getApplicationById(application.id);
+      const fullApplication = response?.data || response;
+      setSelectedApplication(fullApplication);
+    } catch (err) {
+      console.error("Error fetching application details:", err);
+      showError(err.message || "Failed to load application details");
+      setSelectedApplication(application); // Fallback to basic data
+    } finally {
+      setLoadingPreferences(false);
+    }
+  };
+
   const closeModals = () => {
     setShowOfferModal(false);
     setShowRejectModal(false);
+    setShowPreferencesModal(false);
     setSelectedApplication(null);
     setSelectedJobId("");
   };
@@ -538,11 +569,13 @@ export default function ApplicationsManagement() {
                         }`}>
                           Resume
                         </th>
-                        <th className={`px-4 py-3 text-right text-xs font-medium uppercase tracking-wider ${
-                          isDark ? "text-gray-400" : "text-gray-700"
-                        }`}>
-                          Actions
-                        </th>
+                        {user?.activeRole === "Admin" && (
+                          <th className={`px-4 py-3 text-right text-xs font-medium uppercase tracking-wider ${
+                            isDark ? "text-gray-400" : "text-gray-700"
+                          }`}>
+                            Actions
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className={`divide-y ${isDark ? "divide-gray-700" : "divide-gray-200"}`}>
@@ -627,36 +660,51 @@ export default function ApplicationsManagement() {
                           </td>
 
                           {/* Actions */}
-                          <td className="px-4 py-4">
-                            {(application.status === "Applied" || application.status === "Offered") && (
+                          {user?.activeRole === "Admin" && (
+                            <td className="px-4 py-4">
                               <div className="flex justify-end gap-2">
-                                {application.status === "Applied" && (
-                                  <button
-                                    onClick={() => openOfferModal(application)}
-                                    className={`p-2 rounded-lg transition-colors ${
-                                      isDark
-                                        ? "hover:bg-green-500/10 text-green-400"
-                                        : "hover:bg-green-50 text-green-600"
-                                    }`}
-                                    title="Offer Job"
-                                  >
-                                    <CheckCircle size={18} />
-                                  </button>
-                                )}
                                 <button
-                                  onClick={() => openRejectModal(application)}
+                                  onClick={() => openPreferencesModal(application)}
                                   className={`p-2 rounded-lg transition-colors ${
                                     isDark
-                                      ? "hover:bg-red-500/10 text-red-400"
-                                      : "hover:bg-red-50 text-red-600"
+                                      ? "hover:bg-blue-500/10 text-blue-400"
+                                      : "hover:bg-blue-50 text-blue-600"
                                   }`}
-                                  title="Reject Application"
+                                  title="View Preferences"
                                 >
-                                  <XCircle size={18} />
+                                  <Briefcase size={18} />
                                 </button>
+                                {(application.status === "Applied" || application.status === "Offered") && (
+                                  <>
+                                    {application.status === "Applied" && (
+                                      <button
+                                        onClick={() => openOfferModal(application)}
+                                        className={`p-2 rounded-lg transition-colors ${
+                                          isDark
+                                            ? "hover:bg-green-500/10 text-green-400"
+                                            : "hover:bg-green-50 text-green-600"
+                                        }`}
+                                        title="Offer Job"
+                                      >
+                                        <CheckCircle size={18} />
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => openRejectModal(application)}
+                                      className={`p-2 rounded-lg transition-colors ${
+                                        isDark
+                                          ? "hover:bg-red-500/10 text-red-400"
+                                          : "hover:bg-red-50 text-red-600"
+                                      }`}
+                                      title="Reject Application"
+                                    >
+                                      <XCircle size={18} />
+                                    </button>
+                                  </>
+                                )}
                               </div>
-                            )}
-                          </td>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -865,6 +913,144 @@ export default function ApplicationsManagement() {
                   )}
                 </Button>
               </div>
+            </div>
+          </Modal>
+        )}
+
+        {/* Job Preferences Modal */}
+        {showPreferencesModal && (
+          <Modal
+            isOpen={showPreferencesModal}
+            onClose={closeModals}
+            title="Job Preferences / Roles Applied For"
+            isDark={isDark}
+          >
+            <div className="space-y-4">
+              {selectedApplication && (
+                <div
+                  className={`p-4 rounded-lg border ${
+                    isDark
+                      ? "bg-gray-700/50 border-gray-600"
+                      : "bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <Building2
+                      size={20}
+                      className={isDark ? "text-gray-400" : "text-gray-500"}
+                    />
+                    <div>
+                      <p
+                        className={`font-semibold ${
+                          isDark ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {selectedApplication.company_name}
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          isDark ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        {selectedApplication.drive_title}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 border-t pt-3 mt-3" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
+                    <User
+                      size={16}
+                      className={isDark ? "text-gray-400" : "text-gray-500"}
+                    />
+                    <p
+                      className={`text-sm font-medium ${
+                        isDark ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      Student: {selectedApplication.student_name}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {loadingPreferences ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                </div>
+              ) : selectedApplication?.job_preferences &&
+              selectedApplication.job_preferences.length > 0 ? (
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                  {selectedApplication.job_preferences
+                    .sort((a, b) => a.preference_order - b.preference_order)
+                    .map((pref, index) => {
+                      // Backend returns job_title directly from serializer
+                      const jobTitle = pref.job_title || "Job Position";
+                      const jobMode = pref.job_mode || "N/A";
+                      const driveType = pref.job_drive_type || "N/A";
+
+                      return (
+                        <div
+                          key={pref.id || index}
+                          className={`p-4 rounded-lg border ${
+                            isDark
+                              ? "bg-gray-700/30 border-gray-600"
+                              : "bg-white border-gray-200"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span
+                              className={`px-3 py-1.5 rounded-lg text-sm font-bold shrink-0 ${
+                                isDark
+                                  ? "bg-blue-900/50 text-blue-300 border border-blue-700"
+                                  : "bg-blue-100 text-blue-700 border border-blue-300"
+                              }`}
+                            >
+                              #{pref.preference_order}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <h4
+                                className={`text-base font-semibold mb-2 ${
+                                  isDark ? "text-white" : "text-gray-900"
+                                }`}
+                              >
+                                {jobTitle}
+                              </h4>
+
+                              {/* Job Details */}
+                              <div className="flex flex-wrap gap-3 text-sm">
+                                {jobMode && (
+                                  <span
+                                    className={`${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Mode: {jobMode}
+                                  </span>
+                                )}
+                                {driveType && (
+                                  <span
+                                    className={`${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Type: {driveType}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              ) : (
+                <p
+                  className={`text-center py-6 ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  No job preferences found.
+                </p>
+              )}
             </div>
           </Modal>
         )}

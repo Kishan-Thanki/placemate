@@ -233,21 +233,25 @@ export function Sidebar({ isOpen, onClose }) {
               collapsed ? "px-2" : "px-4"
             } py-6 space-y-6 overflow-y-auto`}
           >
-            {/* Main Navigation - Visible on mobile (<md), hidden on desktop where navbar shows them */}
-            <div className="md:hidden">
-              <h3
-                className={`px-3 text-xs font-semibold uppercase tracking-wider mb-3 ${
-                  isDark ? "text-gray-400" : "text-gray-500"
-                }`}
-              >
-                Navigation
-              </h3>
+            {/* Main Navigation - Always visible in sidebar */}
+            <div>
+              {!collapsed && (
+                <h3
+                  className={`px-3 text-xs font-semibold uppercase tracking-wider mb-3 ${
+                    isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  Navigation
+                </h3>
+              )}
               {mainNavLinks.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleItemClick(item.id, item.href)}
                   className={`
-                    w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                    w-full flex items-center ${
+                      collapsed ? "justify-center px-2" : "px-3"
+                    } py-2.5 rounded-lg text-sm font-medium transition-colors
                     ${
                       activeItem === item.id
                         ? isDark
@@ -258,9 +262,10 @@ export function Sidebar({ isOpen, onClose }) {
                         : "text-gray-700 hover:bg-gray-100"
                     }
                   `}
+                  title={collapsed ? item.name : ""}
                 >
-                  <span className="mr-3">{item.icon}</span>
-                  <span>{item.name}</span>
+                  <span className={collapsed ? "" : "mr-3"}>{item.icon}</span>
+                  {!collapsed && <span>{item.name}</span>}
                 </button>
               ))}
             </div>

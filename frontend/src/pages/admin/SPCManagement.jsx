@@ -30,11 +30,32 @@ export default function SPCManagement() {
   };
 
   const roleBadge = (r) => {
-    const base = "px-2 py-0.5 text-xs rounded-full font-medium inline-block";
     if (!r) return null;
-    if (r.id === 3) return <span className={`${base} bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300`}>{r.name}</span>;
-    if (r.id === 2) return <span className={`${base} bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300`}>{r.name}</span>;
-    return <span className={`${base} bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300`}>{r.name}</span>;
+    
+    // Student Placement Cell (id: 3) - Blue
+    if (r.id === 3) {
+      return (
+        <span className="px-2.5 py-1 text-xs rounded-full font-semibold inline-block bg-blue-600 text-white dark:bg-blue-900 dark:text-blue-200 dark:border dark:border-blue-700">
+          {r.name}
+        </span>
+      );
+    }
+    
+    // Admin (id: 2) - Purple
+    if (r.id === 2) {
+      return (
+        <span className="px-2.5 py-1 text-xs rounded-full font-semibold inline-block bg-purple-600 text-white dark:bg-purple-900 dark:text-purple-200 dark:border dark:border-purple-700">
+          {r.name}
+        </span>
+      );
+    }
+    
+    // Student (id: 1) - Green
+    return (
+      <span className="px-2.5 py-1 text-xs rounded-full font-semibold inline-block bg-green-600 text-white dark:bg-green-900 dark:text-green-200 dark:border dark:border-green-700">
+        {r.name}
+      </span>
+    );
   };
   const [loading, setLoading] = useState(true);
   const [spcUsers, setSpcUsers] = useState([]);
@@ -218,16 +239,24 @@ export default function SPCManagement() {
                           isDark ? "border-gray-700" : "border-gray-200"
                         }`}
                       >
-                        <th className="px-4 py-3 text-left text-sm font-semibold">
+                        <th className={`px-4 py-3 text-left text-sm font-semibold ${
+                          isDark ? "text-gray-200" : "text-gray-900"
+                        }`}>
                           Member
                         </th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">
+                        <th className={`px-4 py-3 text-left text-sm font-semibold ${
+                          isDark ? "text-gray-200" : "text-gray-900"
+                        }`}>
                           Email
                         </th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">
+                        <th className={`px-4 py-3 text-left text-sm font-semibold ${
+                          isDark ? "text-gray-200" : "text-gray-900"
+                        }`}>
                           Phone
                         </th>
-                        <th className="px-4 py-3 text-right text-sm font-semibold">
+                        <th className={`px-4 py-3 text-right text-sm font-semibold ${
+                          isDark ? "text-gray-200" : "text-gray-900"
+                        }`}>
                           Actions
                         </th>
                       </tr>
