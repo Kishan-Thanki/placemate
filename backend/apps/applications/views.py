@@ -52,20 +52,12 @@ class CompanyDriveApplicationViewSet(BaseViewSet):
         
     def get_queryset(self):
         """Secure queryset - users only see what they should"""
-<<<<<<< HEAD
-        queryset = CompanyDriveApplication.objects.all()
-        active_role = _get_active_role(self.request)
-        
-        # Students only see their own applications
-        if active_role == 'Student':
-=======
 
         from apps.core.permissions import _get_active_role
         role = _get_active_role(self.request)
         user = self.request.user
 
         if role == 'Student':
->>>>>>> dev
             try:
                 student_profile = StudentProfile.objects.get(user_id=user.id)
                 return CompanyDriveApplication.objects.filter(student_id=student_profile.pk)\
