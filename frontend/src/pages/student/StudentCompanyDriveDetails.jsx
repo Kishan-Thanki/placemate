@@ -319,21 +319,17 @@ export default function StudentCompanyDriveDetails() {
                   <div className={`p-4 rounded-lg border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
                     <h4 className={`text-sm font-semibold mb-3 uppercase ${isDark ? "text-gray-300" : "text-gray-700"}`}>Assessments</h4>
                     <div className="space-y-3">
-                      {rounds.map((round, idx) => {
-                        // Handle both string and object formats
-                        const roundName = typeof round === 'string' ? round : (round?.name || round?.title || `Round ${idx + 1}`);
-                        
-                        return (
-                          <div key={idx} className="flex items-start gap-3">
-                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg font-semibold ${isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-600"}`}>
-                              {idx + 1}
-                            </div>
-                            <div className="flex-1">
-                              <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{roundName}</div>
-                            </div>
+                      {rounds.map((round, idx) => (
+                        <div key={idx} className="flex items-start gap-3">
+                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg font-semibold ${isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-600"}`}>
+                            {idx + 1}
                           </div>
-                        );
-                      })}
+                          <div className="flex-1">
+                            <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{round.name || round.title || `Round ${idx + 1}`}</div>
+                            <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}>{round.type || round.mode || "Interview"}</div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
