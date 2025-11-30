@@ -55,6 +55,7 @@ jobs:
           CLOUDINARY_API_KEY: "123456789"
           CLOUDINARY_API_SECRET: "test_secret"
           BREVO_API_KEY: "test_brevo_key"
+          DEFAULT_FROM_EMAIL: "test@example.com"
           FRONTEND_URL: "http://localhost:3000"
         run: |
           pytest
