@@ -89,29 +89,6 @@ export default function StudentCompanyDriveDetails() {
     setShowApplyModal(true);
   };
 
-  const handleEditClick = () => {
-    if (!existingApplication) return;
-    
-    // Populate modal with existing application data
-    setResumeUrl(existingApplication.resume || "");
-    
-    // Populate job preferences from existing application
-    if (existingApplication.job_preferences && Array.isArray(existingApplication.job_preferences)) {
-      const prefs = existingApplication.job_preferences
-        .sort((a, b) => a.preference_order - b.preference_order)
-        .map(pref => ({
-          job: pref.job?.id || pref.job,
-          preference_order: pref.preference_order
-        }));
-      setJobPreferences(prefs);
-    } else if (existingApplication.offered_job) {
-      // Fallback: if only offered_job is available
-      setJobPreferences([{ job: existingApplication.offered_job?.id || existingApplication.offered_job, preference_order: 1 }]);
-    }
-    
-    setShowApplyModal(true);
-  };
-
   const handleCloseModal = () => {
     setShowApplyModal(false);
     setResumeUrl("");
@@ -181,11 +158,11 @@ export default function StudentCompanyDriveDetails() {
         job_preferences: jobPreferences,
       };
       
-      // If editing existing application, we'll create a new one (backend handles withdrawal of old one)
+      // Create new application
       const result = await applicationService.createApplication(payload);
+      success("Application submitted successfully!");
       
       setExistingApplication(result?.data || result);
-      success(existingApplication ? "Application updated successfully!" : "Application submitted successfully!");
       handleCloseModal();
     } catch (err) {
       console.error("Application error:", err);
@@ -329,7 +306,10 @@ export default function StudentCompanyDriveDetails() {
                       <div>
                         <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Salary</div>
                         <div className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-                          ₹ {selectedJob.ug_package_min} - {selectedJob.ug_package_max || selectedJob.ug_package_min} LPA
+                          ₹ {selectedJob.ug_package_min === selectedJob.ug_package_max
+                            ? selectedJob.ug_package_min
+                            : `${selectedJob.ug_package_min} - ${selectedJob.ug_package_max || selectedJob.ug_package_min}`
+                          } LPA
                         </div>
                       </div>
                     )}
@@ -388,57 +368,90 @@ export default function StudentCompanyDriveDetails() {
                       <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Apply by:</div>
                       <div className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{deadline}</div>
                       
-                      {/* Logic: Check deadline first, then application status */}
-                      {isDeadlinePassed ? (
-                        // Deadline has passed
-                        existingApplication ? (
-                          <div className={`mt-2 text-xs font-medium ${isDark ? "text-green-400" : "text-green-600"}`}>
-                            ✓ Applied
-                          </div>
-                        ) : (
+                      {/* Logic: Check application status first, then deadline */}
+                      {existingApplication ? (
+                        // User has an application - check its status
+                        (() => {
+                          const status = existingApplication.status;
+                          
+                          if (status === "Offered") {
+                            return (
+                              <div className={`mt-2 px-3 py-1.5 rounded-full text-xs font-medium inline-flex items-center ${
+                                isDark ? "bg-green-900/30 text-green-400 border border-green-700/50" : "bg-green-50 text-green-700 border border-green-200"
+                              }`}>
+                                ✓ Job Offered
+                              </div>
+                            );
+                          } else if (status === "Rejected") {
+                            return (
+                              <div className={`mt-2 px-3 py-1.5 rounded-full text-xs font-medium inline-flex items-center ${
+                                isDark ? "bg-red-900/30 text-red-400 border border-red-700/50" : "bg-red-50 text-red-700 border border-red-200"
+                              }`}>
+                                ✗ Rejected
+                              </div>
+                            );
+                          } else if (status === "Accepted") {
+                            return (
+                              <div className={`mt-2 px-3 py-1.5 rounded-full text-xs font-medium inline-flex items-center ${
+                                isDark ? "bg-emerald-900/30 text-emerald-400 border border-emerald-700/50" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              }`}>
+                                ✓ Offer Accepted
+                              </div>
+                            );
+                          } else if (status === "Declined") {
+                            return (
+                              <div className={`mt-2 px-3 py-1.5 rounded-full text-xs font-medium inline-flex items-center ${
+                                isDark ? "bg-orange-900/30 text-orange-400 border border-orange-700/50" : "bg-orange-50 text-orange-700 border border-orange-200"
+                              }`}>
+                                ✗ Offer Declined
+                              </div>
+                            );
+                          } else if (status === "Applied") {
+                            // Applied status - show withdraw button only if deadline hasn't passed
+                            return isDeadlinePassed ? (
+                              <div className={`mt-2 text-xs font-medium ${isDark ? "text-blue-400" : "text-blue-600"}`}>
+                                ✓ Applied
+                              </div>
+                            ) : (
+                              <Button 
+                                variant="danger" 
+                                size="md"
+                                className="mt-2"
+                                onClick={handleWithdraw}
+                                disabled={isWithdrawing}
+                              >
+                                {isWithdrawing ? "Withdrawing..." : "Withdraw Application"}
+                              </Button>
+                            );
+                          } else {
+                            // Unknown status - show status text
+                            return (
+                              <div className={`mt-2 text-xs font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                                Status: {status}
+                              </div>
+                            );
+                          }
+                        })()
+                      ) : (
+                        // No application exists
+                        isDeadlinePassed ? (
                           <div className={`mt-2 text-xs font-medium ${isDark ? "text-red-400" : "text-red-600"}`}>
                             Deadline Passed
                           </div>
-                        )
-                      ) : (
-                        // Deadline not passed - check application status
-                        existingApplication ? (
-                          // User has applied - show edit and withdraw buttons
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="md"
-                              onClick={handleEditClick}
-                              disabled={isWithdrawing}
-                            >
-                              Edit Application
-                            </Button>
-                            <Button 
-                              variant="danger" 
-                              size="md"
-                              onClick={handleWithdraw}
-                              disabled={isWithdrawing}
-                            >
-                              {isWithdrawing ? "Withdrawing..." : "Withdraw"}
-                            </Button>
-                          </div>
+                        ) : canApply ? (
+                          <Button 
+                            variant="primary" 
+                            size="md" 
+                            className="mt-2"
+                            onClick={handleApplyClick}
+                          >
+                            <Send size={16} className="mr-2" />
+                            Apply Now
+                          </Button>
                         ) : (
-                          // User has not applied - check eligibility
-                          canApply ? (
-                            <Button 
-                              variant="primary" 
-                              size="md" 
-                              className="mt-2"
-                              onClick={handleApplyClick}
-                            >
-                              <Send size={16} className="mr-2" />
-                              Apply Now
-                            </Button>
-                          ) : (
-                            <div className={`mt-2 text-xs ${isDark ? "text-gray-500" : "text-gray-600"}`}>
-                              Not Eligible
-                            </div>
-                          )
+                          <div className={`mt-2 text-xs ${isDark ? "text-gray-500" : "text-gray-600"}`}>
+                            Not Eligible
+                          </div>
                         )
                       )}
                     </div>
@@ -488,7 +501,7 @@ export default function StudentCompanyDriveDetails() {
         <Modal
           isOpen={showApplyModal}
           onClose={handleCloseModal}
-          title={existingApplication ? "Edit Application" : "Apply for Position"}
+          title="Apply for Position"
         >
           <div className="space-y-6">
             {/* Resume URL Input */}

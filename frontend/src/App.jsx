@@ -17,6 +17,8 @@ import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import { StudentDashboard } from "./pages/student/StudentDashboard";
 import { StudentDrives } from "./pages/student/StudentDrives";
 import StudentCompanyDriveDetails from "./pages/student/StudentCompanyDriveDetails";
+import StudentProfile from "./pages/student/StudentProfile";
+import StudentApplications from "./pages/student/StudentApplications";
 import CompaniesList from "./pages/admin/company/CompaniesList";
 import CompanyDetails from "./pages/admin/company/CompanyDetails";
 import CompanyDrivesList from "./pages/admin/companydrive/CompanyDrivesList";
@@ -28,6 +30,7 @@ import PlacementDrivesList from "./pages/admin/placement/PlacementDrivesList";
 import PlacementDriveForm from "./pages/admin/placement/PlacementDriveForm";
 import PlacementDriveDetails from "./pages/admin/placement/PlacementDriveDetails";
 import SPCManagement from "./pages/admin/SPCManagement";
+import ApplicationsManagement from "./pages/admin/applications/ApplicationsManagement";
 
 export default function App() {
   return (
@@ -238,25 +241,25 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/admin/applications"
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["admin", "student placement cell"]}
-                    >
-                      <div className="p-6">Applications Page</div>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/spc-management"
+                  path="/admin/spc"
                   element={
                     <ProtectedRoute allowedRoles={["admin"]}>
                       <SPCManagement />
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/admin/applications"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["admin", "student placement cell"]}
+                    >
+                      <ApplicationsManagement />
+                    </ProtectedRoute>
+                  }
+                />
 
-                {/* Student routes - protected */}
+               
                 <Route
                   path="/student"
                   element={
@@ -285,7 +288,7 @@ export default function App() {
                   path="/student/applications"
                   element={
                     <ProtectedRoute allowedRoles={["student"]}>
-                      <StudentDashboard />
+                      <StudentApplications />
                     </ProtectedRoute>
                   }
                 />
@@ -293,7 +296,7 @@ export default function App() {
                   path="/student/profile"
                   element={
                     <ProtectedRoute allowedRoles={["student"]}>
-                      <StudentDashboard />
+                      <StudentProfile />
                     </ProtectedRoute>
                   }
                 />

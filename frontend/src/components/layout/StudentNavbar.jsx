@@ -5,13 +5,14 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { performLogout } from "../../lib/auth";
 import { LoadingOverlay } from "../ui/Spinner";
+import { Moon, Sun } from "lucide-react";
 
 /**
  * Main navigation bar for the student dashboard
  * Includes logo, navigation items, notifications, and user profile
  */
 export function StudentNavbar({ onMenuClick }) {
-  const { isDark } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -195,6 +196,32 @@ export function StudentNavbar({ onMenuClick }) {
                         isDark ? "border-gray-700" : "border-gray-200"
                       } pt-2`}
                     >
+                      {/* Theme Toggle Button */}
+                      <button
+                        onClick={toggleTheme}
+                        className={`
+                        flex items-center gap-2 w-full text-left px-4 py-2 text-sm transition-colors
+                        ${
+                          isDark
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }
+                      `}
+                      >
+                        {isDark ? (
+                          <>
+                            <Sun size={16} />
+                            <span>Light Mode</span>
+                          </>
+                        ) : (
+                          <>
+                            <Moon size={16} />
+                            <span>Dark Mode</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Sign Out Button */}
                       <button
                         onClick={handleSignOut}
                         disabled={isLoggingOut}
