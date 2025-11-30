@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Building2, CalendarDays, FileText, GraduationCap, TrendingUp } from "lucide-react";
+import { Building2, CalendarDays, FileText, GraduationCap, TrendingUp, Briefcase } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DashboardLayout,
@@ -198,7 +198,7 @@ export function AdminDashboard() {
           } text-white`}
         >
           <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2">
-            {getGreeting()}, Admin! 👋
+            {getGreeting()}, Admin!
           </h2>
           <p className="text-xs md:text-sm opacity-90">
             {stats.openDrives > 0 
@@ -298,42 +298,70 @@ export function AdminDashboard() {
               </button>
             }
           >
-            <div className={`rounded-lg border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-              {loading ? (
-                <div className="p-4 space-y-3">
-                  {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+              </div>
+            ) : recentDrives.length === 0 ? (
+              <div className={`rounded-lg border p-8 md:p-12 text-center ${isDark ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}>
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isDark ? "bg-gray-700" : "bg-gray-200"}`}>
+                  <CalendarDays className={`w-8 h-8 ${isDark ? "text-gray-500" : "text-gray-400"}`} />
                 </div>
-              ) : recentDrives.length === 0 ? (
-                <div className={`p-6 md:p-8 text-center ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                  <CalendarDays className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">No drives yet</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-700">
-                  {recentDrives.map((drive, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => navigate(`/admin/drives/${drive.id}`)}
-                      className={`p-3 md:p-4 hover:bg-opacity-50 cursor-pointer transition ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-50"}`}
-                    >
-                      <div className="flex items-start justify-between gap-2 md:gap-3">
-                        <div className="flex-1 min-w-0">
-                          <h4 className={`text-sm md:text-base font-medium mb-1 truncate ${isDark ? "text-white" : "text-gray-900"}`}>
+                <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>No drives yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentDrives.map((drive, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => navigate(`/admin/drives/${drive.id}`)}
+                    className={`
+                      group relative p-4 rounded-lg border cursor-pointer transition-all
+                      ${isDark 
+                        ? "bg-gray-800 border-gray-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10" 
+                        : "bg-white border-gray-200 hover:border-blue-400 hover:shadow-lg"
+                      }
+                    `}
+                  >
+                    <div className="flex items-start gap-3">
+                      {drive.company?.logo ? (
+                        <img 
+                          src={drive.company.logo} 
+                          alt={drive.company.name}
+                          className="w-12 h-12 object-contain rounded-lg flex-shrink-0"
+                        />
+                      ) : (
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? "bg-gray-700" : "bg-gray-100"}`}>
+                          <Building2 className={`w-6 h-6 ${isDark ? "text-gray-400" : "text-gray-500"}`} />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className={`font-semibold truncate ${isDark ? "text-white group-hover:text-blue-400" : "text-gray-900 group-hover:text-blue-600"} transition-colors`}>
                             {drive.company?.name || "Company"}
                           </h4>
-                          <p className={`text-xs md:text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                            {drive.drive_type} • {formatDate(drive.application_deadline)}
-                          </p>
+                          <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getStatusBadge(drive.status)}`}>
+                            {drive.status}
+                          </span>
                         </div>
-                        <span className={`px-2 py-0.5 md:py-1 text-xs rounded flex-shrink-0 ${getStatusBadge(drive.status)}`}>
-                          {drive.status}
-                        </span>
+                        
+                        <div className="flex items-center gap-4 text-xs">
+                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                            <Briefcase className="w-3.5 h-3.5" />
+                            <span>{drive.drive_type}</span>
+                          </div>
+                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                            <CalendarDays className="w-3.5 h-3.5" />
+                            <span>{formatDate(drive.application_deadline)}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Section>
 
           {/* Recent Applications */}
@@ -349,42 +377,64 @@ export function AdminDashboard() {
               </button>
             }
           >
-            <div className={`rounded-lg border ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-              {loading ? (
-                <div className="p-3 md:p-4 space-y-3">
-                  {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+              </div>
+            ) : recentApplications.length === 0 ? (
+              <div className={`rounded-lg border p-8 md:p-12 text-center ${isDark ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}>
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isDark ? "bg-gray-700" : "bg-gray-200"}`}>
+                  <FileText className={`w-8 h-8 ${isDark ? "text-gray-500" : "text-gray-400"}`} />
                 </div>
-              ) : recentApplications.length === 0 ? (
-                <div className={`p-6 md:p-8 text-center ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                  <FileText className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">No applications yet</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-700">
-                  {recentApplications.map((app, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-3 md:p-4 ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-50"} transition cursor-pointer`}
-                      onClick={() => navigate(`/admin/applications/${app.id}`)}
-                    >
-                      <div className="flex items-start justify-between gap-2 md:gap-3">
-                        <div className="flex-1 min-w-0">
-                          <h4 className={`text-sm md:text-base font-medium mb-1 truncate ${isDark ? "text-white" : "text-gray-900"}`}>
+                <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>No applications yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentApplications.map((app, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => navigate(`/admin/applications/${app.id}`)}
+                    className={`
+                      group relative p-4 rounded-lg border cursor-pointer transition-all
+                      ${isDark 
+                        ? "bg-gray-800 border-gray-700 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10" 
+                        : "bg-white border-gray-200 hover:border-purple-400 hover:shadow-lg"
+                      }
+                    `}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-lg ${
+                        isDark ? "bg-gradient-to-br from-purple-900 to-blue-900 text-purple-300" : "bg-gradient-to-br from-purple-100 to-blue-100 text-purple-700"
+                      }`}>
+                        {(app.student?.user?.first_name?.[0] || "S").toUpperCase()}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className={`font-semibold truncate ${isDark ? "text-white group-hover:text-purple-400" : "text-gray-900 group-hover:text-purple-600"} transition-colors`}>
                             {app.student?.user?.first_name || "Student"} {app.student?.user?.last_name || ""}
                           </h4>
-                          <p className={`text-xs md:text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                            Applied: {formatDate(app.created_at)}
-                          </p>
+                          <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getStatusBadge(app.status)}`}>
+                            {app.status}
+                          </span>
                         </div>
-                        <span className={`px-2 py-0.5 md:py-1 text-xs rounded flex-shrink-0 ${getStatusBadge(app.status)}`}>
-                          {app.status}
-                        </span>
+                        
+                        <div className="flex items-center gap-4 text-xs">
+                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                            <GraduationCap className="w-3.5 h-3.5" />
+                            <span>{app.student?.enrollment_number || "N/A"}</span>
+                          </div>
+                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                            <CalendarDays className="w-3.5 h-3.5" />
+                            <span>{formatDate(app.created_at)}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Section>
         </div>
       </PageContainer>
