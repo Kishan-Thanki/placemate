@@ -51,7 +51,6 @@ class CookieJWTAuthentication(JWTAuthentication):
         Returns:
             tuple: (user, token) if authentication successful, None otherwise
         """
-        # Extract access token from cookies
         access_token = request.COOKIES.get('access_token')
 
         # Return None if no token is present (authentication will fail)

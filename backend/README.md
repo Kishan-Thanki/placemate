@@ -1,126 +1,111 @@
-Placemate - Backend API Documentation
-=====================================
+# Placemate Backend
 
-This document provides the official technical documentation for the Placemate backend API. It details the architecture, key systems, and setup procedures for developers who will be consuming or contributing to this service.
+Django REST API for placement management system with JWT authentication, role-based access control, and Docker deployment.
 
-1\. Core Purpose & Architecture
--------------------------------
+## Documentation
 
-The Placemate backend is a robust REST API built with **Django** and **Django REST Framework**. Its core purpose is to provide a secure, scalable, and centralized system for managing all data and business logic related to the campus recruitment process.
+- **[Quick Start](docs/QUICKSTART.md)** - Get running in 5 minutes
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Docker, Render, Railway, etc.
+- **[API Reference](docs/API.md)** - Endpoints, authentication, examples
+- **[Architecture](docs/ARCHITECTURE.md)** - System design & components
+- **[Development Guide](docs/DEVELOPMENT.md)** - Contributing & testing
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues & solutions
 
-### Architectural Overview:
+## Quick Start
 
-*   **Decoupled Design**: This backend is designed to be completely decoupled from the frontend. It exposes a versioned JSON API at /api/v1/ for any client application to consume.
-    
-*   **Database**: All data is stored in a **PostgreSQL** database, managed and hosted by **Supabase**.
-    
-*   **Deployment**: The application is configured for production deployment on **Render** (or a similar PaaS), using **Gunicorn** as the WSGI server and **WhiteNoise** for efficient static file serving.
-    
+### Local Development (Without Docker)
 
-2\. Key Systems (In-Depth)
---------------------------
+```bash
+# Setup
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-This API is built on several professional-grade systems to ensure security, consistency, and maintainability.
+# Configure environment
+cp .env.example .env  # Edit with your values
 
-###  Authentication System (Cookie-Based JWT)
+# Database
+python manage.py migrate
+python manage.py createsuperuser
 
-Authentication is handled using a stateless JWT (JSON Web Token) approach with an emphasis on security.
-
-*   **Mechanism**: Instead of storing tokens in browser local storage, this API uses secure, **HTTP-only cookies** to store access\_token and refresh\_token. This is a critical security measure to prevent XSS (Cross-Site Scripting) attacks.
-    
-*   **Token Flow**:
-    
-    1.  A user logs in via the POST /api/v1/token/ endpoint.
-        
-    2.  The server validates credentials and sets two HTTP-only cookies in the response.
-        
-    3.  On every subsequent request to a protected endpoint, the browser automatically sends the access\_token cookie.
-        
-    4.  Our custom CookieJWTAuthentication backend reads and validates the token from this cookie.
-        
-*   **Secure Logout**: The POST /api/v1/logout/ endpoint blacklists the refresh\_token and clears the authentication cookies, providing a secure session termination.
-    
-
-### 🔑 Permissions & RBAC (Role-Based Access Control)
-
-The permissions system is multi-layered, combining Django's built-in framework with custom business logic.
-
-*   **Model-Level Permissions**: Django's default permissions (add, change, view, delete) are assigned to custom **Roles** (e.g., Placement Head, Student) via the Django Admin.
-    
-*   **Object-Level Permissions**: Custom permission classes (e.g., IsOwnerOrReadOnly) are used to enforce fine-grained rules, such as allowing a student to edit only their own profile.
-    
-*   **Default Policy**: The API is **private by default**. All endpoints require authentication (IsAuthenticated) unless explicitly marked as public.
-    
-
-### 🗣️ Standardized API Responses
-
-Every response from this API, whether a success or an error, follows a consistent and predictable JSON structure.
-
-```
-{ 
-    "success": true, 
-    "message": "Operation completed successfully", 
-    "timestamp": "...", 
-    "data": { ... }, 
-    "pagination": { ... } // (if applicable)
-}
+# Run
+python manage.py runserver
 ```
 
-```    
-{ 
-    "error": 
-        { 
-            "code": "not\_found", 
-            "message": "The requested resource was not found.", "type": "NotFoundException" 
-        }
-}
+### Local Development (With Docker)
+
+```bash
+# Build and run
+docker-compose up --build
+
+# Access
+# API: http://localhost:8000
+# Admin: http://localhost:8000/admin
 ```
-    
-* **Implementation**: This is achieved through a BaseViewSet and a suite of custom APIResponse classes that all standard CRUD views inherit from. A global custom\_exception\_handler ensures all errors are caught and formatted correctly.
-    
 
-###  File Management
+### Deploy to Render
 
-The project uses a hybrid strategy for handling files, optimized for both development speed and production scalability.
+1. New Web Service → Select "Docker"
+2. Connect GitHub repository
+3. Set Root Directory to `backend/`
+4. Add environment variables in "Environment Variables" section
+5. Deploy automatically on push
 
-*   **Media Files (User Uploads)**: In production, all user-uploaded files (résumés, profile pictures) are handled by **Cloudinary**. The DEFAULT\_FILE\_STORAGE setting is configured to use cloudinary\_storage, which uploads files directly to the cloud. In local development, files are saved to the /media directory.
-    
-*   **Static Files (CSS/JS)**: In production, static files (like the Django Admin's assets) are collected and served efficiently by **WhiteNoise**.
-    
+## Features
 
-Local Development Setup
---------------------------
+- JWT Authentication with HTTP-only cookies
+- Role-Based Access Control (Admin, Student, Placement Team)
+- Student Placement Management
+- Company & Drive Management
+- Application & Job Offer System
+- Email Notifications (Brevo)
+- File Upload (Cloudinary)
+- Docker Support for all environments
+- REST API with standardized responses
 
-Follow these steps to get the backend server running locally.
+## Requirements
 
-1.  **Prerequisites**: Python 3.10+, pip.
-    
-2.  ```
-    cp . .env
-    ```
-    
-3.  ``` 
-    #Create and activate a virtual environment
-    python3 -m venv venvsource venv/bin/activate
-            
-    # Install dependencies
-    pip install -r requirements.txt
-    ```
-    
-4.  ```
-    python manage.py runserver
-    ```
+- Python 3.11+
+- PostgreSQL (Supabase recommended)
+- Docker & Docker Compose (for containerized deployment)
 
-The API is now running at http://127.0.0.1:8000/.
+## Environment Setup
 
-API Endpoints & Documentation
---------------------------------
+Create `.env` file with:
 
-Live, interactive API documentation is available when the server is running. This is the primary resource for understanding how to interact with the API.
+```env
+DEBUG=False
+SECRET_KEY=secret-key
+DATABASE_URL=postgresql://...
+FRONTEND_URL=http://localhost:3000
+BREVO_API_KEY=brevo-key
+CLOUDINARY_URL=cloudinary://...
+```
 
-*   **Swagger UI:** [http://127.0.0.1:8000/docs/api/](https://www.google.com/search?q=http://127.0.0.1:8000/docs/api/)
-    
-*   **ReDoc:** [http://127.0.0.1:8000/redoc/](https://www.google.com/search?q=http://127.0.0.1:8000/redoc/)
-    
+## Deployment
 
-All application endpoints are versioned under the /api/v1/ prefix.
+### One-Click Deploy
+
+Supported platforms: Render, Railway, Fly.io, Heroku, AWS, Azure, GCP
+
+See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+See [Development Guide](docs/DEVELOPMENT.md) for details.
+
+## Support
+
+- Documentation: Check the [`docs`](docs) directory
+- Issues: Create a GitHub issue
+- Email: Contact the development team
+
+## License
+
+[MIT LICENSE](../LICENSE) --- see LICENSE file for details.
