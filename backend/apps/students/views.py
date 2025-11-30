@@ -22,7 +22,8 @@ from apps.core.response import (
     SuccessResponse, 
     CreatedResponse, 
     ValidationErrorResponse,
-    NotFoundResponse
+    NotFoundResponse,
+    ForbiddenResponse
 )
 
 User = get_user_model()
@@ -81,9 +82,12 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
         
         if not instance:
             return NotFoundResponse(message="Student profile not found")
-            
+        
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         
+        if instance.is_verified:
+            return ForbiddenResponse(message="Profile cannot be edited as it is verified")
+            
         if not serializer.is_valid():
             return ValidationErrorResponse(errors=serializer.errors)
         
