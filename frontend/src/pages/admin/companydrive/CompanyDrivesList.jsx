@@ -7,6 +7,7 @@ import {
 } from "../../../components/layout";
 import { Button, CardSkeleton } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import {
   Plus,
   Search,
@@ -23,6 +24,7 @@ import { companyDriveService } from "../../../services";
 export default function CompanyDrivesList() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [drives, setDrives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -204,10 +206,12 @@ export default function CompanyDrivesList() {
           {/* Action Buttons */}
           <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4">
             <Button onClick={fetchDrives}>Refresh</Button>
-            <Button onClick={() => navigate("/admin/drives/new")}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Company Drive
-            </Button>
+            {user?.activeRole === "Admin" && (
+              <Button onClick={() => navigate("/admin/drives/new")}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Company Drive
+              </Button>
+            )}
           </div>
 
           {/* Search and Filters */}
@@ -461,24 +465,28 @@ export default function CompanyDrivesList() {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigate(`/admin/drives/${drive.id}/edit`)}
-                        title="Edit"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() =>
-                          handleDelete(drive.id, drive.company?.name)
-                        }
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {user?.activeRole === "Admin" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate(`/admin/drives/${drive.id}/edit`)}
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() =>
+                              handleDelete(drive.id, drive.company?.name)
+                            }
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

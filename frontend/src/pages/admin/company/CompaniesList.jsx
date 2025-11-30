@@ -7,6 +7,7 @@ import {
 } from "../../../components/layout";
 import { Button, LoadingOverlay } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import {
   Building2,
   MapPin,
@@ -28,6 +29,7 @@ import { lookupService } from "../../../services";
 export default function CompaniesList() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -187,10 +189,12 @@ export default function CompaniesList() {
           {/* Action Buttons */}
           <div className="mb-6 flex justify-end gap-2">
             <Button onClick={fetchCompanies}>Refresh</Button>
-            <Button onClick={() => navigate("/admin/companies/register")}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Company
-            </Button>
+            {user?.activeRole === "Admin" && (
+              <Button onClick={() => navigate("/admin/companies/register")}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Company
+              </Button>
+            )}
           </div>
 
           {/* Search Bar and Filters */}
@@ -461,28 +465,32 @@ export default function CompaniesList() {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={(e) => handleEdit(c.id, e)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isDark
-                                ? "text-yellow-400 hover:bg-gray-700"
-                                : "text-yellow-600 hover:bg-yellow-50"
-                            }`}
-                            title="Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDeleteClick(c, e)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isDark
-                                ? "text-red-400 hover:bg-gray-700"
-                                : "text-red-600 hover:bg-red-50"
-                            }`}
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {user?.activeRole === "Admin" && (
+                            <>
+                              <button
+                                onClick={(e) => handleEdit(c.id, e)}
+                                className={`p-2 rounded-lg transition-colors ${
+                                  isDark
+                                    ? "text-yellow-400 hover:bg-gray-700"
+                                    : "text-yellow-600 hover:bg-yellow-50"
+                                }`}
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteClick(c, e)}
+                                className={`p-2 rounded-lg transition-colors ${
+                                  isDark
+                                    ? "text-red-400 hover:bg-gray-700"
+                                    : "text-red-600 hover:bg-red-50"
+                                }`}
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

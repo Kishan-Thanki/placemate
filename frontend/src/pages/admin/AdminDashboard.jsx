@@ -206,28 +206,6 @@ export function AdminDashboard() {
           )}
         </Section>
 
-        {/* Quick Actions */}
-        <Section
-          title="Quick Actions"
-          description="Frequently used operations for managing placement drives"
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {quickActions.map((action) => (
-              <Button
-                key={action.id}
-                variant={action.variant}
-                className="flex-col h-20 space-y-1"
-                leftIcon={action.icon}
-                onClick={() => handleQuickAction(action)}
-              >
-                <span className="text-xs text-center leading-tight">
-                  {action.label}
-                </span>
-              </Button>
-            ))}
-          </div>
-        </Section>
-
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Placement Trend Chart */}

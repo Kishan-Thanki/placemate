@@ -252,10 +252,12 @@ const StudentProfile = () => {
                   </Button>
                 </>
               ) : (
-                <Button variant="primary" onClick={handleEditToggle}>
-                  <Edit size={18} className="mr-2" />
-                  Edit Profile
-                </Button>
+                !student?.is_verified && (
+                  <Button variant="primary" onClick={handleEditToggle}>
+                    <Edit size={18} className="mr-2" />
+                    Edit Profile
+                  </Button>
+                )
               )}
             </div>
           }
