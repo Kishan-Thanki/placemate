@@ -16,6 +16,7 @@ import {
   Sun,
   HomeIcon,
   Shield,
+  Clipboard,
 } from "lucide-react";
 
 export function Sidebar({ isOpen, onClose }) {
@@ -79,6 +80,12 @@ export function Sidebar({ isOpen, onClose }) {
       href: "/admin/drives",
     },
     {
+      id: "applications",
+      name: "Applications",
+      icon: <Clipboard size={18} />,
+      href: "/admin/applications",
+    },
+    {
       id: "students",
       name: "Students",
       icon: <Users size={18} />,
@@ -100,12 +107,6 @@ export function Sidebar({ isOpen, onClose }) {
       href: "/admin/drives/new",
     },
     {
-      id: "register-cell-member",
-      name: "Register Cell Member",
-      icon: <Users size={18} />,
-      href: "/admin/spc",
-    },
-    {
       id: "register-student",
       name: "Register Student",
       icon: <Users size={18} />,
@@ -115,7 +116,7 @@ export function Sidebar({ isOpen, onClose }) {
       id: "spc-management",
       name: "Manage SPC Roles",
       icon: <Shield size={18} />,
-      href: "/admin/spc-management",
+      href: "/admin/spc",
     },
   ];
 
