@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay } from "../../../components/ui";
+import { Button, LoadingOverlay, useAlert } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import {
   CalendarDays,
@@ -142,22 +142,32 @@ export default function PlacementDrivesList() {
 
   const handleDelete = async (id, title, e) => {
     e.stopPropagation();
-    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    
+    const confirmed = await showConfirm({
+      title: "Delete Placement Drive",
+      message: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
 
     try {
       await placementService.deleteDrive(id);
       setDrives(drives.filter((d) => d.id !== id));
 
-      const successMsg = document.createElement("div");
-      successMsg.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-        isDark ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800"
-      }`;
-      successMsg.textContent = "Placement drive deleted successfully!";
-      document.body.appendChild(successMsg);
-      setTimeout(() => successMsg.remove(), 3000);
+      await showAlert({
+        type: "success",
+        title: "Success",
+        message: "Placement drive deleted successfully!",
+      });
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete placement drive. Please try again.");
+      await showAlert({
+        type: "error",
+        title: "Error",
+        message: "Failed to delete placement drive. Please try again.",
+      });
     }
   };
 
@@ -489,6 +499,8 @@ export default function PlacementDrivesList() {
           )}
         </Section>
       </PageContainer>
+
+      <AlertComponent />
     </DashboardLayout>
   );
 }

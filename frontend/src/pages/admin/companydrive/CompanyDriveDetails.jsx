@@ -114,6 +114,7 @@ export default function CompanyDriveDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { showAlert, showConfirm, AlertComponent } = useAlert();
   const { user } = useAuth();
   const [drive, setDrive] = useState(null);
   const [jobs, setJobs] = useState([]);
@@ -168,55 +169,63 @@ export default function CompanyDriveDetails() {
   }, [fetchDriveDetails]);
 
   const handleDelete = async () => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete this company drive? This action cannot be undone.`
-      )
-    )
-      return;
+    const confirmed = await showConfirm({
+      title: "Delete Company Drive",
+      message: "Are you sure you want to delete this company drive? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
 
     try {
       await companyDriveService.deleteDrive(id);
 
-      const successMsg = document.createElement("div");
-      successMsg.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-        isDark ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800"
-      }`;
-      successMsg.textContent = "Company drive deleted successfully!";
-      document.body.appendChild(successMsg);
-      setTimeout(() => successMsg.remove(), 3000);
+      await showAlert({
+        type: "success",
+        title: "Success",
+        message: "Company drive deleted successfully!",
+      });
 
       navigate("/admin/drives");
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete company drive. Please try again.");
+      await showAlert({
+        type: "error",
+        title: "Error",
+        message: "Failed to delete company drive. Please try again.",
+      });
     }
   };
 
   const handleDeleteJob = async (jobId, jobTitle) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete the job "${jobTitle}"? This action cannot be undone.`
-      )
-    )
-      return;
+    const confirmed = await showConfirm({
+      title: "Delete Job",
+      message: `Are you sure you want to delete the job "${jobTitle}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
 
     try {
       await companyDriveService.deleteJob(jobId);
 
-      const successMsg = document.createElement("div");
-      successMsg.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-        isDark ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800"
-      }`;
-      successMsg.textContent = "Job deleted successfully!";
-      document.body.appendChild(successMsg);
-      setTimeout(() => successMsg.remove(), 3000);
+      await showAlert({
+        type: "success",
+        title: "Success",
+        message: "Job deleted successfully!",
+      });
 
       // Refresh the jobs list
       fetchDriveDetails();
     } catch (err) {
       console.error("Delete job error:", err);
-      alert("Failed to delete job. Please try again.");
+      await showAlert({
+        type: "error",
+        title: "Error",
+        message: "Failed to delete job. Please try again.",
+      });
     }
   };
 
@@ -1025,6 +1034,8 @@ export default function CompanyDriveDetails() {
           </div>
         </Section>
       </PageContainer>
+
+      <AlertComponent />
     </DashboardLayout>
   );
 }

@@ -13,7 +13,7 @@ import {
   PageContainer,
   Section,
 } from "../../components/layout";
-import { Button, Card, Spinner, Toast } from "../../components/ui";
+import { Button, Card, Spinner, Toast, useAlert } from "../../components/ui";
 import { Modal } from "../../components/ui/Modal";
 import { useTheme } from "../../contexts/ThemeContext";
 import { userService } from "../../services/userService";
@@ -21,6 +21,7 @@ import { userService } from "../../services/userService";
 // ✅ Clean, fixed implementation
 export default function SPCManagement() {
   const { isDark } = useTheme();
+  const { showConfirm, AlertComponent } = useAlert();
   
   // UI helpers
   const initials = (u) => {
@@ -186,7 +187,15 @@ export default function SPCManagement() {
   };
 
   const revokeSPC = async (userId, name) => {
-    if (!confirm(`Revoke SPC role from ${name}?`)) return;
+    const confirmed = await showConfirm({
+      title: "Revoke SPC Role",
+      message: `Are you sure you want to revoke SPC role from ${name}?`,
+      confirmText: "Revoke",
+      cancelText: "Cancel",
+    });
+    
+    if (!confirmed) return;
+    
     setProcessing(true);
     try {
       await userService.revokeSPCRole(userId);
@@ -532,6 +541,8 @@ export default function SPCManagement() {
           onClose={() => setToast({ ...toast, show: false })}
         />
       )}
+
+      <AlertComponent />
     </DashboardLayout>
   );
 }

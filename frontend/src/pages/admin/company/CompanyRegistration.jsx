@@ -10,6 +10,7 @@ import {
   Button,
   LoadingButton,
   LoadingOverlay,
+  useAlert,
 } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { companyService } from "../../../services/companyService";
@@ -24,6 +25,7 @@ export default function CompanyRegistration() {
   const navigate = useNavigate();
   const { id } = useParams(); // Get company ID from URL for edit mode
   const isEditMode = Boolean(id);
+  const { showAlert, AlertComponent } = useAlert();
 
   const [logo, setLogo] = useState(null); // Preview URL
   const [logoFile, setLogoFile] = useState(null); // Actual file to upload
@@ -134,7 +136,11 @@ export default function CompanyRegistration() {
           }
         } catch (error) {
           console.error("Error fetching company data:", error);
-          alert("Failed to load company data. Redirecting...");
+          await showAlert({
+            type: "error",
+            title: "Error",
+            message: "Failed to load company data. Redirecting...",
+          });
           navigate("/admin/companies");
         } finally {
           setFetchingData(false);
@@ -150,31 +156,51 @@ export default function CompanyRegistration() {
 
     // Basic validation
     if (!form.companyName.trim()) {
-      alert("Company name is required");
+      await showAlert({
+        type: "warning",
+        title: "Validation Error",
+        message: "Company name is required",
+      });
       return;
     }
 
     if (!form.email || !form.email.trim()) {
-      alert("Email is required");
+      await showAlert({
+        type: "warning",
+        title: "Validation Error",
+        message: "Email is required",
+      });
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
-      alert("Please enter a valid email address");
+      await showAlert({
+        type: "warning",
+        title: "Validation Error",
+        message: "Please enter a valid email address",
+      });
       return;
     }
 
     // Validate company size is selected
     if (!form.companySize) {
-      alert("Please select a company size");
+      await showAlert({
+        type: "warning",
+        title: "Validation Error",
+        message: "Please select a company size",
+      });
       return;
     }
 
     // Validate city is selected
     if (!form.city) {
-      alert("Please select a city");
+      await showAlert({
+        type: "warning",
+        title: "Validation Error",
+        message: "Please select a city",
+      });
       return;
     }
 
@@ -276,9 +302,11 @@ export default function CompanyRegistration() {
           error.response?.data?.error ||
           error.message ||
           "Please check all required fields and try again";
-      alert(
-        `${isEditMode ? "Update" : "Registration"} failed: ${errorMessage}`
-      );
+      await showAlert({
+        type: "error",
+        title: `${isEditMode ? "Update" : "Registration"} Failed`,
+        message: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -464,6 +492,8 @@ export default function CompanyRegistration() {
           </div>
         </form>
       </PageContainer>
+
+      <AlertComponent />
     </DashboardLayout>
   );
 }

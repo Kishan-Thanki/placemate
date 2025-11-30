@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DashboardLayout, PageContainer, Section } from '../../../components/layout';
-import { Card, Button, LoadingOverlay, RichTextEditor } from '../../../components/ui';
+import { Card, Button, LoadingOverlay, RichTextEditor, useAlert } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ArrowLeft } from 'lucide-react';
 import { companyDriveService, lookupService } from '../../../services';
@@ -22,6 +22,7 @@ export default function CompanyDriveJobForm() {
   const navigate = useNavigate();
   const { id: driveId } = useParams();
   const { isDark } = useTheme();
+  const { showAlert, AlertComponent } = useAlert();
   const [loading, setLoading] = useState(false);
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [programs, setPrograms] = useState([]);
@@ -149,18 +150,26 @@ export default function CompanyDriveJobForm() {
     }
   };
 
-  const handleFileChange = (jobId, file) => {
+  const handleFileChange = async (jobId, file) => {
     if (file) {
       // Validate file type (PDF only)
       if (file.type !== 'application/pdf') {
-        alert('Please upload a PDF file only');
+        await showAlert({
+          type: 'warning',
+          title: 'Invalid File Type',
+          message: 'Please upload a PDF file only',
+        });
         return;
       }
       
       // Validate file size (max 5MB)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
-        alert('File size must be less than 5MB');
+        await showAlert({
+          type: 'warning',
+          title: 'File Too Large',
+          message: 'File size must be less than 5MB',
+        });
         return;
       }
 
@@ -326,7 +335,11 @@ export default function CompanyDriveJobForm() {
         const basicDetails = JSON.parse(localStorage.getItem('companyDriveBasicDetails') || '{}');
         
         if (!basicDetails.company || !basicDetails.placement_drive) {
-          alert('Missing basic drive details. Please start from the beginning.');
+          await showAlert({
+            type: 'warning',
+            title: 'Missing Details',
+            message: 'Missing basic drive details. Please start from the beginning.',
+          });
           navigate('/admin/drives/new');
           return;
         }
@@ -424,7 +437,11 @@ export default function CompanyDriveJobForm() {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert(error.response?.data?.message || error.message || 'Failed to save. Please try again.');
+      await showAlert({
+        type: 'error',
+        title: 'Error',
+        message: error.response?.data?.message || error.message || 'Failed to save. Please try again.',
+      });
     } finally {
       setLoading(false);
     }
@@ -940,6 +957,8 @@ export default function CompanyDriveJobForm() {
           </Card>
         </Section>
       </PageContainer>
+
+      <AlertComponent />
     </DashboardLayout>
   );
 }

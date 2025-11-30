@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, CardSkeleton } from "../../../components/ui";
+import { Button, CardSkeleton, useAlert } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
@@ -25,6 +25,7 @@ export default function CompanyDrivesList() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const { showAlert, showConfirm, AlertComponent } = useAlert();
   const [drives, setDrives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -128,27 +129,31 @@ export default function CompanyDrivesList() {
   };
 
   const handleDelete = async (id, companyName) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete the drive for "${companyName}"? This action cannot be undone.`
-      )
-    )
-      return;
+    const confirmed = await showConfirm({
+      title: "Delete Company Drive",
+      message: `Are you sure you want to delete the drive for "${companyName}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
 
     try {
       await companyDriveService.deleteDrive(id);
       setDrives(drives.filter((d) => d.id !== id));
 
-      const successMsg = document.createElement("div");
-      successMsg.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-        isDark ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800"
-      }`;
-      successMsg.textContent = "Company drive deleted successfully!";
-      document.body.appendChild(successMsg);
-      setTimeout(() => successMsg.remove(), 3000);
+      await showAlert({
+        type: "success",
+        title: "Success",
+        message: "Company drive deleted successfully!",
+      });
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete company drive. Please try again.");
+      await showAlert({
+        type: "error",
+        title: "Error",
+        message: "Failed to delete company drive. Please try again.",
+      });
     }
   };
 
@@ -565,6 +570,8 @@ export default function CompanyDrivesList() {
           )}
         </Section>
       </PageContainer>
+
+      <AlertComponent />
     </DashboardLayout>
   );
 }

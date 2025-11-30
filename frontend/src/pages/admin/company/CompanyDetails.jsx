@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay } from "../../../components/ui";
+import { Button, LoadingOverlay, useAlert } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
@@ -29,10 +29,10 @@ export default function CompanyDetails() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const { showAlert, showConfirm, AlertComponent } = useAlert();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deleteModal, setDeleteModal] = useState({ isOpen: false });
 
   useEffect(() => {
     fetchCompanyDetails();
@@ -59,38 +59,32 @@ export default function CompanyDetails() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Delete "${company.name}"? This cannot be undone.`))
-      return;
+    const confirmed = await showConfirm({
+      title: "Delete Company",
+      message: `Are you sure you want to delete "${company.name}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      type: "confirm",
+    });
+
+    if (!confirmed) return;
 
     try {
       await companyService.deleteCompany(id);
-      navigate("/admin/companies", {
-        state: { message: "Company deleted successfully!" },
+      await showAlert({
+        type: "success",
+        title: "Success",
+        message: "Company deleted successfully!",
       });
+      navigate("/admin/companies");
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete company. Please try again.");
-    }
-  };
-
-  const handleDeleteClick = () => {
-    setDeleteModal({ isOpen: true });
-  };
-
-  const handleDeleteConfirm = async () => {
-    try {
-      await companyService.deleteCompany(id);
-      navigate("/admin/companies", {
-        state: { message: "Company deleted successfully!" },
+      await showAlert({
+        type: "error",
+        title: "Error",
+        message: "Failed to delete company. Please try again.",
       });
-    } catch (err) {
-      console.error("Delete error:", err);
-      alert("Failed to delete company. Please try again.");
     }
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteModal({ isOpen: false });
   };
 
   if (loading) {
@@ -451,95 +445,7 @@ export default function CompanyDetails() {
         </Section>
       </PageContainer>
 
-      {/* Delete Confirmation Modal */}
-      {deleteModal.isOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
-            onClick={handleDeleteCancel}
-          />
-
-          {/* Modal */}
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <div
-              className={`w-full max-w-md rounded-xl shadow-2xl ${
-                isDark ? "bg-gray-800" : "bg-white"
-              } p-6 animate-in fade-in zoom-in duration-200`}
-            >
-              {/* Icon */}
-              <div className="flex justify-center mb-4">
-                <div
-                  className={`p-4 rounded-full ${
-                    isDark ? "bg-red-900/30" : "bg-red-100"
-                  }`}
-                >
-                  <AlertTriangle
-                    size={48}
-                    className={isDark ? "text-red-400" : "text-red-600"}
-                  />
-                </div>
-              </div>
-
-              {/* Title */}
-              <h2
-                className={`text-2xl font-bold text-center mb-2 ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
-                Delete Company
-              </h2>
-
-              {/* Message */}
-              <p
-                className={`text-center mb-2 ${
-                  isDark ? "text-gray-300" : "text-gray-600"
-                }`}
-              >
-                Are you sure you want to delete
-              </p>
-              <p
-                className={`text-center font-semibold mb-4 ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
-                "{company?.name}"?
-              </p>
-              <p
-                className={`text-center text-sm mb-6 ${
-                  isDark ? "text-red-400" : "text-red-600"
-                }`}
-              >
-                This action cannot be undone.
-              </p>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDeleteCancel}
-                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${
-                    isDark
-                      ? "bg-gray-700 hover:bg-gray-600 text-gray-200"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                  }`}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${
-                    isDark
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "bg-red-600 hover:bg-red-700 text-white"
-                  }`}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <AlertComponent />
     </DashboardLayout>
   );
 }
