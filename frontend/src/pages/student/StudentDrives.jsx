@@ -16,8 +16,12 @@ export function StudentDrives() {
   // Load drives from API — list view only. Jobs/eligibility are resolved on the drive detail page.
   useEffect(() => {
     let mounted = true;
+    let hasFetched = false;
 
     const loadAll = async () => {
+      if (hasFetched) return; // Prevent duplicate calls in StrictMode
+      hasFetched = true;
+      
       setLoadingDrives(true);
       try {
         const drivesResp = await companyDriveService.getAllDrives({ status: "Open" });

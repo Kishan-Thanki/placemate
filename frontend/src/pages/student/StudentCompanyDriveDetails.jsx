@@ -204,7 +204,9 @@ export default function StudentCompanyDriveDetails() {
     const load = async () => {
       setLoading(true);
       setError(null);
+      
       try {
+        // Load drive and jobs data
         const driveResp = await companyDriveService.getDriveById(id);
         const jobsResp = await companyDriveService.getDriveJobs(id);
 
@@ -212,14 +214,21 @@ export default function StudentCompanyDriveDetails() {
         const jobsData = Array.isArray(jobsResp) ? jobsResp : jobsResp?.results || jobsResp?.data || [];
 
         if (!mounted) return;
+        
         setDrive(driveData);
         setJobs(jobsData);
 
-        // Check if user has already applied to this drive
+        // Check if user has already applied to THIS specific drive
         try {
           const myApplications = await applicationService.getMyApplications();
           const applicationsArray = Array.isArray(myApplications) ? myApplications : myApplications?.results || myApplications?.data || [];
-          const existingApp = applicationsArray.find(app => app.company_drive?.id === parseInt(id) || app.company_drive === parseInt(id));
+          
+          // Find application for this specific company drive
+          const existingApp = applicationsArray.find(app => {
+            const appDriveId = app.company_drive?.id || app.company_drive;
+            return appDriveId === parseInt(id);
+          });
+          
           if (existingApp && mounted) {
             setExistingApplication(existingApp);
           }
@@ -227,33 +236,41 @@ export default function StudentCompanyDriveDetails() {
           console.warn("Could not check existing applications:", err);
         }
 
-        // Determine student's program name from stored user profile first
+        // Determine student's program for eligibility check
         let programName = null;
-        if (user && user.studentProfile) {
+        if (user?.studentProfile) {
           programName = extractProgramFromProfile(user.studentProfile);
         }
 
-        // Fallback: try fetching /students/me/ if program name still missing
+        // Fallback: fetch student profile if not in context
         if (!programName) {
           try {
-            const { ok: studentOk, data: studentResp } = await fetchJSON("/api/v1/students/me/", { method: "GET", credentials: "include" });
-            if (studentOk && studentResp?.data) {
+            const { ok, data: studentResp } = await fetchJSON("/api/v1/students/me/", { 
+              method: "GET", 
+              credentials: "include" 
+            });
+            if (ok && studentResp?.data) {
               programName = extractProgramFromProfile(studentResp.data);
             }
           } catch (e) {
-            // ignore student profile fallback failure, log for debugging
-            console.warn("Could not fetch student profile fallback:", e);
+            console.warn("Could not fetch student profile:", e);
           }
         }
 
-        // Compute eligibility: any job that includes the student's program
+        // Check eligibility: at least one job must include student's program
         const eligible = jobsData.some((job) => jobIncludesProgram(job, programName));
-        setCanApply(Boolean(eligible));
+        if (mounted) {
+          setCanApply(Boolean(eligible));
+        }
       } catch (err) {
-        console.error("Failed to load company drive detail", err);
-        if (mounted) setError(err.message || "Failed to load drive details");
+        console.error("Failed to load company drive details:", err);
+        if (mounted) {
+          setError(err.message || "Failed to load drive details");
+        }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -380,39 +397,59 @@ export default function StudentCompanyDriveDetails() {
                     <div className="w-full sm:w-auto sm:text-right">
                       <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Apply by:</div>
                       <div className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{deadline}</div>
+                      
+                      {/* Logic: Check deadline first, then application status */}
                       {isDeadlinePassed ? (
-                        <div className={`mt-2 text-xs font-medium ${isDark ? "text-red-400" : "text-red-600"}`}>Deadline Passed</div>
-                      ) : existingApplication ? (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="md"
-                            onClick={handleEditClick}
-                            disabled={isWithdrawing}
-                          >
-                            Edit Application
-                          </Button>
-                          <Button 
-                            variant="danger" 
-                            size="md"
-                            onClick={handleWithdraw}
-                            disabled={isWithdrawing}
-                          >
-                            {isWithdrawing ? "Withdrawing..." : "Withdraw"}
-                          </Button>
-                        </div>
-                      ) : canApply ? (
-                        <Button 
-                          variant="primary" 
-                          size="md" 
-                          className="mt-2"
-                          onClick={handleApplyClick}
-                        >
-                          <Send size={16} className="mr-2" />
-                          Apply Now
-                        </Button>
+                        // Deadline has passed
+                        existingApplication ? (
+                          <div className={`mt-2 text-xs font-medium ${isDark ? "text-green-400" : "text-green-600"}`}>
+                            ✓ Applied
+                          </div>
+                        ) : (
+                          <div className={`mt-2 text-xs font-medium ${isDark ? "text-red-400" : "text-red-600"}`}>
+                            Deadline Passed
+                          </div>
+                        )
                       ) : (
-                        <div className={`mt-2 text-xs ${isDark ? "text-gray-500" : "text-gray-600"}`}>Not Eligible</div>
+                        // Deadline not passed - check application status
+                        existingApplication ? (
+                          // User has applied - show edit and withdraw buttons
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="md"
+                              onClick={handleEditClick}
+                              disabled={isWithdrawing}
+                            >
+                              Edit Application
+                            </Button>
+                            <Button 
+                              variant="danger" 
+                              size="md"
+                              onClick={handleWithdraw}
+                              disabled={isWithdrawing}
+                            >
+                              {isWithdrawing ? "Withdrawing..." : "Withdraw"}
+                            </Button>
+                          </div>
+                        ) : (
+                          // User has not applied - check eligibility
+                          canApply ? (
+                            <Button 
+                              variant="primary" 
+                              size="md" 
+                              className="mt-2"
+                              onClick={handleApplyClick}
+                            >
+                              <Send size={16} className="mr-2" />
+                              Apply Now
+                            </Button>
+                          ) : (
+                            <div className={`mt-2 text-xs ${isDark ? "text-gray-500" : "text-gray-600"}`}>
+                              Not Eligible
+                            </div>
+                          )
+                        )
                       )}
                     </div>
                   </div>
