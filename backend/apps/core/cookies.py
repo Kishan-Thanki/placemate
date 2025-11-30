@@ -11,7 +11,7 @@ def get_cookie_settings():
     Development: Secure=False, SameSite=Lax (localhost)
     """
     is_secure = not settings.DEBUG
-    samesite = "None" if is_secure else "Lax"  
+    samesite = None if is_secure else "Lax"  
     
     return {
         "httponly": True,
