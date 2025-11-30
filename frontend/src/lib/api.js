@@ -41,8 +41,12 @@ export async function fetchJSON(path, options = {}) {
   const res = await fetch(url, options);
 
   // Check for authentication errors (401 Unauthorized)
-  if (res.status === 401) {
-    console.error("🚨 401 Unauthorized - Token expired or invalid");
+  // Only handle 401 if it's not a login/logout/password-reset endpoint
+  if (res.status === 401 && 
+      !path.includes('/login') && 
+      !path.includes('/logout') && 
+      !path.includes('/password-reset')) {
+    console.error("🚨 401 Unauthorized - Session expired");
     if (authErrorHandler) {
       authErrorHandler();
     }
