@@ -154,7 +154,7 @@ export function Navbar({ onMenuClick }) {
                   to: "/admin/placement-drives",
                   roles: ["Admin"], // Admin only
                 },
-                { id: "drives", label: "Drives", to: "/admin/drives", roles: ["Admin", "Student Placement Cell"] }, // Admin and SPC
+                { id: "drives", label: "Company-Drives", to: "/admin/drives", roles: ["Admin", "Student Placement Cell"] }, // Admin and SPC
                 { id: "applications", label: "Applications", to: "/admin/applications", roles: ["Admin", "Student Placement Cell"] }, // Admin and SPC
                 { id: "students", label: "Students", to: "/admin/students", roles: ["Admin", "Student Placement Cell"] }, // Admin and SPC
               ]
