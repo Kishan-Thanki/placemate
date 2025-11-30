@@ -92,7 +92,7 @@ export function StudentNavbar({ onMenuClick }) {
                   to: "/student",
                   end: true,
                 },
-                { id: "drives", label: "Drives", to: "/student/drives" },
+                { id: "drives", label: "Company-Drives", to: "/student/drives" },
                 { id: "applications", label: "Applications", to: "/student/applications" },
                 { id: "profile", label: "Profile", to: "/student/profile" },
               ].map((item) => (
