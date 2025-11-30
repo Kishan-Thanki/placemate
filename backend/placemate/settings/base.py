@@ -142,16 +142,16 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
-        'user': '1000/day'
+        'anon': '50/hour',      
+        'user': '1000/hour',   
     },
 }
 
 # --- JWT (JSON Web Token) Configuration ---
 # Controls the behavior of our authentication tokens.
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=config('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', default=60, cast=int)),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=config('JWT_REFRESH_TOKEN_LIFETIME_DAYS', default=7, cast=int)),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
@@ -162,17 +162,20 @@ SIMPLE_JWT = {
 }
 
 
-# --- CORS (Cross-Origin Resource Sharing) ---
-# Base settings for allowing frontend communication. 
-# Specific origins are defined in local.py and production.py.
-CORS_ALLOW_CREDENTIALS = True 
+# --- CORS & Cookie Base Configuration ---
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT',
 ]
 CORS_ALLOW_HEADERS = [
-    'accept', 'accept-encoding', 'authorization', 'content-type', 'dnt',
-    'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
+    'accept', 'accept-encoding', 'authorization', 'content-type',
+    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
 ]
+
+# CSRF Configuration for API + Cookies
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"  
+SESSION_COOKIE_SAMESITE = "Lax"  
 
 # --- Static Files ---
 # WhiteNoise is used for efficient static file serving in production.
@@ -197,7 +200,13 @@ ANYMAIL = {
     "BREVO_API_KEY": config("BREVO_API_KEY"),  # stored in Render env
 }
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL') 
+
 # --- Frontend Configuration ---
 # The base URL for your frontend application. 
 # This is used to construct absolute URLs in emails (e.g., for password reset links).
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+import sys
+
+if 'test' in sys.argv:
+    from .test import *

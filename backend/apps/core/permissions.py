@@ -19,15 +19,12 @@ def _get_active_role(request):
     A central helper function to safely extract the 'active_role'
     claim from the user's validated JWT payload.
     """
-    # request.auth is the validated token payload set by CookieJWTAuthentication
     if not hasattr(request, 'auth') or not request.auth:
         return None
         
-    if hasattr(request.auth, 'payload'):
-        # For simple-jwt >= 6.0
+    if hasattr(request.auth, 'payload') and request.auth.payload is not None:
         return request.auth.payload.get('active_role')
     elif hasattr(request.auth, 'get'):
-        # For simple-jwt < 6.0
         return request.auth.get('active_role')
     return None
 

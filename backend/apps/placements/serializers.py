@@ -157,8 +157,8 @@ class CompanyDriveWriteSerializer(serializers.ModelSerializer):
 
 class JobReadSerializer(serializers.ModelSerializer):
     eligible_programs = ProgramSerializer(many=True, read_only=True)
-    company_name = serializers.CharField(read_only=True)
-    drive_title = serializers.CharField(read_only=True)
+    company_name = serializers.SerializerMethodField()
+    drive_title = serializers.SerializerMethodField()
     job_pdf = serializers.FileField(read_only=True)
     
     class Meta:
@@ -170,3 +170,15 @@ class JobReadSerializer(serializers.ModelSerializer):
             'pg_package_max', 'ug_stipend', 'pg_stipend', 'eligible_programs',
             'company_name', 'drive_title', 'posted_at', 'updated_at'
         ]
+    
+    def get_company_name(self, obj):
+        """Get company name from company_drive"""
+        if hasattr(obj, 'company_name'):
+            return obj.company_name
+        return obj.company_drive.company.name if obj.company_drive and obj.company_drive.company else None
+    
+    def get_drive_title(self, obj):
+        """Get drive title from company_drive"""
+        if hasattr(obj, 'drive_title'):
+            return obj.drive_title
+        return obj.company_drive.placement_drive.title if obj.company_drive and obj.company_drive.placement_drive else None
