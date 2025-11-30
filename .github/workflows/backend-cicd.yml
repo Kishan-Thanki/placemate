@@ -54,6 +54,8 @@ jobs:
           CLOUDINARY_CLOUD_NAME: "test_cloud"
           CLOUDINARY_API_KEY: "123456789"
           CLOUDINARY_API_SECRET: "test_secret"
+          BREVO_API_KEY: "test_brevo_key"
+          FRONTEND_URL: "http://localhost:3000"
         run: |
           pytest
 
