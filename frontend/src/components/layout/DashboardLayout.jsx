@@ -88,12 +88,16 @@ export function DashboardLayout({ children, title = "Dashboard" }) {
                         )}.`
                       : title === "Registered Companies"
                       ? "Manage and view all companies registered in the placement portal."
+                      :title === "Manage Applications"
+                      ?"Review and manage student job applications"
                       : title === "Placement Drives"
                       ? "Browse and manage all placement drives and opportunities."
                       : title === "Registered Students"
                       ? "View and manage all students registered for placements."
                       : title === "Register Student"
                       ? "Add new student to the placemate"
+                      : title === "Manage SPC Roles"
+                      ? "Assign and manage SPC roles for students"
                       : `Last updated: ${new Date().toLocaleDateString(
                           "en-US",
                           {

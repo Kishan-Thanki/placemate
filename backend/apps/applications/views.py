@@ -14,6 +14,7 @@ from .serializers import (
 )
 from apps.core.tasks import send_email_in_background
 from django.conf import settings
+from django.utils import timezone
 
 # Create your views here.
 class CompanyDriveApplicationViewSet(BaseViewSet):
@@ -85,9 +86,19 @@ class CompanyDriveApplicationViewSet(BaseViewSet):
         if application.status != 'Applied':
             return ErrorResponse(message="Can only withdraw 'Applied' applications")
         
-        application.status = 'Withdrawn'
-        application.save()
+        company_drive = application.company_drive
+
+        if company_drive.status!= 'Open':
+            return ErrorResponse(message="Cannot withdraw: The company drive is closed.")
         
+        if company_drive.application_deadline < timezone.now():
+            return ErrorResponse(message="Cannot withdraw: The application deadline for this drive has already passed.")
+        
+        try:
+            application.delete()
+        except Exception as e:
+            return ErrorResponse(message=f"An error occurred while deleting the application: {e}")
+
         return SuccessResponse(message="Application withdrawn successfully")
 
     @action(detail=True, methods=['post'], permission_classes=[IsStudentRole])

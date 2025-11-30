@@ -179,35 +179,12 @@ export default function SPCManagement() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout title="Manage SPC Roles">
       <PageContainer>
         <Section>
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-3 rounded-lg ${
-                  isDark ? "bg-blue-500/20" : "bg-blue-100"
-                }`}
-              >
-                <Shield className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h1
-                  className={`text-2xl font-bold ${
-                    isDark ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  Student Placement Cell
-                </h1>
-                <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-                  Manage members who have access to the Student Placement Cell.
-                  <span className="block text-sm mt-1 text-gray-500">
-                    {spcUsers.length} member{spcUsers.length !== 1 ? "s" : ""}
-                  </span>
-                </p>
-              </div>
-            </div>
+          <div className="flex items-center justify-end mb-6">
+            
             <Button variant="primary" onClick={openAssignModal} disabled={processing}>
               <UserPlus className="w-4 h-4 mr-2" /> Add SPC
             </Button>
@@ -275,7 +252,9 @@ export default function SPCManagement() {
                                 {initials(u)}
                               </div>
                               <div>
-                                <div className="font-medium">
+                                <div className={`font-medium ${
+                                  isDark ? "text-white" : "text-gray-900"
+                                }`}>
                                   {`${u.first_name || ""} ${u.middle_name || ""} ${u.last_name || ""}`}
                                 </div>
                                 <div className="text-xs mt-1 flex items-center gap-2">
@@ -286,8 +265,12 @@ export default function SPCManagement() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3">{u.email}</td>
-                          <td className="px-4 py-3">{u.phone_number}</td>
+                          <td className={`px-4 py-3 ${
+                            isDark ? "text-gray-300" : "text-gray-900"
+                          }`}>{u.email}</td>
+                          <td className={`px-4 py-3 ${
+                            isDark ? "text-gray-300" : "text-gray-900"
+                          }`}>{u.phone_number}</td>
                           <td className="px-4 py-3 text-right">
                             <Button
                               variant="danger"
@@ -340,44 +323,48 @@ export default function SPCManagement() {
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-2">
-                <div
-                  className={`flex items-center w-full px-3 py-2 rounded-md border ${
-                    isDark
-                      ? "bg-gray-700 border-gray-600"
-                      : "bg-white border-gray-200"
-                  }`}
-                >
-                  <Search
-                    className={`w-4 h-4 mr-2 ${
-                      isDark ? "text-gray-300" : "text-gray-500"
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div
+                    className={`flex items-center flex-1 px-3 py-2 rounded-md border ${
+                      isDark
+                        ? "bg-gray-700 border-gray-600"
+                        : "bg-white border-gray-200"
                     }`}
-                  />
-                  <input
-                    ref={searchRef}
-                    aria-label="Search students"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search by name or email"
-                    className={`flex-1 bg-transparent outline-none text-sm ${
-                      isDark ? "text-gray-200" : "text-gray-800"
-                    }`}
-                  />
-                  {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm("")}
-                      className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
-                    >
-                      <X
-                        className={`w-4 h-4 ${
-                          isDark ? "text-gray-300" : "text-gray-600"
-                        }`}
-                      />
-                    </button>
-                  )}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {filteredAvailableStudents.length} shown
+                  >
+                    <Search
+                      className={`w-4 h-4 mr-2 ${
+                        isDark ? "text-gray-300" : "text-gray-500"
+                      }`}
+                    />
+                    <input
+                      ref={searchRef}
+                      aria-label="Search students"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search by name or email"
+                      className={`flex-1 bg-transparent outline-none text-sm ${
+                        isDark ? "text-gray-200" : "text-gray-800"
+                      }`}
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+                      >
+                        <X
+                          className={`w-4 h-4 ${
+                            isDark ? "text-gray-300" : "text-gray-600"
+                          }`}
+                        />
+                      </button>
+                    )}
+                  </div>
+                  <div className={`text-sm whitespace-nowrap ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}>
+                    {filteredAvailableStudents.length} student{filteredAvailableStudents.length !== 1 ? 's' : ''}
+                  </div>
                 </div>
               </div>
 
@@ -403,10 +390,14 @@ export default function SPCManagement() {
                           }}
                         />
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">
+                      <th className={`px-4 py-3 text-left text-sm font-semibold ${
+                        isDark ? "text-gray-900" : "text-gray-900"
+                      }`}>
                         Member
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">
+                      <th className={`px-4 py-3 text-left text-sm font-semibold ${
+                        isDark ? "text-gray-900" : "text-gray-900"
+                      }`}>
                         Email
                       </th>
                     </tr>
@@ -441,14 +432,20 @@ export default function SPCManagement() {
                               {initials(s)}
                             </div>
                             <div>
-                              <div className="font-medium">
+                              <div className={`font-medium ${
+                                isDark ? "text-white" : "text-gray-900"
+                              }`}>
                                 {`${s.first_name || ""} ${s.middle_name || ""} ${s.last_name || ""}`}
                               </div>
-                              <div className="text-xs text-gray-500">ID: {s.id}</div>
+                              <div className={`text-xs ${
+                                isDark ? "text-gray-400" : "text-gray-500"
+                              }`}>ID: {s.id}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{s.email}</td>
+                        <td className={`px-4 py-3 text-sm ${
+                          isDark ? "text-gray-300" : "text-gray-600"
+                        }`}>{s.email}</td>
                       </tr>
                     ))}
                   </tbody>

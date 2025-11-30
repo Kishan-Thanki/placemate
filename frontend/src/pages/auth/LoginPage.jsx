@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -18,6 +18,9 @@ export default function LoginPage() {
   const [availableRoles, setAvailableRoles] = useState([]);
   const [userId, setUserId] = useState(null);
   const [userEmail, setUserEmail] = useState("");
+  
+  // Prevent duplicate login processing
+  const isProcessingLogin = useRef(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,6 +104,14 @@ export default function LoginPage() {
   };
 
   const handleSuccessfulLogin = async (result, selectedRole = null) => {
+    // Prevent duplicate execution
+    if (isProcessingLogin.current) {
+      console.log("⚠️ Login already in progress, skipping duplicate call");
+      return;
+    }
+    
+    isProcessingLogin.current = true;
+    
     const activeRole = selectedRole || result.data?.active_role;
     const availableRoles = result.data?.available_roles || [];
 
@@ -124,6 +135,41 @@ export default function LoginPage() {
           roles: availableRoles,
           activeRole: activeRole,
         };
+
+        // If the user logged in as a student, try to fetch and store student profile once
+        if (activeRole && activeRole.toLowerCase() === "student") {
+          try {
+            const { ok: studentOk, data: studentResp } = await fetchJSON("/api/v1/students/me/", {
+              method: "GET",
+              credentials: "include",
+            });
+
+            if (studentOk && studentResp?.data) {
+              const profile = studentResp.data;
+
+              // Store complete student profile to avoid future API calls
+              storedUser.studentProfile = {
+                id: profile.id || profile.user?.id || null,
+                enrollmentNumber: profile.enrollment_number || null,
+                program: profile.program || null,
+                programDetails: profile.program_details || null,
+                dateOfBirth: profile.date_of_birth || null,
+                gender: profile.gender || null,
+                currentCgpa: profile.current_cgpa || null,
+                graduationCgpa: profile.graduation_cgpa || null,
+                activeBacklogs: profile.active_backlogs || 0,
+                tenthPercentage: profile.tenth_percentage || null,
+                twelfthPercentage: profile.twelfth_percentage || null,
+                joiningYear: profile.joining_year || null,
+                isPlaced: profile.is_placed || false,
+                isVerified: profile.is_verified || false,
+              };
+            }
+          } catch (e) {
+            // ignore student profile fetch failures - login still succeeds
+            console.warn("Could not fetch student profile during login:", e);
+          }
+        }
 
         console.log("✅ User data stored:", storedUser);
         login(storedUser);
@@ -158,6 +204,11 @@ export default function LoginPage() {
       login(storedUser);
       setShowRoleModal(false);
       redirectBasedOnRole(activeRole);
+    } finally {
+      // Reset the flag after navigation completes
+      setTimeout(() => {
+        isProcessingLogin.current = false;
+      }, 500);
     }
   };
 

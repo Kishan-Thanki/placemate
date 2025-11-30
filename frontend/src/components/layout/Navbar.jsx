@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import logoUrl from "../../../src/assets/placemate_logo.png";
+import logoUrl from "../../../src/assets/placemate.png";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { Bell } from "lucide-react";
@@ -51,7 +51,6 @@ export function Navbar({ onMenuClick }) {
     : email
     ? email[0].toUpperCase()
     : "U";
-  
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -153,6 +152,7 @@ export function Navbar({ onMenuClick }) {
                   to: "/admin/placement-drives",
                 },
                 { id: "drives", label: "Drives", to: "/admin/drives" },
+                { id: "applications", label: "Applications", to: "/admin/applications" },
                 { id: "students", label: "Students", to: "/admin/students" },
               ].map((item) => (
                 <NavLink
@@ -249,31 +249,9 @@ export function Navbar({ onMenuClick }) {
                         {email || "No Email"}
                       </p>
                     </div>
-                    <a
-                      href="#"
-                      className={`block px-4 py-2 text-sm transition-colors ${
-                        isDark
-                          ? "text-gray-300 hover:bg-gray-700 hover:text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      Profile Settings
-                    </a>
-                    <a
-                      href="#"
-                      className={`block px-4 py-2 text-sm transition-colors ${
-                        isDark
-                          ? "text-gray-300 hover:bg-gray-700 hover:text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      System Settings
-                    </a>
-                    <div
-                      className={`border-t ${
-                        isDark ? "border-gray-700" : "border-gray-200"
-                      } mt-2 pt-2`}
-                    >
+                    
+                    
+                    <div>
                       <button
                         onClick={handleSignOut}
                         disabled={isLoggingOut}

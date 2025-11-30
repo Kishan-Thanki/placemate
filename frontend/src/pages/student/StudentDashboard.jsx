@@ -49,7 +49,7 @@ export function StudentDashboard() {
         {/* Stats */}
         <Section>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <StatCard title="Couse" value={`${student.course}`} icon={<BookOpen />} color="blue" trend={`CGPA : ${Number(student.cgpa).toFixed(2)}`} />
+            <StatCard title="Course" value={`${student.course}`} icon={<BookOpen />} color="blue" trend={`CGPA : ${Number(student.cgpa).toFixed(2)}`} />
             <StatCard title="Eligible Drives" value={student.eligibleDrives} icon={<Calendar />} color="purple" />
             <StatCard title="Applied Drives" value={student.appliedDrives} icon={<Briefcase />} color="red" />
             <StatCard title="Offer" value={student.offer} icon={<Award />} color="green" trend={student.offerCompany} />

@@ -8,10 +8,6 @@ import { fetchJSON } from "../lib/api";
 const USER_ENDPOINT = "/api/v1/users";
 
 export const userService = {
-  /**
-   * Get all users
-   * @returns {Promise<Object>} List of all users
-   */
   getAllUsers: async () => {
     try {
       const { ok, data, message, status } = await fetchJSON(
@@ -37,11 +33,6 @@ export const userService = {
     }
   },
 
-  /**
-   * Get users by role
-   * @param {number} roleId - Role ID (1: Student, 2: Admin, 3: Student Placement Cell)
-   * @returns {Promise<Object>} List of users with the specified role
-   */
   getUsersByRole: async (roleId) => {
     try {
       const { ok, data, message, status } = await fetchJSON(
@@ -75,12 +66,6 @@ export const userService = {
     }
   },
 
-  /**
-   * Update user roles
-   * @param {number} userId - User ID
-   * @param {Object} roleData - Role data { role_ids: [1, 2, 3] } or { action: "add"/"remove", role_ids: [3] }
-   * @returns {Promise<Object>} Updated user data
-   */
   updateUserRoles: async (userId, roleData) => {
     try {
       console.log("🔄 Updating roles for user:", userId, roleData);
@@ -148,11 +133,7 @@ export const userService = {
     return userService.updateUserRoles(userId, { roles: newRoleIds });
   },
 
-  /**
-   * Revoke SPC role from a user
-   * @param {number} userId - User ID
-   * @returns {Promise<Object>} Updated user data
-   */
+  
   revokeSPCRole: async (userId) => {
     // Fetch current roles and remove SPC role id then send full roles array
     const user = await userService.getUser(userId);
@@ -185,10 +166,6 @@ export const userService = {
     }
   },
 
-  /**
-   * Get students without SPC role (only Student role)
-   * @returns {Promise<Array>} List of students with only Student role
-   */
   getStudentsWithoutSPC: async () => {
     return userService.getUsersByRole(1); // 1 = Student
   },
