@@ -35,6 +35,7 @@ export function Navbar({ onMenuClick }) {
   // Debug logging
   useEffect(() => {
     console.log("🔍 Navbar - Current user:", user);
+    console.log("🔍 Navbar - User activeRole:", user?.activeRole);
     console.log("🔍 Navbar - Full name:", fullName);
     console.log("🔍 Navbar - Email:", email);
   }, [user, fullName, email]);
@@ -144,16 +145,28 @@ export function Navbar({ onMenuClick }) {
                   label: "Dashboard",
                   to: "/admin",
                   end: true,
+                  roles: ["Admin", "Student Placement Cell"], // Admin and SPC
                 },
-                { id: "companies", label: "Companies", to: "/admin/companies" },
+                { id: "companies", label: "Companies", to: "/admin/companies", roles: ["Admin", "Student Placement Cell"] }, // Admin and SPC
                 {
                   id: "placement-drives",
                   label: "Placement Drives",
                   to: "/admin/placement-drives",
+                  roles: ["Admin"], // Admin only
                 },
-                { id: "drives", label: "Drives", to: "/admin/drives" },
-                { id: "students", label: "Students", to: "/admin/students" },
-              ].map((item) => (
+                { id: "drives", label: "Company-Drives", to: "/admin/drives", roles: ["Admin", "Student Placement Cell"] }, // Admin and SPC
+                { id: "applications", label: "Applications", to: "/admin/applications", roles: ["Admin", "Student Placement Cell"] }, // Admin and SPC
+                { id: "students", label: "Students", to: "/admin/students", roles: ["Admin", "Student Placement Cell"] }, // Admin and SPC
+              ]
+              .filter(item => {
+                // If no roles specified, show to everyone
+                if (!item.roles || item.roles.length === 0) return true;
+                // If user role not available yet, show all items (will re-render when user loads)
+                if (!user?.activeRole) return true;
+                // Check if user's role is in the allowed roles
+                return item.roles.includes(user.activeRole);
+              })
+              .map((item) => (
                 <NavLink
                   key={item.id}
                   to={item.to}
@@ -248,31 +261,9 @@ export function Navbar({ onMenuClick }) {
                         {email || "No Email"}
                       </p>
                     </div>
-                    <a
-                      href="#"
-                      className={`block px-4 py-2 text-sm transition-colors ${
-                        isDark
-                          ? "text-gray-300 hover:bg-gray-700 hover:text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      Profile Settings
-                    </a>
-                    <a
-                      href="#"
-                      className={`block px-4 py-2 text-sm transition-colors ${
-                        isDark
-                          ? "text-gray-300 hover:bg-gray-700 hover:text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      System Settings
-                    </a>
-                    <div
-                      className={`border-t ${
-                        isDark ? "border-gray-700" : "border-gray-200"
-                      } mt-2 pt-2`}
-                    >
+                    
+                    
+                    <div>
                       <button
                         onClick={handleSignOut}
                         disabled={isLoggingOut}

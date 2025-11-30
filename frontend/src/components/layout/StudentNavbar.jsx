@@ -1,46 +1,21 @@
 import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import logoUrl from "../../assets/placemate.png";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { Button } from "../ui";
-import { Bell } from "lucide-react";
-import { fetchJSON } from "../../lib/api";
 import { performLogout } from "../../lib/auth";
 import { LoadingOverlay } from "../ui/Spinner";
+import { Moon, Sun } from "lucide-react";
 
 /**
  * Main navigation bar for the student dashboard
  * Includes logo, navigation items, notifications, and user profile
  */
 export function StudentNavbar({ onMenuClick }) {
-  const { isDark } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  // Mock notifications (replace with real data later)
-  const notifications = [
-    {
-      id: 1,
-      title: "New job application",
-      message: "John Doe applied for Software Engineer",
-      time: "2m ago",
-    },
-    {
-      id: 2,
-      title: "Drive reminder",
-      message: "TCS drive starts tomorrow",
-      time: "1h ago",
-    },
-    {
-      id: 3,
-      title: "Interview scheduled",
-      message: "Interview with Google at 3 PM",
-      time: "2h ago",
-    },
-  ];
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -56,19 +31,18 @@ export function StudentNavbar({ onMenuClick }) {
   return (
     <nav
       className={`
-      sticky top-0 z-50 border-b transition-all duration-200
+      z-50 border-b transition-all duration-200
       ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}
     `}
     >
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-12 items-center h-16 gap-4">
-          {/* Left section - Logo and Menu button */}
-          <div className="col-span-12 lg:col-span-4 flex items-center space-x-4">
-            {/* Mobile menu button */}
+      <div className="px-2 sm:px-4 lg:px-8">
+        <div className="flex items-center justify-between h-20 py-2">
+          {/* Left section: Logo + mobile menu */}
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <button
               onClick={onMenuClick}
               className={`
-                lg:hidden p-2 rounded-md transition-colors
+                lg:hidden p-2 rounded-md transition-colors cursor-pointer
                 ${
                   isDark
                     ? "text-gray-300 hover:text-white hover:bg-gray-700"
@@ -91,34 +65,62 @@ export function StudentNavbar({ onMenuClick }) {
               </svg>
             </button>
 
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <img
                 src={logoUrl}
                 alt="Placemate Logo"
-                className="h-8 w-8 rounded"
+                className="h-12 w-12 sm:h-14 sm:w-14 object-contain my-1"
               />
               <span
-                className={`
-                text-xl font-bold hidden sm:block
-                ${isDark ? "text-white" : "text-gray-900"}
-              `}
+                className={`text-lg sm:text-xl font-bold ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}
               >
                 Placemate
               </span>
             </div>
           </div>
 
-          {/* Center section - Nav links + Search (hidden some parts on mobile) */}
-          <div className="hidden md:flex col-span-12 lg:col-span-4 items-center">
-            {/* Top nav tabs */}
-
-            {/* Right section - Actions and Profile */}
+          {/* Center section: Navigation links */}
+          <div className="flex-1 flex items-center justify-center mx-4">
+            {/* Mobile: Show in sidebar, Desktop: Show in navbar */}
+            <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
+              {[
+                {
+                  id: "dashboard",
+                  label: "Dashboard",
+                  to: "/student",
+                  end: true,
+                },
+                { id: "drives", label: "Company-Drives", to: "/student/drives" },
+                { id: "applications", label: "Applications", to: "/student/applications" },
+                { id: "profile", label: "Profile", to: "/student/profile" },
+              ].map((item) => (
+                <NavLink
+                  key={item.id}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `
+                    text-sm font-medium pb-1 border-b-2 transition-colors whitespace-nowrap
+                    ${
+                      isActive
+                        ? isDark
+                          ? "text-blue-400 border-blue-400"
+                          : "text-blue-600 border-blue-600"
+                        : isDark
+                        ? "text-gray-300 border-transparent hover:text-white"
+                        : "text-gray-600 border-transparent hover:text-gray-900"
+                    }
+                  `}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
           </div>
-          {/* Close center section wrapper */}
 
-          {/* Right section - Actions and Profile */}
-          <div className="col-span-12 lg:col-span-4 flex items-center justify-end space-x-3">
+          {/* Right section: Profile */}
+          <div className="flex items-center justify-end space-x-1 sm:space-x-3">
             {/* Profile dropdown */}
             <div className="relative">
               <button
@@ -133,10 +135,12 @@ export function StudentNavbar({ onMenuClick }) {
                 `}
               >
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">S</span>
+                  <span className="text-white text-sm font-semibold">
+                    {user?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "S"}
+                  </span>
                 </div>
                 <span className="hidden md:block text-sm font-medium">
-                  Student
+                  {user?.firstName || user?.email?.split('@')[0] || "Student"}
                 </span>
                 <svg
                   className="w-4 h-4"
@@ -192,6 +196,32 @@ export function StudentNavbar({ onMenuClick }) {
                         isDark ? "border-gray-700" : "border-gray-200"
                       } pt-2`}
                     >
+                      {/* Theme Toggle Button */}
+                      <button
+                        onClick={toggleTheme}
+                        className={`
+                        flex items-center gap-2 w-full text-left px-4 py-2 text-sm transition-colors
+                        ${
+                          isDark
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }
+                      `}
+                      >
+                        {isDark ? (
+                          <>
+                            <Sun size={16} />
+                            <span>Light Mode</span>
+                          </>
+                        ) : (
+                          <>
+                            <Moon size={16} />
+                            <span>Dark Mode</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Sign Out Button */}
                       <button
                         onClick={handleSignOut}
                         disabled={isLoggingOut}
@@ -243,12 +273,11 @@ export function StudentNavbar({ onMenuClick }) {
       </div>
 
       {/* Click outside to close dropdowns */}
-      {(showProfileMenu || showNotifications) && (
+      {showProfileMenu && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setShowProfileMenu(false);
-            setShowNotifications(false);
           }}
         />
       )}

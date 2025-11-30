@@ -10,6 +10,7 @@ import { LoadingOverlay } from "../../../components/ui/Spinner";
 import { ToastContainer } from "../../../components/ui/Toast";
 import { useToast } from "../../../hooks/useToast";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import {
   ArrowLeft,
   User,
@@ -25,6 +26,8 @@ import {
   X,
   Trash2,
   Camera,
+  ShieldCheck,
+  AlertCircle,
 } from "lucide-react";
 import { studentService } from "../../../services/studentService";
 
@@ -33,6 +36,7 @@ const StudentDetails = () => {
   const { userId } = useParams();
   const [searchParams] = useSearchParams();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const { toasts, removeToast, success, error: showError } = useToast();
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +50,7 @@ const StudentDetails = () => {
   const [formData, setFormData] = useState({});
   const [profilePicture, setProfilePicture] = useState(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [updatingVerification, setUpdatingVerification] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -213,6 +218,45 @@ const StudentDetails = () => {
 
   const handleBack = () => {
     navigate("/admin/students");
+  };
+
+  const canBeVerified = () => {
+    return (
+      student.tenth_percentage != null &&
+      student.twelfth_percentage != null &&
+      student.current_cgpa != null
+    );
+  };
+
+  const getMissingFields = () => {
+    const missing = [];
+    if (student.tenth_percentage == null) missing.push('10th Percentage');
+    if (student.twelfth_percentage == null) missing.push('12th Percentage');
+    if (student.current_cgpa == null) missing.push('Current CGPA');
+    return missing;
+  };
+
+  const handleVerificationStatusChange = async (isVerified) => {
+    if (isVerified && !canBeVerified()) {
+      const missingFields = getMissingFields();
+      showError(`Cannot verify student. Missing required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    setUpdatingVerification(true);
+    try {
+      await studentService.markAsVerified(userId, isVerified);
+      setStudent((prev) => ({
+        ...prev,
+        is_verified: isVerified,
+      }));
+      success(`Student ${isVerified ? 'verified' : 'unverified'} successfully!`);
+    } catch (err) {
+      console.error("Error updating verification status:", err);
+      showError(err.message || "Failed to update verification status");
+    } finally {
+      setUpdatingVerification(false);
+    }
   };
 
   const getFullName = (studentData) => {
@@ -400,7 +444,78 @@ const StudentDetails = () => {
                 {getFullName(student)}
               </h2>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {/* Verification Status Component */}
+              {!isEditMode && (
+                <div className="relative group">
+                  <div className={`inline-flex rounded-lg shadow-sm border ${
+                    isDark ? 'border-gray-700' : 'border-gray-200'
+                  }`}>
+                    <button
+                      onClick={() => handleVerificationStatusChange(true)}
+                      disabled={updatingVerification}
+                      className={`relative inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-l-lg transition-all duration-200 focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                        student.is_verified
+                          ? isDark
+                            ? 'bg-green-600 text-white border-r border-green-700 hover:bg-green-700 focus:ring-green-500'
+                            : 'bg-green-500 text-white border-r border-green-600 hover:bg-green-600 focus:ring-green-500'
+                          : isDark
+                          ? 'bg-gray-800 text-gray-400 border-r border-gray-700 hover:bg-gray-700 hover:text-gray-300 focus:ring-gray-600'
+                          : 'bg-white text-gray-600 border-r border-gray-300 hover:bg-gray-50 hover:text-gray-900 focus:ring-gray-400'
+                      } ${
+                        updatingVerification ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                      } ${!canBeVerified() && !student.is_verified ? 'cursor-not-allowed' : ''}`}
+                      title={!canBeVerified() && !student.is_verified ? `Missing: ${getMissingFields().join(', ')}` : ''}
+                    >
+                      <ShieldCheck size={16} />
+                      Verified
+                    </button>
+                    <button
+                      onClick={() => handleVerificationStatusChange(false)}
+                      disabled={updatingVerification}
+                      className={`relative inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-r-lg transition-all duration-200 focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                        !student.is_verified
+                          ? isDark
+                            ? 'bg-orange-600 text-white hover:bg-orange-700 focus:ring-orange-500'
+                            : 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500'
+                          : isDark
+                          ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300 focus:ring-gray-600'
+                          : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 focus:ring-gray-400'
+                      } ${
+                        updatingVerification ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                      }`}
+                    >
+                      <AlertCircle size={16} />
+                      Not Verified
+                    </button>
+                  </div>
+                  
+                  {/* Validation Tooltip */}
+                  {!canBeVerified() && !student.is_verified && (
+                    <div className={`absolute left-0 top-full mt-2 w-64 p-3 rounded-lg shadow-lg border z-50 hidden group-hover:block ${
+                      isDark 
+                        ? 'bg-gray-800 border-gray-700 text-gray-300'
+                        : 'bg-white border-gray-200 text-gray-700'
+                    }`}>
+                      <div className="flex items-start gap-2">
+                        <AlertCircle size={16} className="text-orange-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-semibold mb-1">Cannot verify student</p>
+                          <p className="text-xs">Missing required fields:</p>
+                          <ul className="text-xs mt-1 space-y-0.5">
+                            {getMissingFields().map((field) => (
+                              <li key={field} className="flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-orange-500"></span>
+                                {field}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <Button variant="outline" onClick={handleBack}>
                 <ArrowLeft size={16} className="mr-2" />
                 Back to List
@@ -421,22 +536,24 @@ const StudentDetails = () => {
                   </Button>
                 </>
               ) : (
-                <>
-                  <Button
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                    onClick={handleEditToggle}
-                  >
-                    <Edit size={16} className="mr-2" />
-                    Edit Details
-                  </Button>
-                  <Button
-                    className="bg-red-500 hover:bg-red-600 text-white"
-                    onClick={() => setShowDeleteConfirm(true)}
-                  >
-                    <Trash2 size={16} className="mr-2" />
-                    Delete
-                  </Button>
-                </>
+                user?.activeRole === "Admin" && (
+                  <>
+                    <Button
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                      onClick={handleEditToggle}
+                    >
+                      <Edit size={16} className="mr-2" />
+                      Edit Details
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      <Trash2 size={16} className="mr-2" />
+                      Delete
+                    </Button>
+                  </>
+                )
               )}
             </div>
           </div>
@@ -928,7 +1045,7 @@ const StudentDetails = () => {
                 Cancel
               </Button>
               <Button
-                className="bg-red-500 hover:bg-red-600 text-white"
+                variant="danger"
                 onClick={handleDelete}
                 disabled={isDeleting}
               >

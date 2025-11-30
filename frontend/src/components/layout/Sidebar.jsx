@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useAuth } from "../../contexts/AuthContext";
 import RoleSwitcher from "../RoleSwitcher";
 import {
   LayoutDashboard,
@@ -16,26 +17,21 @@ import {
   Sun,
   HomeIcon,
   Shield,
+  Clipboard,
 } from "lucide-react";
 
 export function Sidebar({ isOpen, onClose }) {
   const { isDark, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
 
-  // ✅ Load user info from localStorage
-  const [user, setUser] = useState(null);
+  // Debug logging
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      const parsedUser = JSON.parse(stored);
-      setUser(parsedUser);
-      console.log("🔍 Sidebar - Loaded user from localStorage:", parsedUser);
-    } else {
-      console.log("⚠️ Sidebar - No user found in localStorage");
-    }
-  }, []);
+    console.log("🔍 Sidebar - User from useAuth:", user);
+    console.log("🔍 Sidebar - User activeRole:", user?.activeRole);
+  }, [user]);
 
   // Persist collapsed state (only for desktop)
   useEffect(() => {
@@ -59,65 +55,99 @@ export function Sidebar({ isOpen, onClose }) {
   }, [isOpen]);
 
   // Main navigation links (shown on mobile instead of navbar)
-  const mainNavLinks = [
+  const mainNavLinks = useMemo(() => [
     {
       id: "dashboard",
       name: "Dashboard",
       icon: <LayoutDashboard size={18} />,
       href: "/admin",
+      roles: ["Admin", "Student Placement Cell"], // Admin and SPC
     },
     {
       id: "companies",
       name: "Companies",
       icon: <Building2 size={18} />,
       href: "/admin/companies",
+      roles: ["Admin", "Student Placement Cell"], // Admin and SPC
     },
     {
       id: "drives",
       name: "Drives",
       icon: <CalendarDays size={18} />,
       href: "/admin/drives",
+      roles: ["Admin", "Student Placement Cell"], // Admin and SPC
+    },
+    {
+      id: "applications",
+      name: "Applications",
+      icon: <Clipboard size={18} />,
+      href: "/admin/applications",
+      roles: ["Admin", "Student Placement Cell"], // Admin and SPC
     },
     {
       id: "students",
       name: "Students",
       icon: <Users size={18} />,
       href: "/admin/students",
+      roles: ["Admin", "Student Placement Cell"], // Admin and SPC
     },
-  ];
+  ].filter(item => {
+    // If no roles specified, show to everyone
+    if (!item.roles || item.roles.length === 0) return true;
+    // If user role not available yet, show all items (will re-render when user loads)
+    if (!user?.activeRole) return true;
+    // Check if user's role is in the allowed roles
+    return item.roles.includes(user.activeRole);
+  }), [user]);
 
-  const quickActions = [
+  const quickActions = useMemo(() => [
     {
       id: "register-company",
       name: "Register Company",
       icon: <Building2 size={18} />,
       href: "/admin/companies/register",
+      roles: ["Admin"], // Admin only
     },
     {
       id: "add-drive",
       name: "Add Drive",
       icon: <Plus size={18} />,
       href: "/admin/drives/new",
-    },
-    {
-      id: "register-cell-member",
-      name: "Register Cell Member",
-      icon: <Users size={18} />,
-      href: "/admin/spc",
+      roles: ["Admin"], // Admin only
     },
     {
       id: "register-student",
       name: "Register Student",
       icon: <Users size={18} />,
       href: "/admin/students/register",
+      roles: ["Admin"], // Admin only
     },
     {
       id: "spc-management",
       name: "Manage SPC Roles",
       icon: <Shield size={18} />,
-      href: "/admin/spc-management",
+      href: "/admin/spc",
+      roles: ["Admin"], // Admin only
     },
-  ];
+  ].filter(item => {
+    // If no roles specified, show to everyone
+    if (!item.roles || item.roles.length === 0) return true;
+    // If user role not available yet, hide restricted items
+    if (!user?.activeRole) {
+      console.log("⚠️ Sidebar - User role not available yet, hiding quick action:", item.name);
+      return false;
+    }
+    // Check if user's role is in the allowed roles
+    const hasAccess = item.roles.includes(user.activeRole);
+    console.log(`🔍 Sidebar - Quick action "${item.name}" access for role "${user.activeRole}":`, hasAccess);
+    return hasAccess;
+  }), [user]);
+
+  // Debug: Log filtered quick actions
+  useEffect(() => {
+    console.log("🔍 Sidebar - Filtered quick actions count:", quickActions.length);
+    console.log("🔍 Sidebar - Quick actions:", quickActions.map(a => a.name));
+  }, [quickActions]);
 
   const handleItemClick = (itemId, href) => {
     setActiveItem(itemId);
@@ -154,15 +184,17 @@ export function Sidebar({ isOpen, onClose }) {
               collapsed ? "px-2" : "px-4"
             } py-3 border-b ${isDark ? "border-gray-700" : "border-gray-200"}`}
           >
+            {/* Menu text */}
             {!collapsed && (
-              <span
-                className={`${
-                  isDark ? "text-gray-300" : "text-gray-600"
-                } text-sm font-medium`}
+              <h2
+                className={`text-lg font-semibold ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}
               >
                 Menu
-              </span>
+              </h2>
             )}
+            
             <div className="flex items-center gap-2">
               {/* X button - only on mobile */}
               <button
@@ -233,18 +265,19 @@ export function Sidebar({ isOpen, onClose }) {
               ))}
             </div>
 
-            {/* Quick Actions */}
-            <div>
-              {!collapsed && (
-                <h3
-                  className={`px-3 text-xs font-semibold uppercase tracking-wider mb-3 ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  Quick Actions
-                </h3>
-              )}
-              {quickActions.map((item) => (
+            {/* Quick Actions - Only show if there are any actions */}
+            {quickActions.length > 0 && (
+              <div>
+                {!collapsed && (
+                  <h3
+                    className={`px-3 text-xs font-semibold uppercase tracking-wider mb-3 ${
+                      isDark ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    Quick Actions
+                  </h3>
+                )}
+                {quickActions.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleItemClick(item.id, item.href)}
@@ -267,7 +300,8 @@ export function Sidebar({ isOpen, onClose }) {
                   {!collapsed && <span>{item.name}</span>}
                 </button>
               ))}
-            </div>
+              </div>
+            )}
           </nav>
 
           {/* ✅ Sidebar Footer: Role switcher + Theme toggle + Profile */}

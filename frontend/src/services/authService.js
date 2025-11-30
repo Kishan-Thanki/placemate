@@ -1,18 +1,11 @@
 import { fetchJSON } from "../lib/api";
 
-/**
- * Authentication Service
- * Handles all API calls related to authentication operations
- */
+
 
 const AUTH_ENDPOINT = "/api/v1";
 
 export const authService = {
-  /**
-   * Request password reset email
-   * @param {string} email - User's email address
-   * @returns {Promise<Object>} Response from the API
-   */
+ 
   requestPasswordReset: async (email) => {
   try {
     console.log("🔄 Requesting password reset for:", email);
@@ -45,12 +38,7 @@ export const authService = {
 
 
 
-  /**
-   * Confirm password reset with token
-   * @param {string} token - Reset token from email
-   * @param {string} password - New password
-   * @returns {Promise<Object>} Response from the API
-   */
+ 
   confirmPasswordReset: async (token, newPassword) => {
   try {
     console.log("🔄 Confirming password reset with token:", token);
@@ -79,11 +67,7 @@ export const authService = {
 },
 
 
-  /**
-   * Validate password reset token
-   * @param {string} token - Reset token from email
-   * @returns {Promise<Object>} Response from the API
-   */
+  
   validatePasswordResetToken: async (token) => {
     try {
       const { ok, data, status } = await fetchJSON(

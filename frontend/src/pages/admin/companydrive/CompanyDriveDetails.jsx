@@ -14,6 +14,7 @@ import {
 } from "../../../components/layout";
 import { Button, CardSkeleton } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import {
   ArrowLeft,
   Edit,
@@ -113,6 +114,7 @@ export default function CompanyDriveDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [drive, setDrive] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -294,24 +296,28 @@ export default function CompanyDriveDetails() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <Button onClick={() => navigate(`/admin/drives/${id}/edit`)}>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Drive
-              </Button>
-              <Button
-                onClick={() => navigate(`/admin/drives/${id}/jobs/add`)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Jobs
-              </Button>
-              <Button
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </Button>
+              {user?.activeRole === "Admin" && (
+                <>
+                  <Button onClick={() => navigate(`/admin/drives/${id}/edit`)}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Drive
+                  </Button>
+                  <Button
+                    onClick={() => navigate(`/admin/drives/${id}/jobs/add`)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Jobs
+                  </Button>
+                  <Button
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                </>
+              )}
             </div>
           }
         >
@@ -991,25 +997,27 @@ export default function CompanyDriveDetails() {
                         </div>
                       )}
 
-                    {/* Job Actions */}
-                    <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigate(`/admin/drives/${id}/jobs/${job.id}/edit`)}
-                      >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit Job
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleDeleteJob(job.id, job.title)}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Delete Job
-                      </Button>
-                    </div>
+                    {/* Job Actions - Admin Only */}
+                    {user?.activeRole === "Admin" && (
+                      <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate(`/admin/drives/${id}/jobs/${job.id}/edit`)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit Job
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleDeleteJob(job.id, job.title)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete Job
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

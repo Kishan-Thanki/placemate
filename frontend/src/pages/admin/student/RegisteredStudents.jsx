@@ -13,6 +13,7 @@ import {
 } from "../../../components/ui";
 import { useToast } from "../../../hooks/useToast";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import {
   Eye,
   Edit,
@@ -29,6 +30,7 @@ import { lookupService } from "../../../services";
 export function RegisteredStudents() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const { toasts, removeToast, success, error: showError } = useToast();
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
@@ -193,13 +195,15 @@ export function RegisteredStudents() {
     <DashboardLayout title="Registered Students">
       <PageContainer>
         <Section>
-          {/* Register Student Button */}
-          <div className="mb-4 flex justify-end">
-            <Button onClick={() => navigate("/admin/students/register")}>
-              <Plus className="w-4 h-4 mr-2" />
-              Register Student
-            </Button>
-          </div>
+          {/* Register Student Button - Admin Only */}
+          {user?.activeRole === "Admin" && (
+            <div className="mb-4 flex justify-end">
+              <Button onClick={() => navigate("/admin/students/register")}>
+                <Plus className="w-4 h-4 mr-2" />
+                Register Student
+              </Button>
+            </div>
+          )}
 
           <Card className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -324,7 +328,13 @@ export function RegisteredStudents() {
                       "Email",
                       "Placement Status",
                       "Action",
-                    ].map((h) => (
+                    ].filter(h => {
+                      // Hide Placement Status column for SPC users
+                      if (h === "Placement Status" && user?.activeRole === "Student Placement Cell") {
+                        return false;
+                      }
+                      return true;
+                    }).map((h) => (
                       <th key={h} className="px-4 py-3 text-left font-semibold">
                         {h}
                       </th>
@@ -334,7 +344,7 @@ export function RegisteredStudents() {
                 <tbody>
                   {error ? (
                     <tr>
-                      <td colSpan="8" className="px-4 py-8 text-center">
+                      <td colSpan={user?.activeRole === "Student Placement Cell" ? "7" : "8"} className="px-4 py-8 text-center">
                         <div
                           className={`text-${isDark ? "red-400" : "red-600"}`}
                         >
@@ -354,7 +364,7 @@ export function RegisteredStudents() {
                   ) : filteredStudents.length === 0 ? (
                     <tr>
                       <td
-                        colSpan="8"
+                        colSpan={user?.activeRole === "Student Placement Cell" ? "7" : "8"}
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         No students found
@@ -383,18 +393,20 @@ export function RegisteredStudents() {
                         <td className="px-4 py-3">{s.joining_year || "-"}</td>
                         <td className="px-4 py-3">{s.program || "-"}</td>
                         <td className="px-4 py-3">{s.user?.email || "-"}</td>
-                        <td className="px-4 py-3">
-                          <div className="relative inline-block">
-                            <select
-                              value={s.is_placed ? "Placed" : "Not Placed"}
-                              onChange={(e) =>
-                                handlePlacementStatusChange(
-                                  s.user?.id,
-                                  e.target.value === "Placed"
-                                )
-                              }
-                              disabled={updatingPlacement === s.user?.id}
-                              className={`appearance-none min-w-[130px] pl-3 pr-8 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 border
+                        {/* Hide placement status column for SPC users */}
+                        {user?.activeRole !== "Student Placement Cell" && (
+                          <td className="px-4 py-3">
+                            <div className="relative inline-block">
+                              <select
+                                value={s.is_placed ? "Placed" : "Not Placed"}
+                                onChange={(e) =>
+                                  handlePlacementStatusChange(
+                                    s.user?.id,
+                                    e.target.value === "Placed"
+                                  )
+                                }
+                                disabled={updatingPlacement === s.user?.id}
+                                className={`appearance-none min-w-[130px] pl-3 pr-8 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 border
       ${
         s.is_placed
           ? isDark
@@ -406,35 +418,36 @@ export function RegisteredStudents() {
       }
       ${updatingPlacement === s.user?.id ? "opacity-50 cursor-not-allowed" : ""}
       [&>option]:bg-white [&>option]:text-gray-900 [&>option]:font-normal [&>option]:pl-3`}
-                            >
-                              <option value="Placed">Placed</option>
-                              <option value="Not Placed">Not Placed</option>
-                            </select>
+                              >
+                                <option value="Placed">Placed</option>
+                                <option value="Not Placed">Not Placed</option>
+                              </select>
 
-                            {/* Custom dropdown arrow */}
-                            <svg
-                              className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
-                                s.is_placed
-                                  ? isDark
-                                    ? "text-green-300"
-                                    : "text-green-700"
-                                  : isDark
-                                  ? "text-orange-300"
-                                  : "text-orange-700"
-                              }`}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
-                          </div>
-                        </td>
+                              {/* Custom dropdown arrow */}
+                              <svg
+                                className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                                  s.is_placed
+                                    ? isDark
+                                      ? "text-green-300"
+                                      : "text-green-700"
+                                    : isDark
+                                    ? "text-orange-300"
+                                    : "text-orange-700"
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </div>
+                          </td>
+                        )}
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <button
@@ -452,32 +465,36 @@ export function RegisteredStudents() {
                             >
                               <Eye size={16} />
                             </button>
-                            <button
-                              className={`${
-                                isDark
-                                  ? "text-yellow-400 hover:text-yellow-300"
-                                  : "text-yellow-600 hover:text-yellow-700"
-                              }`}
-                              title="Edit"
-                              onClick={() =>
-                                navigate(
-                                  `/admin/students/details/${s.user?.id}?edit=true`
-                                )
-                              }
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              className={`${
-                                isDark
-                                  ? "text-red-400 hover:text-red-300"
-                                  : "text-red-600 hover:text-red-700"
-                              }`}
-                              title="Delete"
-                              onClick={() => handleDeleteClick(s)}
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {user?.activeRole === "Admin" && (
+                              <>
+                                <button
+                                  className={`${
+                                    isDark
+                                      ? "text-yellow-400 hover:text-yellow-300"
+                                      : "text-yellow-600 hover:text-yellow-700"
+                                  }`}
+                                  title="Edit"
+                                  onClick={() =>
+                                    navigate(
+                                      `/admin/students/details/${s.user?.id}?edit=true`
+                                    )
+                                  }
+                                >
+                                  <Edit size={16} />
+                                </button>
+                                <button
+                                  className={`${
+                                    isDark
+                                      ? "text-red-400 hover:text-red-300"
+                                      : "text-red-600 hover:text-red-700"
+                                  }`}
+                                  title="Delete"
+                                  onClick={() => handleDeleteClick(s)}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>

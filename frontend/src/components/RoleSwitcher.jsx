@@ -22,18 +22,11 @@ export default function RoleSwitcher() {
     Admin: 3,
   };
 
-  // Get current role level
-  const currentRoleLevel = roleHierarchy[user?.activeRole] || 0;
+  // Get all user roles - users can switch to any role they have been assigned
+  // The backend validates role assignments, so if a user has a role, they're allowed to use it
+  const switchableRoles = user?.roles || [];
 
-  // Filter roles: Only show roles with equal or lower privilege (security measure)
-  // Students cannot switch to Admin/SPC, but Admin/SPC can switch to Student
-  const switchableRoles =
-    user?.roles?.filter((role) => {
-      const roleLevel = roleHierarchy[role] || 0;
-      return roleLevel <= currentRoleLevel;
-    }) || [];
-
-  // Don't show if user doesn't have switchable roles
+  // Don't show if user doesn't have multiple roles
   if (!user || !user.roles || switchableRoles.length <= 1) {
     return null;
   }
@@ -128,16 +121,10 @@ export default function RoleSwitcher() {
 
       {isOpen && (
         <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-30"
-            onClick={() => setIsOpen(false)}
-          />
-
-          {/* Dropdown - Fixed positioning to prevent overflow */}
+          {/* Dropdown - Must be rendered before backdrop for proper z-index stacking */}
           <div
             className={`
-              absolute left-0 bottom-full mb-2 w-64 rounded-lg shadow-lg z-40
+              absolute left-0 bottom-full mb-2 w-64 rounded-lg shadow-lg z-50
               ${
                 isDark
                   ? "bg-gray-800 border border-gray-700"
@@ -158,15 +145,6 @@ export default function RoleSwitcher() {
               >
                 Switch Role
               </p>
-              {currentRoleLevel > 1 && (
-                <p
-                  className={`text-xs mt-1 ${
-                    isDark ? "text-gray-500" : "text-gray-500"
-                  }`}
-                >
-                  🔒 Security: Can only switch to lower privilege roles
-                </p>
-              )}
             </div>
 
             <div className="py-2">
@@ -224,6 +202,12 @@ export default function RoleSwitcher() {
               </div>
             )}
           </div>
+
+          {/* Backdrop - Rendered after dropdown so it doesn't cover it */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
         </>
       )}
     </div>

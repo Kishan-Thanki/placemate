@@ -7,6 +7,7 @@ import {
 } from "../../../components/layout";
 import { Button, LoadingOverlay } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import {
   Building2,
   MapPin,
@@ -27,6 +28,7 @@ export default function CompanyDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -135,17 +137,21 @@ export default function CompanyDetails() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <Button onClick={() => navigate(`/admin/companies/${id}/edit`)}>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-              <Button
-                onClick={handleDeleteClick}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </Button>
+              {user?.activeRole === "Admin" && (
+                <>
+                  <Button onClick={() => navigate(`/admin/companies/${id}/edit`)}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={handleDeleteClick}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                </>
+              )}
             </div>
           }
         >
