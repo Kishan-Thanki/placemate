@@ -822,8 +822,11 @@ export default function ApplicationsManagement() {
                   {availableJobs.map((job) => (
                     <option key={job.id} value={job.id}>
                       {job.title}
-                      {job.ug_package_min && job.ug_package_max &&
-                        ` (₹${job.ug_package_min}-${job.ug_package_max} LPA)`}
+                      {job.ug_package_min && job.ug_package_max && (
+                        job.ug_package_min === job.ug_package_max
+                          ? ` (₹${job.ug_package_min} LPA)`
+                          : ` (₹${job.ug_package_min}-${job.ug_package_max} LPA)`
+                      )}
                     </option>
                   ))}
                 </select>

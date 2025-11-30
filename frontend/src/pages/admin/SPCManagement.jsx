@@ -397,9 +397,15 @@ export default function SPCManagement() {
                 </div>
               </div>
 
-              <div className="max-h-80 overflow-y-auto border rounded-lg dark:border-gray-700">
+              <div className={`max-h-80 overflow-y-auto border rounded-lg ${
+                isDark ? "border-gray-700" : "border-gray-200"
+              }`}>
                 <table className="w-full">
-                  <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
+                  <thead className={`sticky top-0 border-b ${
+                    isDark 
+                      ? "bg-gray-800 border-gray-700" 
+                      : "bg-gray-100 border-gray-200"
+                  }`}>
                     <tr>
                       <th className="px-4 py-3 text-left">
                         <input
@@ -420,12 +426,12 @@ export default function SPCManagement() {
                         />
                       </th>
                       <th className={`px-4 py-3 text-left text-sm font-semibold ${
-                        isDark ? "text-gray-900" : "text-gray-900"
+                        isDark ? "text-gray-200" : "text-gray-900"
                       }`}>
                         Member
                       </th>
                       <th className={`px-4 py-3 text-left text-sm font-semibold ${
-                        isDark ? "text-gray-900" : "text-gray-900"
+                        isDark ? "text-gray-200" : "text-gray-900"
                       }`}>
                         Email
                       </th>
