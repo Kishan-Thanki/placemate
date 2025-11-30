@@ -201,7 +201,7 @@ export function AdminDashboard() {
           } text-white`}
         >
           <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2">
-            {getGreeting()}, Admin!
+            {getGreeting()}, {user?.activeRole === "Student Placement Cell" ? "SPC" : user?.activeRole || "Admin"}!
           </h2>
           <p className="text-xs md:text-sm opacity-90">
             {stats.openDrives > 0 

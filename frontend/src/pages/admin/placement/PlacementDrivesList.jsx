@@ -23,6 +23,7 @@ import { placementService } from "../../../services/placementService";
 export default function PlacementDrivesList() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { showAlert, showConfirm, AlertComponent } = useAlert();
   const [drives, setDrives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

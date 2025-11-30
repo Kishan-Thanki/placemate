@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay } from "../../../components/ui";
+import { Button, LoadingOverlay, DateTimePicker } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { CalendarDays, Save, X, ArrowLeft } from "lucide-react";
 import { placementService } from "../../../services/placementService";
@@ -269,17 +269,18 @@ export default function PlacementDriveForm() {
                 >
                   Start Date & Time
                 </label>
-                <input
-                  type="datetime-local"
-                  id="start_date"
-                  name="start_date"
-                  value={formData.start_date}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark
-                      ? "bg-gray-700 border-gray-600 text-white"
-                      : "bg-white border-gray-300 text-gray-900"
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                <DateTimePicker
+                  selected={formData.start_date ? new Date(formData.start_date) : null}
+                  onChange={(date) => {
+                    if (date) {
+                      const isoString = date.toISOString().slice(0, 16);
+                      setFormData((prev) => ({ ...prev, start_date: isoString }));
+                    } else {
+                      setFormData((prev) => ({ ...prev, start_date: "" }));
+                    }
+                  }}
+                  showTimeSelect={true}
+                  placeholderText="Select start date and time"
                 />
                 <p
                   className={`mt-1 text-xs ${
@@ -300,17 +301,19 @@ export default function PlacementDriveForm() {
                 >
                   End Date & Time
                 </label>
-                <input
-                  type="datetime-local"
-                  id="end_date"
-                  name="end_date"
-                  value={formData.end_date}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark
-                      ? "bg-gray-700 border-gray-600 text-white"
-                      : "bg-white border-gray-300 text-gray-900"
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                <DateTimePicker
+                  selected={formData.end_date ? new Date(formData.end_date) : null}
+                  onChange={(date) => {
+                    if (date) {
+                      const isoString = date.toISOString().slice(0, 16);
+                      setFormData((prev) => ({ ...prev, end_date: isoString }));
+                    } else {
+                      setFormData((prev) => ({ ...prev, end_date: "" }));
+                    }
+                  }}
+                  showTimeSelect={true}
+                  placeholderText="Select end date and time"
+                  minDate={formData.start_date ? new Date(formData.start_date) : new Date()}
                 />
                 <p
                   className={`mt-1 text-xs ${

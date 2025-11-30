@@ -2,10 +2,6 @@ import React from "react";
 import { X, AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 
-/**
- * Modern Alert Dialog Component
- * Types: success, error, warning, info, confirm
- */
 export function AlertDialog({
   isOpen,
   onClose,
