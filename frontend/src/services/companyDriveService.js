@@ -185,13 +185,10 @@ export const companyDriveService = {
    */
   deleteDrive: async (id) => {
     try {
-      const { ok, data } = await fetchJSON(
-        `${COMPANY_DRIVES_ENDPOINT}${id}/`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
+      const { ok, data } = await fetchJSON(`${COMPANY_DRIVES_ENDPOINT}${id}/`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
       if (!ok) {
         const errorMessage =
@@ -218,19 +215,19 @@ export const companyDriveService = {
   createJob: async (jobData) => {
     try {
       let options;
-      
+
       // Check if jobData contains a file (job_pdf)
       if (jobData.job_pdf instanceof File) {
         // Use FormData for file upload
         const formData = new FormData();
-        Object.keys(jobData).forEach(key => {
+        Object.keys(jobData).forEach((key) => {
           if (jobData[key] !== null && jobData[key] !== undefined) {
-            if (key === 'eligible_programs' && Array.isArray(jobData[key])) {
+            if (key === "eligible_programs" && Array.isArray(jobData[key])) {
               // For arrays, append each item separately
-              jobData[key].forEach(item => {
-                formData.append('eligible_programs', item);
+              jobData[key].forEach((item) => {
+                formData.append("eligible_programs", item);
               });
-            } else if (key === 'job_desc' && typeof jobData[key] === 'object') {
+            } else if (key === "job_desc" && typeof jobData[key] === "object") {
               // Stringify JSON objects (like TipTap content)
               formData.append(key, JSON.stringify(jobData[key]));
             } else {
@@ -257,10 +254,11 @@ export const companyDriveService = {
         };
       }
 
-      const { ok, data, status: responseStatus } = await fetchJSON(
-        "/api/v1/placements/jobs/",
-        options
-      );
+      const {
+        ok,
+        data,
+        status: responseStatus,
+      } = await fetchJSON("/api/v1/placements/jobs/", options);
 
       if (!ok) {
         const errorMessage =
@@ -292,19 +290,19 @@ export const companyDriveService = {
   updateJob: async (id, jobData) => {
     try {
       let options;
-      
+
       // Check if jobData contains a file (job_pdf)
       if (jobData.job_pdf instanceof File) {
         // Use FormData for file upload
         const formData = new FormData();
-        Object.keys(jobData).forEach(key => {
+        Object.keys(jobData).forEach((key) => {
           if (jobData[key] !== null && jobData[key] !== undefined) {
-            if (key === 'eligible_programs' && Array.isArray(jobData[key])) {
+            if (key === "eligible_programs" && Array.isArray(jobData[key])) {
               // For arrays, append each item separately
-              jobData[key].forEach(item => {
-                formData.append('eligible_programs', item);
+              jobData[key].forEach((item) => {
+                formData.append("eligible_programs", item);
               });
-            } else if (key === 'job_desc' && typeof jobData[key] === 'object') {
+            } else if (key === "job_desc" && typeof jobData[key] === "object") {
               // Stringify JSON objects (like TipTap content)
               formData.append(key, JSON.stringify(jobData[key]));
             } else {
@@ -360,13 +358,10 @@ export const companyDriveService = {
    */
   deleteJob: async (id) => {
     try {
-      const { ok, data } = await fetchJSON(
-        `/api/v1/placements/jobs/${id}/`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
+      const { ok, data } = await fetchJSON(`/api/v1/placements/jobs/${id}/`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
       if (!ok) {
         const errorMessage =
@@ -382,6 +377,21 @@ export const companyDriveService = {
     } catch (error) {
       console.error(`❌ Error deleting job ${id}:`, error);
       throw error;
+    }
+  },
+
+  toggleJobStatus: async (id, status) => {
+    try {
+      const { ok, data } = await fetchJSON(`/api/company-drive/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      });
+
+      if (!ok) throw new Error(data?.message || "Failed to update status");
+      return { ok, data };
+    } catch (error) {
+      console.error("Toggle status error:", error);
+      return { ok: false, error };
     }
   },
 };

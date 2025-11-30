@@ -199,6 +199,25 @@ export default function CompanyDrivesList() {
     return `${baseClasses} ${colors[type] || ""}`;
   };
 
+  const handleToggleStatus = async (drive) => {
+    const newStatus = drive.status === "Open" ? "Closed" : "Open";
+
+    try {
+      const updated = await companyDriveService.toggleStatus(
+        drive.id,
+        newStatus
+      );
+
+      setDrives((prev) =>
+        prev.map((d) => (d.id === drive.id ? { ...d, ...updated } : d))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Status update failed.");
+    }
+  };
+
+
   return (
     <DashboardLayout title="Company Drives">
       <PageContainer>
@@ -244,7 +263,11 @@ export default function CompanyDrivesList() {
                 </div>
                 <Button type="submit">Search</Button>
                 {activeSearchTerm && (
-                  <Button type="button" variant="secondary" onClick={handleClearSearch}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleClearSearch}
+                  >
                     Clear
                   </Button>
                 )}
@@ -405,7 +428,8 @@ export default function CompanyDrivesList() {
                               isDark ? "text-gray-400" : "text-gray-600"
                             }`}
                           >
-                            {drive.placement_drive?.title || "No Placement Drive"}
+                            {drive.placement_drive?.title ||
+                              "No Placement Drive"}
                           </p>
                         </div>
                       </div>
@@ -470,10 +494,13 @@ export default function CompanyDrivesList() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => navigate(`/admin/drives/${drive.id}/edit`)}
+                            onClick={() =>
+                              navigate(`/admin/drives/${drive.id}/edit`)
+                            }
                             title="Edit"
                           >
                             <Edit className="w-4 h-4" />
+                       
                           </Button>
                           <Button
                             size="sm"
