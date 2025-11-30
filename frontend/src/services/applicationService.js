@@ -57,6 +57,35 @@ export const applicationService = {
     }
   },
 
+  getMyApplicationsByDrive: async (companyDriveId, studentId = null) => {
+    try {
+      let url = `${APPLICATIONS_ENDPOINT}/?company_drive=${companyDriveId}`;
+      
+      // Add student filter if provided
+      if (studentId) {
+        url += `&student=${studentId}`;
+      }
+      
+      const { ok, data, status, message } = await fetchJSON(
+        url,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!ok) {
+        throw new Error(message || `Failed to fetch applications (${status})`);
+      }
+
+      console.log(`✅ Applications for drive ${companyDriveId} fetched successfully:`, data);
+      return data;
+    } catch (error) {
+      console.error(`❌ Error fetching applications for drive ${companyDriveId}:`, error);
+      throw error;
+    }
+  },
+
   getApplicationById: async (id) => {
     try {
       const { ok, data, status, message } = await fetchJSON(

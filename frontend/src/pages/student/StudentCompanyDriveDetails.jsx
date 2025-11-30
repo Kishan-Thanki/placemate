@@ -9,7 +9,6 @@ import { CardSkeleton, Button } from "../../components/ui";
 import { Modal } from "../../components/ui/Modal";
 import { ToastContainer } from "../../components/ui/Toast";
 import { DriveCard } from "../../components/ui/DriveCard";
-import { fetchJSON } from "../../lib/api";
 import { useToast } from "../../hooks/useToast";
 import { applicationService } from "../../services/applicationService";
 import { ArrowLeft, Send, X } from "lucide-react";
@@ -188,8 +187,6 @@ export default function StudentCompanyDriveDetails() {
       setExistingApplication(result?.data || result);
       success(existingApplication ? "Application updated successfully!" : "Application submitted successfully!");
       handleCloseModal();
-      // Optionally navigate to applications page
-      setTimeout(() => navigate("/student/applications"), 2000);
     } catch (err) {
       console.error("Application error:", err);
       showError(err.message || "Failed to submit application");
@@ -218,43 +215,36 @@ export default function StudentCompanyDriveDetails() {
         setDrive(driveData);
         setJobs(jobsData);
 
-        // Check if user has already applied to THIS specific drive
-        try {
-          const myApplications = await applicationService.getMyApplications();
-          const applicationsArray = Array.isArray(myApplications) ? myApplications : myApplications?.results || myApplications?.data || [];
-          
-          // Find application for this specific company drive
-          const existingApp = applicationsArray.find(app => {
-            const appDriveId = app.company_drive?.id || app.company_drive;
-            return appDriveId === parseInt(id);
-          });
-          
-          if (existingApp && mounted) {
-            setExistingApplication(existingApp);
-          }
-        } catch (err) {
-          console.warn("Could not check existing applications:", err);
-        }
-
-        // Determine student's program for eligibility check
+        // Get student ID (user ID) and program from localStorage
+        // StudentProfile.user is the primary key, so student ID = user ID
         let programName = null;
+        let studentId = user?.id; // User ID is the student ID for filtering
+        
         if (user?.studentProfile) {
           programName = extractProgramFromProfile(user.studentProfile);
+          console.log("✅ Using user ID as student ID:", studentId, "Program:", programName);
         }
 
-        // Fallback: fetch student profile if not in context
-        if (!programName) {
+        // Check if user has already applied to THIS specific drive
+        if (studentId) {
           try {
-            const { ok, data: studentResp } = await fetchJSON("/api/v1/students/me/", { 
-              method: "GET", 
-              credentials: "include" 
-            });
-            if (ok && studentResp?.data) {
-              programName = extractProgramFromProfile(studentResp.data);
+            console.log("🔍 Checking applications for drive:", id, "student:", studentId);
+            // Use filtered API call with company_drive and student filters
+            // student filter uses the user ID (since StudentProfile.user is the PK)
+            const myApplications = await applicationService.getMyApplicationsByDrive(parseInt(id), studentId);
+            const applicationsArray = Array.isArray(myApplications) ? myApplications : myApplications?.results || myApplications?.data || [];
+            
+            console.log("✅ Applications response:", applicationsArray);
+            
+            // Should return only one application (or empty) since we're filtering by both company_drive and student
+            if (applicationsArray.length > 0 && mounted) {
+              setExistingApplication(applicationsArray[0]);
             }
-          } catch (e) {
-            console.warn("Could not fetch student profile:", e);
+          } catch (err) {
+            console.error("❌ Error checking applications:", err);
           }
+        } else {
+          console.warn("⚠️ No user ID available, skipping application check");
         }
 
         // Check eligibility: at least one job must include student's program
