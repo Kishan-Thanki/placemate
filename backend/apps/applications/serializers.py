@@ -39,9 +39,13 @@ class JobPreferenceSerializer(serializers.ModelSerializer):
 
 class CompanyDriveApplicationBaseSerializer(serializers.ModelSerializer):
     """Base serializer with common fields and validations"""
-    student_name = serializers.CharField(source='student.user.get_full_name', read_only=True)
+    student_name = serializers.SerializerMethodField()
     company_name = serializers.CharField(source='company_drive.company.name', read_only=True)
     drive_title = serializers.CharField(source='company_drive.placement_drive.title', read_only=True)
+    
+    def get_student_name(self, obj):
+        """Get student's full name"""
+        return obj.student.user.get_full_name() if obj.student and obj.student.user else None
 
     class Meta:
         model = CompanyDriveApplication
@@ -76,11 +80,15 @@ class CompanyDriveApplicationBaseSerializer(serializers.ModelSerializer):
         """Validate that the drive is active and accepting applications"""
         # Check drive status
         if company_drive.status != 'Open':
-            raise serializers.ValidationError("This drive is no longer accepting applications")
+            raise serializers.ValidationError({
+                'non_field_errors': ['This drive is no longer accepting applications']
+            })
         
         # Check application deadline
         if company_drive.application_deadline and company_drive.application_deadline < timezone.now():
-            raise serializers.ValidationError("Application deadline has passed")
+            raise serializers.ValidationError({
+                'non_field_errors': ['Application deadline has passed']
+            })
 
         if company_drive and CompanyDriveApplication.objects.filter(
             student=student_profile, 
@@ -117,7 +125,7 @@ class CompanyDriveApplicationCreateSerializer(CompanyDriveApplicationBaseSeriali
 
         if not getattr(student_profile, 'is_verified', False):
             raise serializers.ValidationError({
-                'non_field_errors': 'Your student profile is not verified. Please complete verification before applying.'
+                'non_field_errors': ['Your student profile is not verified. Please complete verification before applying.']
             })
         
 
@@ -141,7 +149,7 @@ class CompanyDriveApplicationCreateSerializer(CompanyDriveApplicationBaseSeriali
             is_eligible, error_message = self._check_single_job_eligibility(student_profile, job)
             
             if not is_eligible:
-                return {'eligibility': f'Not eligible for {job.title}: {error_message}'}
+                return {'non_field_errors': [f'Not eligible for {job.title}: {error_message}']}
         return None
 
     def _check_single_job_eligibility(self, student_profile, job):

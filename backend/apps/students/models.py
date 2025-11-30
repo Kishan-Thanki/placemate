@@ -35,6 +35,62 @@ class StudentProfile(models.Model):
     joining_year = models.IntegerField(null=False, blank=False,default=2024) 
     is_placed = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    
+    # NBA Compliance Fields
+    ENTRY_TYPE_CHOICES = [
+        ('REGULAR', 'Regular Entry'),
+        ('LATERAL', 'Lateral Entry'),
+        ('TRANSFER', 'Transfer'),
+    ]
+    entry_type = models.CharField(
+        max_length=20, 
+        choices=ENTRY_TYPE_CHOICES, 
+        default='REGULAR',
+        help_text="Critical for NBA Success Index calculation"
+    )
+    backlog_ledger = models.JSONField(
+        default=dict, 
+        blank=True,
+        help_text="Transactional record: {semester: {subject: {fail_date, clear_date}}}"
+    )
+    
+    # NIRF Compliance Fields
+    domicile_state = models.CharField(
+        max_length=100, 
+        null=True, 
+        blank=True,
+        help_text="State of domicile for NIRF diversity reporting"
+    )
+    SOCIAL_CATEGORY_CHOICES = [
+        ('GEN', 'General'),
+        ('OBC', 'Other Backward Class'),
+        ('SC', 'Scheduled Caste'),
+        ('ST', 'Scheduled Tribe'),
+        ('EWS', 'Economically Weaker Section'),
+    ]
+    social_category = models.CharField(
+        max_length=10, 
+        choices=SOCIAL_CATEGORY_CHOICES, 
+        null=True, 
+        blank=True,
+        help_text="Social category for NIRF diversity reporting"
+    )
+    
+    # Graduation Status for NBA
+    GRADUATION_STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('ONTIME_NO_BACKLOG', 'Graduated On Time Without Backlogs'),
+        ('ONTIME_WITH_BACKLOG', 'Graduated On Time With Cleared Backlogs'),
+        ('DELAYED', 'Graduated With Delay'),
+        ('NOT_GRADUATED', 'Not Graduated'),
+    ]
+    graduation_status = models.CharField(
+        max_length=30,
+        choices=GRADUATION_STATUS_CHOICES,
+        default='PENDING',
+        help_text="NBA graduation status tracking"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

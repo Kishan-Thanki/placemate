@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: placemate-backend-prod
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-placemate.settings.production}
+    restart: unless-stopped
+    networks:
+      - placemate-network
+
+networks:
+  placemate-network:
+    driver: bridge

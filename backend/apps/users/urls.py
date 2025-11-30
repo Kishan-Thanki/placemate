@@ -1,5 +1,5 @@
 """
-ENHANCED URL Configuration for the Users App with complete authentication and role management.
+URL Configuration for the Users App with complete authentication and role management.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
