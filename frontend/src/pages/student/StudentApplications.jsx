@@ -20,6 +20,8 @@ import {
   ExternalLink,
   Award,
   AlertCircle,
+  MapPin,
+  DollarSign,
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -63,14 +65,6 @@ const STATUS_CONFIG = {
     textClass: "text-gray-600 dark:text-gray-400",
     borderClass: "border-gray-500/20",
   },
-  Shortlisted: {
-    label: "Shortlisted",
-    color: "purple",
-    icon: FileText,
-    bgClass: "bg-purple-500/10",
-    textClass: "text-purple-600 dark:text-purple-400",
-    borderClass: "border-purple-500/20",
-  },
 };
 
 export default function StudentApplications() {
@@ -83,7 +77,9 @@ export default function StudentApplications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showOfferModal, setShowOfferModal] = useState(false);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const [loadingPreferences, setLoadingPreferences] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -193,6 +189,29 @@ export default function StudentApplications() {
     setSelectedApplication(null);
   };
 
+  const openPreferencesModal = async (application) => {
+    setLoadingPreferences(true);
+    setShowPreferencesModal(true);
+    
+    try {
+      // Fetch full application details with job preferences
+      const response = await applicationService.getApplicationById(application.id);
+      const fullApplication = response?.data || response;
+      setSelectedApplication(fullApplication);
+    } catch (err) {
+      console.error("Error fetching application details:", err);
+      showError(err.message || "Failed to load application details");
+      setSelectedApplication(application); // Fallback to basic data
+    } finally {
+      setLoadingPreferences(false);
+    }
+  };
+
+  const closePreferencesModal = () => {
+    setShowPreferencesModal(false);
+    setSelectedApplication(null);
+  };
+
   const filteredApplications = applications.filter((app) => {
     if (filterStatus === "all") return true;
     return app.status === filterStatus;
@@ -297,7 +316,7 @@ export default function StudentApplications() {
                 : "bg-gray-50 border-gray-200"
             }`}
           >
-            {["all", "Applied", "Offered", "Accepted", "Declined", "Rejected", "Shortlisted"].map((status) => (
+            {["all", "Applied", "Offered", "Accepted", "Declined", "Rejected"].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status)}
@@ -374,6 +393,7 @@ export default function StudentApplications() {
                   getStatusBadge={getStatusBadge}
                   formatDate={formatDate}
                   onAcceptOffer={() => openOfferModal(application)}
+                  onViewPreferences={() => openPreferencesModal(application)}
                 />
               ))}
             </div>
@@ -507,6 +527,131 @@ export default function StudentApplications() {
             </div>
           </Modal>
         )}
+
+        {/* Job Preferences Modal */}
+        {showPreferencesModal && (
+          <Modal
+            isOpen={showPreferencesModal}
+            onClose={closePreferencesModal}
+            title="Job Preferences / Roles Applied For"
+            isDark={isDark}
+          >
+            <div className="space-y-4">
+              {selectedApplication && (
+                <div
+                  className={`p-4 rounded-lg border ${
+                    isDark
+                      ? "bg-gray-700/50 border-gray-600"
+                      : "bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <Building2
+                      size={20}
+                      className={isDark ? "text-gray-400" : "text-gray-500"}
+                    />
+                    <div>
+                      <p
+                        className={`font-semibold ${
+                          isDark ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {selectedApplication.company_name}
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          isDark ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        {selectedApplication.drive_title}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {loadingPreferences ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                </div>
+              ) : selectedApplication?.job_preferences &&
+              selectedApplication.job_preferences.length > 0 ? (
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                  {selectedApplication.job_preferences
+                    .sort((a, b) => a.preference_order - b.preference_order)
+                    .map((pref, index) => {
+                      // Backend returns job_title directly from serializer
+                      const jobTitle = pref.job_title || "Job Position";
+                      const jobMode = pref.job_mode || "N/A";
+                      const driveType = pref.job_drive_type || "N/A";
+
+                      return (
+                        <div
+                          key={pref.id || index}
+                          className={`p-4 rounded-lg border ${
+                            isDark
+                              ? "bg-gray-700/30 border-gray-600"
+                              : "bg-white border-gray-200"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span
+                              className={`px-3 py-1.5 rounded-lg text-sm font-bold shrink-0 ${
+                                isDark
+                                  ? "bg-blue-900/50 text-blue-300 border border-blue-700"
+                                  : "bg-blue-100 text-blue-700 border border-blue-300"
+                              }`}
+                            >
+                              #{pref.preference_order}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <h4
+                                className={`text-base font-semibold mb-2 ${
+                                  isDark ? "text-white" : "text-gray-900"
+                                }`}
+                              >
+                                {jobTitle}
+                              </h4>
+
+                              {/* Job Details */}
+                              <div className="flex flex-wrap gap-3 text-sm">
+                                {jobMode && (
+                                  <span
+                                    className={`${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Mode: {jobMode}
+                                  </span>
+                                )}
+                                {driveType && (
+                                  <span
+                                    className={`${
+                                      isDark ? "text-gray-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    Type: {driveType}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              ) : (
+                <p
+                  className={`text-center py-6 ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  No job preferences found.
+                </p>
+              )}
+            </div>
+          </Modal>
+        )}
       </PageContainer>
     </StudentLayout>
   );
@@ -520,6 +665,7 @@ function ApplicationCard({
   getStatusBadge,
   formatDate,
   onAcceptOffer,
+  onViewPreferences,
 }) {
   // Use flattened fields from API response
   const companyName = application.company_name || "Company Name";
@@ -683,13 +829,21 @@ function ApplicationCard({
       )}
 
       {/* Actions */}
-      <div className={`flex gap-3 pt-4 border-t ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+      <div className={`flex flex-col sm:flex-row gap-3 pt-4 border-t ${isDark ? "border-gray-700" : "border-gray-200"}`}>
         <Button
           variant="outline"
           onClick={() => navigate(`/student/company-drives/${application.company_drive}`)}
           className="flex-1"
         >
           View Drive Details
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onViewPreferences}
+          className="flex-1"
+        >
+          <FileText size={18} className="mr-2" />
+          View Preferences
         </Button>
         {application.status === "Offered" && (
           <Button
