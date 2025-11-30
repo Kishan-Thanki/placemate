@@ -294,8 +294,10 @@ class ApplicationWorkflowTest(TestCase):
         response = self.client.post(withdraw_url, {}, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        application.refresh_from_db()
-        self.assertEqual(application.status, 'Withdrawn')
+        
+        # Verify application is deleted
+        with self.assertRaises(CompanyDriveApplication.DoesNotExist):
+            application.refresh_from_db()
     
     def test_offer_decline_workflow(self):
         """

@@ -1,4 +1,5 @@
 import threading
+from django.conf import settings
 from .utils import send_placemate_email
 
 def send_email_in_background(subject, template_name, context, recipient_list):
@@ -23,6 +24,11 @@ def send_email_in_background(subject, template_name, context, recipient_list):
     :param context: Dictionary of variables to render in template
     :param recipient_list: List of email addresses to receive the email
     """
+    # If running in test mode, send synchronously to avoid race conditions with test teardown
+    if getattr(settings, 'TESTING', False):
+        send_placemate_email(subject, template_name, context, recipient_list)
+        return
+
     # Create a new thread that will run the send_placemate_email function
     email_thread = threading.Thread(
         target=send_placemate_email,

@@ -329,9 +329,9 @@ class CompanyDriveApplicationViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], 'Application withdrawn successfully')
         
-        # Verify status changed
-        self.application.refresh_from_db()
-        self.assertEqual(self.application.status, 'Withdrawn')
+        # Verify application is deleted
+        with self.assertRaises(CompanyDriveApplication.DoesNotExist):
+            self.application.refresh_from_db()
     
     def test_withdraw_non_applied_application(self):
         """

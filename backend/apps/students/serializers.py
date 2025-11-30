@@ -135,7 +135,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'user', 'enrollment_number', 'program', 'is_placed',
-            'created_at', 'updated_at', 'joining_year'
+            'created_at', 'updated_at', 'joining_year', 'is_verified'
         ]
     
     def get_user(self, obj):

@@ -6,6 +6,7 @@ print("=========================================")
 
 # Override settings for testing
 DEBUG = False
+TESTING = True
 
 # FORCE SQLite for testing (override any other database settings)
 DATABASES = {

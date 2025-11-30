@@ -5,10 +5,11 @@ Test Suite ID: CORE-TASKS-001
 
 This suite tests the background task functionality for email sending.
 """
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from unittest.mock import patch, MagicMock
 from apps.core.tasks import send_email_in_background
 
+@override_settings(TESTING=False)
 class BackgroundTasksTest(TestCase):
     """
     TEST SUITE: Background Email Tasks
