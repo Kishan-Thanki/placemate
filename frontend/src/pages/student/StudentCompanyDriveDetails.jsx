@@ -205,9 +205,7 @@ export default function StudentCompanyDriveDetails() {
         // Check if user has already applied to THIS specific drive
         if (studentId) {
           try {
-            console.log("🔍 Checking applications for drive:", id, "student:", studentId);
-            // Use filtered API call with company_drive and student filters
-            // student filter uses the user ID (since StudentProfile.user is the PK)
+            
             const myApplications = await applicationService.getMyApplicationsByDrive(parseInt(id), studentId);
             const applicationsArray = Array.isArray(myApplications) ? myApplications : myApplications?.results || myApplications?.data || [];
             
@@ -258,8 +256,23 @@ export default function StudentCompanyDriveDetails() {
   // Check if deadline has passed
   const isDeadlinePassed = drive?.application_deadline ? new Date(drive.application_deadline) < new Date() : false;
 
-  // Parse rounds if available
-  const rounds = drive?.rounds ? (Array.isArray(drive.rounds) ? drive.rounds : JSON.parse(drive.rounds || '[]')) : [];
+  // Parse rounds if available - handle both array of strings and array of objects
+  let rounds = [];
+  if (drive?.rounds) {
+    if (Array.isArray(drive.rounds)) {
+      // Already an array - could be strings or objects
+      rounds = drive.rounds.filter(r => r); // Remove empty/null values
+    } else if (typeof drive.rounds === 'string') {
+      // Try parsing as JSON first
+      try {
+        const parsed = JSON.parse(drive.rounds);
+        rounds = Array.isArray(parsed) ? parsed.filter(r => r) : [];
+      } catch {
+        // If parsing fails, treat as comma-separated string
+        rounds = drive.rounds.split(',').map(r => r.trim()).filter(r => r);
+      }
+    }
+  }
 
   return (
     <StudentLayout title={drive?.placement_drive?.title || "Company Drive"}>
@@ -321,17 +334,23 @@ export default function StudentCompanyDriveDetails() {
                   <div className={`p-4 rounded-lg border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
                     <h4 className={`text-sm font-semibold mb-3 uppercase ${isDark ? "text-gray-300" : "text-gray-700"}`}>Assessments</h4>
                     <div className="space-y-3">
-                      {rounds.map((round, idx) => (
-                        <div key={idx} className="flex items-start gap-3">
-                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg font-semibold ${isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-600"}`}>
-                            {idx + 1}
+                      {rounds.map((round, idx) => {
+                        // Handle both string rounds and object rounds
+                        const roundName = typeof round === 'string' ? round : (round?.name || round?.title || `Round ${idx + 1}`);
+                        const roundType = typeof round === 'object' ? (round?.type || round?.mode || null) : null;
+                        
+                        return (
+                          <div key={idx} className="flex items-start gap-3">
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg font-semibold ${isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-600"}`}>
+                              {idx + 1}
+                            </div>
+                            <div className="flex-1">
+                              <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{roundName}</div>
+                              {roundType && <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}>{roundType}</div>}
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{round.name || round.title || `Round ${idx + 1}`}</div>
-                            <div className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}>{round.type || round.mode || "Interview"}</div>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -431,7 +450,7 @@ export default function StudentCompanyDriveDetails() {
                               </div>
                             );
                           }
-                        })()
+                        })() 
                       ) : (
                         // No application exists
                         isDeadlinePassed ? (

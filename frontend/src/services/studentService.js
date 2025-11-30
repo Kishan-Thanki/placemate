@@ -248,7 +248,7 @@ export const studentService = {
   markAsVerified: async (userId, isVerified) => {
     try {
       const { ok, data, status, message } = await fetchJSON(
-        `${PROFILES_ENDPOINT}/${userId}/mark_as_verified/`,
+        `${PROFILES_ENDPOINT}/${userId}/`,
         {
           method: "PATCH",
           headers: {
