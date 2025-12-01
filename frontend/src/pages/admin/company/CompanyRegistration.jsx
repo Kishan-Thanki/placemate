@@ -223,7 +223,7 @@ export default function CompanyRegistration() {
     const payload = {
       name: form.companyName.trim(),
       email: form.email.trim(),
-      phone_number: form.phoneNumber?.trim() || "0000000000",
+      phone_number: form.phoneNumber?.trim() || null,
       website_url: form.website?.trim() || "",
       description: form.description || "",
       year_founded: parseInt(form.foundedYear) || new Date().getFullYear(),

@@ -25,6 +25,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Briefcase,
+  Trash2,
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -286,6 +287,23 @@ export default function ApplicationsManagement() {
     setShowRejectModal(true);
   };
 
+  const handleDeleteApplication = async (application) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${application.student_name}'s application? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await applicationService.deleteApplication(application.id);
+      success("Application deleted successfully");
+      await fetchData();
+    } catch (err) {
+      console.error("Error deleting application:", err);
+      showError(err.message || "Failed to delete application");
+    }
+  };
+
   const openPreferencesModal = async (application) => {
     setLoadingPreferences(true);
     setShowPreferencesModal(true);
@@ -352,23 +370,6 @@ export default function ApplicationsManagement() {
   useEffect(() => {
     setCurrentPage(1);
   }, [filterStatus, filterDrive, searchQuery]);
-
-  if (loading) {
-    return (
-      <DashboardLayout title="Manage Applications">
-        <PageContainer>
-          <Section
-           >
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <CardSkeleton key={i} />
-              ))}
-            </div>
-          </Section>
-        </PageContainer>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout title="Manage Applications">
@@ -515,7 +516,109 @@ export default function ApplicationsManagement() {
           </div>
 
           {/* Applications Table */}
-          {filteredApplications.length === 0 ? (
+          {loading ? (
+            // Table skeleton while loading
+            <div className={`rounded-lg border overflow-hidden ${
+              isDark ? "border-gray-700" : "border-gray-200"
+            }`}>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className={isDark ? "bg-gray-800/50" : "bg-gray-50"}>
+                    <tr>
+                      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-400" : "text-gray-700"
+                      }`}>
+                        Student
+                      </th>
+                      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-400" : "text-gray-700"
+                      }`}>
+                        Company & Drive
+                      </th>
+                      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-400" : "text-gray-700"
+                      }`}>
+                        Status
+                      </th>
+                      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-400" : "text-gray-700"
+                      }`}>
+                        Applied Date
+                      </th>
+                      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? "text-gray-400" : "text-gray-700"
+                      }`}>
+                        Resume
+                      </th>
+                      {user?.activeRole === "Admin" && (
+                        <th className={`px-4 py-3 text-right text-xs font-medium uppercase tracking-wider ${
+                          isDark ? "text-gray-400" : "text-gray-700"
+                        }`}>
+                          Actions
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${isDark ? "divide-gray-700" : "divide-gray-200"}`}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr 
+                        key={i}
+                        className={isDark ? "bg-gray-800" : "bg-white"}
+                      >
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full animate-pulse ${
+                              isDark ? "bg-gray-700" : "bg-gray-200"
+                            }`} />
+                            <div className={`h-4 w-24 rounded animate-pulse ${
+                              isDark ? "bg-gray-700" : "bg-gray-200"
+                            }`} />
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="space-y-2">
+                            <div className={`h-4 w-32 rounded animate-pulse ${
+                              isDark ? "bg-gray-700" : "bg-gray-200"
+                            }`} />
+                            <div className={`h-3 w-28 rounded animate-pulse ${
+                              isDark ? "bg-gray-700" : "bg-gray-200"
+                            }`} />
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className={`h-6 w-20 rounded-full animate-pulse ${
+                            isDark ? "bg-gray-700" : "bg-gray-200"
+                          }`} />
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className={`h-4 w-24 rounded animate-pulse ${
+                            isDark ? "bg-gray-700" : "bg-gray-200"
+                          }`} />
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className={`h-8 w-24 rounded animate-pulse ${
+                            isDark ? "bg-gray-700" : "bg-gray-200"
+                          }`} />
+                        </td>
+                        {user?.activeRole === "Admin" && (
+                          <td className="px-4 py-4">
+                            <div className="flex justify-end gap-2">
+                              <div className={`h-8 w-8 rounded animate-pulse ${
+                                isDark ? "bg-gray-700" : "bg-gray-200"
+                              }`} />
+                              <div className={`h-8 w-8 rounded animate-pulse ${
+                                isDark ? "bg-gray-700" : "bg-gray-200"
+                              }`} />
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : filteredApplications.length === 0 ? (
             <div
               className={`p-12 rounded-lg border text-center ${
                 isDark ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-200"
@@ -702,6 +805,17 @@ export default function ApplicationsManagement() {
                                     </button>
                                   </>
                                 )}
+                                <button
+                                  onClick={() => handleDeleteApplication(application)}
+                                  className={`p-2 rounded-lg transition-colors ${
+                                    isDark
+                                      ? "hover:bg-red-500/10 text-red-400"
+                                      : "hover:bg-red-50 text-red-600"
+                                  }`}
+                                  title="Delete Application"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
                               </div>
                             </td>
                           )}

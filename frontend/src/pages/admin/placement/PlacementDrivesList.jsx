@@ -277,28 +277,70 @@ export default function PlacementDrivesList() {
           )}
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className={`p-6 rounded-xl border ${
-                  isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-                }`}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 space-y-3">
-                      <div className={`h-6 w-3/4 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
-                      <div className={`h-4 w-1/2 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
-                    </div>
-                    <div className={`h-8 w-20 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
-                  </div>
-                  <div className="space-y-2">
-                    <div className={`h-4 w-full rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
-                    <div className={`h-4 w-full rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <div className={`h-10 w-24 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
-                    <div className={`h-10 w-24 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
-                  </div>
-                </div>
-              ))}
+            <div
+              className={`overflow-x-auto rounded-xl border ${
+                isDark
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-200 bg-white"
+              }`}
+            >
+              <table className="min-w-full text-sm">
+                <thead
+                  className={`${
+                    isDark
+                      ? "bg-gray-700 text-gray-300"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium">Title</th>
+                    <th className="px-4 py-3 text-left font-medium">Start Date</th>
+                    <th className="px-4 py-3 text-left font-medium">End Date</th>
+                    <th className="px-4 py-3 text-left font-medium">Created</th>
+                    <th className="px-4 py-3 text-right font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody
+                  className={`${
+                    isDark
+                      ? "divide-gray-700"
+                      : "divide-gray-200"
+                  } divide-y`}
+                >
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i} className={isDark ? "hover:bg-gray-700" : "hover:bg-gray-50"}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                          <div className={`h-4 w-48 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`h-4 w-4 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                          <div className={`h-4 w-24 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`h-4 w-4 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                          <div className={`h-4 w-24 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className={`h-4 w-32 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className={`h-8 w-8 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                          <div className={`h-8 w-8 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                          <div className={`h-8 w-8 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : error ? (
             <div
