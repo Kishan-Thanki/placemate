@@ -242,6 +242,28 @@ export const applicationService = {
       throw error;
     }
   },
+
+  deleteApplication: async (id) => {
+    try {
+      const { ok, data, status, message } = await fetchJSON(
+        `${APPLICATIONS_ENDPOINT}/${id}/`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      if (!ok) {
+        throw new Error(message || `Failed to delete application (${status})`);
+      }
+
+      console.log("✅ Application deleted successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Error deleting application:", error);
+      throw error;
+    }
+  },
 };
 
 export default applicationService;
