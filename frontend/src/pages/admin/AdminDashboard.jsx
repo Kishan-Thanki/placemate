@@ -407,7 +407,7 @@ export function AdminDashboard() {
                   return (
                     <div
                       key={idx}
-                      onClick={() => navigate(`/admin/applications/${app.id}`)}
+                      onClick={() => navigate('/admin/applications')}
                       className={`
                         group relative p-4 rounded-lg border cursor-pointer transition-all
                         ${isDark 

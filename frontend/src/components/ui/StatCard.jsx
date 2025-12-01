@@ -126,7 +126,7 @@ export function StatCard({
           <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'} uppercase tracking-wider`}>
             {title}
           </p>
-          <p className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <p className={`text-2xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
           

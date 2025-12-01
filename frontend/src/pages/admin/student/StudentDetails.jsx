@@ -6,7 +6,7 @@ import {
   Section,
 } from "../../../components/layout";
 import { Card, Button, DateTimePicker } from "../../../components/ui";
-import { LoadingOverlay } from "../../../components/ui/Spinner";
+
 import { ToastContainer } from "../../../components/ui/Toast";
 import { useToast } from "../../../hooks/useToast";
 import { useTheme } from "../../../contexts/ThemeContext";
@@ -294,7 +294,47 @@ const StudentDetails = () => {
   if (loading) {
     return (
       <DashboardLayout title="Student Details">
-        <LoadingOverlay message="Loading student details..." />
+        <PageContainer>
+          <Section>
+            <div className="space-y-6">
+              {/* Profile Header Skeleton */}
+              <Card>
+                <div className="flex flex-col md:flex-row gap-6">
+                  <div className="flex-shrink-0">
+                    <div className={`w-32 h-32 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <div className={`h-8 w-64 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="space-y-2">
+                          <div className={`h-4 w-20 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                          <div className={`h-5 w-40 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              {/* Additional Cards Skeleton */}
+              {[1, 2].map((i) => (
+                <Card key={i}>
+                  <div className="space-y-4">
+                    <div className={`h-6 w-48 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[1, 2, 3, 4].map((j) => (
+                        <div key={j} className="space-y-2">
+                          <div className={`h-4 w-24 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                          <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </Section>
+        </PageContainer>
       </DashboardLayout>
     );
   }

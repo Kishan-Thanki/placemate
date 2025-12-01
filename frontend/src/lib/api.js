@@ -24,21 +24,31 @@ export async function fetchJSON(path, options = {}) {
   const url = path.startsWith("http") ? path : buildUrl(path);
   console.log("🌐 Fetching URL:", url);
 
+  // Ensure credentials are included by default for cookie-based auth
+  const fetchOptions = {
+    credentials: 'include',
+    ...options,
+  };
+
   // Safe logging that handles FormData
-  const bodyLog = options.body
-    ? options.body instanceof FormData
+  const bodyLog = fetchOptions.body
+    ? fetchOptions.body instanceof FormData
       ? "[FormData]"
-      : JSON.parse(options.body)
+      : JSON.parse(fetchOptions.body)
     : null;
 
   console.log("📤 Request options:", {
-    method: options.method || "GET",
-    headers: options.headers,
-    hasBody: !!options.body,
+    method: fetchOptions.method || "GET",
+    headers: fetchOptions.headers,
+    credentials: fetchOptions.credentials,
+    hasBody: !!fetchOptions.body,
     body: bodyLog,
   });
 
-  const res = await fetch(url, options);
+  // Debug: Log cookies being sent (helps debug auth issues)
+  console.log("🍪 Current cookies:", document.cookie || "(none)");
+
+  const res = await fetch(url, fetchOptions);
 
   // Check for authentication errors (401 Unauthorized)
   // Only handle 401 if it's not a login/logout/password-reset endpoint

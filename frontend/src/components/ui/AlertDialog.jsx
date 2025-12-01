@@ -114,14 +114,14 @@ export function AlertDialog({
           <button
             onClick={handleConfirm}
             className={`
-              px-6 py-2.5 rounded-lg font-medium transition-all min-w-[100px]
+              px-6 py-2.5 rounded-lg font-medium transition-all min-w-[100px] text-white
               ${type === "error" || type === "confirm"
-                ? "bg-red-600 hover:bg-red-700 text-white"
+                ? "bg-red-600 hover:bg-red-700"
                 : type === "success"
-                ? "bg-green-600 hover:bg-green-700 text-white"
+                ? "bg-green-600 hover:bg-green-700"
                 : type === "warning"
-                ? "bg-yellow-600 hover:bg-yellow-700 text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
+                ? "bg-yellow-600 hover:bg-yellow-700"
+                : "bg-blue-600 hover:bg-blue-700"
               }
             `}
           >

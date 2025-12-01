@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay, useAlert } from "../../../components/ui";
+import { Button, useAlert } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
@@ -281,7 +281,74 @@ export default function CompaniesList() {
           </div>
 
           {loading ? (
-            <LoadingOverlay message="Loading companies..." />
+            <div
+              className={`overflow-x-auto rounded-xl border ${
+                isDark
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-200 bg-white"
+              }`}
+            >
+              <table className="min-w-full text-sm">
+                <thead
+                  className={`${
+                    isDark
+                      ? "bg-gray-700 text-gray-300"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium">S.No.</th>
+                    <th className="px-4 py-3 text-left font-medium">Company</th>
+                    <th className="px-4 py-3 text-left font-medium">Website</th>
+                    <th className="px-4 py-3 text-left font-medium">Location</th>
+                    <th className="px-4 py-3 text-left font-medium">Size</th>
+                    <th className="px-4 py-3 text-left font-medium">Founded</th>
+                    <th className="px-4 py-3 text-center font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <tr
+                      key={i}
+                      className={`border-b ${
+                        isDark ? "border-gray-700" : "border-gray-200"
+                      }`}
+                    >
+                      <td className="px-4 py-3">
+                        <div className={`h-4 w-8 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                          <div className="flex-1 space-y-2">
+                            <div className={`h-4 w-32 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                            <div className={`h-3 w-24 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className={`h-4 w-24 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className={`h-4 w-20 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className={`h-4 w-16 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className={`h-4 w-12 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-center gap-2">
+                          <div className={`h-8 w-8 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                          <div className={`h-8 w-8 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : error ? (
             <div
               className={`text-center py-6 rounded-lg border ${

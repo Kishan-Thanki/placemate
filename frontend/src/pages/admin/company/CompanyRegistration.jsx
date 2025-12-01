@@ -318,9 +318,41 @@ export default function CompanyRegistration() {
         title={isEditMode ? "Edit Company" : "Register New Company"}
       >
         <PageContainer>
-          <LoadingOverlay
-            message={isEditMode ? "Loading company data..." : "Loading..."}
-          />
+          <Section>
+            <div className="space-y-6">
+              {/* Company Info Card Skeleton */}
+              <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                <div className={`h-6 w-48 rounded mb-4 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className={`w-32 h-32 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  </div>
+                  <div className="lg:col-span-2 space-y-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <div className={`h-4 w-24 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                        <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {/* Additional Sections Skeleton */}
+              {[1, 2].map((i) => (
+                <div key={i} className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div className={`h-6 w-48 rounded mb-4 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((j) => (
+                      <div key={j} className="space-y-2">
+                        <div className={`h-4 w-32 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                        <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
         </PageContainer>
       </DashboardLayout>
     );

@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { LoadingOverlay } from "../../components/ui/Spinner";
+
 import logoUrl from "../../assets/placemate.png";
 import { fetchJSON } from "../../lib/api";
 import RoleSelectionModal from "../../components/RoleSelectionModal";
@@ -223,8 +223,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      {/* Loading Overlay */}
-      {loading && <LoadingOverlay message="Logging in..." />}
 
       <div className="w-full lg:w-full flex items-center justify-center p-8">
         <div className="max-w-md w-full">

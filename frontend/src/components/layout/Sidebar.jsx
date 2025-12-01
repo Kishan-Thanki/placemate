@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import RoleSwitcher from "../RoleSwitcher";
@@ -24,14 +24,37 @@ export function Sidebar({ isOpen, onClose }) {
   const { isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeItem, setActiveItem] = useState("dashboard");
+  const location = useLocation();
+  const [activeItem, setActiveItem] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+
+  // Sync active item with current route
+  useEffect(() => {
+    const path = location.pathname;
+    
+    // Match the path to navigation items
+    if (path === "/admin" || path === "/admin/") {
+      setActiveItem("dashboard");
+    } else if (path.startsWith("/admin/companies")) {
+      setActiveItem("companies");
+    } else if (path.startsWith("/admin/drives")) {
+      setActiveItem("drives");
+    } else if (path.startsWith("/admin/applications")) {
+      setActiveItem("applications");
+    } else if (path.startsWith("/admin/students")) {
+      setActiveItem("students");
+    } else if (path.startsWith("/admin/spc")) {
+      setActiveItem("spc-management");
+    }
+  }, [location.pathname]);
 
   // Debug logging
   useEffect(() => {
     console.log("🔍 Sidebar - User from useAuth:", user);
     console.log("🔍 Sidebar - User activeRole:", user?.activeRole);
-  }, [user]);
+    console.log("🔍 Sidebar - Current path:", location.pathname);
+    console.log("🔍 Sidebar - Active item:", activeItem);
+  }, [user, location.pathname, activeItem]);
 
   // Persist collapsed state (only for desktop)
   useEffect(() => {
@@ -72,7 +95,7 @@ export function Sidebar({ isOpen, onClose }) {
     },
     {
       id: "drives",
-      name: "Drives",
+      name: "Company-Drives",
       icon: <CalendarDays size={18} />,
       href: "/admin/drives",
       roles: ["Admin", "Student Placement Cell"], // Admin and SPC

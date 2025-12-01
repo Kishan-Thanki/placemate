@@ -4,7 +4,7 @@ import logoUrl from "../../assets/placemate.png";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { performLogout } from "../../lib/auth";
-import { LoadingOverlay } from "../ui/Spinner";
+
 import { Moon, Sun } from "lucide-react";
 
 /**
@@ -282,8 +282,6 @@ export function StudentNavbar({ onMenuClick }) {
         />
       )}
 
-      {/* Loading overlay during logout */}
-      {isLoggingOut && <LoadingOverlay message="Logging out..." />}
     </nav>
   );
 }
