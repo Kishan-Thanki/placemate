@@ -48,7 +48,7 @@ export function StudentSidebar({ isOpen, onClose }) {
     },
     {
       id: 'drives',
-      name: 'Drives',
+      name: 'Company-Drives',
       icon: <Briefcase size={18} />,
       href: '/student/drives',
     },

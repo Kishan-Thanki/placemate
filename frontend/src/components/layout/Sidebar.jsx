@@ -72,7 +72,7 @@ export function Sidebar({ isOpen, onClose }) {
     },
     {
       id: "drives",
-      name: "Drives",
+      name: "Company-Drives",
       icon: <CalendarDays size={18} />,
       href: "/admin/drives",
       roles: ["Admin", "Student Placement Cell"], // Admin and SPC
