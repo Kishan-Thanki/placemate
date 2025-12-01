@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { FileText, Briefcase, Moon, Sun, UserRound, HomeIcon, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -13,8 +13,25 @@ export function StudentSidebar({ isOpen, onClose }) {
   const { isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeItem, setActiveItem] = useState('dashboard');
+  const location = useLocation();
+  const [activeItem, setActiveItem] = useState('');
   const [collapsed, setCollapsed] = useState(false);
+
+  // Sync active item with current route
+  useEffect(() => {
+    const path = location.pathname;
+    
+    // Match the path to navigation items
+    if (path === "/student" || path === "/student/") {
+      setActiveItem("dashboard");
+    } else if (path.startsWith("/student/drives")) {
+      setActiveItem("drives");
+    } else if (path.startsWith("/student/applications")) {
+      setActiveItem("applications");
+    } else if (path.startsWith("/student/profile")) {
+      setActiveItem("profile");
+    }
+  }, [location.pathname]);
 
   // Load collapsed state from localStorage on mount (desktop only)
   useEffect(() => {

@@ -194,7 +194,81 @@ const StudentProfile = () => {
   if (loading) {
     return (
       <StudentLayout title="My Profile">
-        <LoadingOverlay message="Loading profile..." />
+        <PageContainer>
+          <Section>
+            <div className="space-y-6">
+              {/* Profile Header Skeleton */}
+              <Card>
+                <div className="flex flex-col md:flex-row gap-6">
+                  {/* Profile Picture Skeleton */}
+                  <div className="flex-shrink-0">
+                    <div className={`w-32 h-32 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  </div>
+
+                  {/* Basic Info Skeleton */}
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <div className={`h-8 w-64 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse mb-2`} />
+                      <div className={`h-4 w-32 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="space-y-2">
+                          <div className={`h-4 w-20 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                          <div className={`h-5 w-40 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Personal Details Skeleton */}
+              <Card title="Personal Details">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="space-y-2">
+                      <div className={`h-4 w-24 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              {/* Address Skeleton */}
+              <Card title="Address">
+                <div className="space-y-4">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="space-y-2">
+                      <div className={`h-4 w-32 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    </div>
+                  ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <div className={`h-4 w-20 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                        <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+
+              {/* Academic Details Skeleton */}
+              <Card title="Academic Details">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="space-y-2">
+                      <div className={`h-4 w-28 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </Section>
+        </PageContainer>
       </StudentLayout>
     );
   }
