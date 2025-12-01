@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - niteshsachde/cicd
+      - niteshsachde/deployment
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install Dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-django coverage
+
+      - name: Run Tests
+        working-directory: ./backend
+        env:
+          SECRET_KEY: "test-secret-key"
+          DEBUG: "True"
+          BREVO_API_KEY: "dummy-brevo-key"
+          DEFAULT_FROM_EMAIL: "test@example.com"
+          CLOUDINARY_CLOUD_NAME: "dummy-cloud"
+          CLOUDINARY_API_KEY: "dummy-key"
+          CLOUDINARY_API_SECRET: "dummy-secret"
+        run: |
+          pytest
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Trigger Render Deployment
+        run: |
+          # Trigger the deployment only if the hook URL is set
+          if [ -n "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          else
+            echo "RENDER_DEPLOY_HOOK_URL not set, skipping deployment trigger."
+            exit 1
+          fi
