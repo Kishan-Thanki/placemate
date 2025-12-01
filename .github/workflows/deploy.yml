@@ -32,6 +32,11 @@ jobs:
         env:
           SECRET_KEY: "test-secret-key"
           DEBUG: "True"
+          BREVO_API_KEY: "dummy-brevo-key"
+          DEFAULT_FROM_EMAIL: "test@example.com"
+          CLOUDINARY_CLOUD_NAME: "dummy-cloud"
+          CLOUDINARY_API_KEY: "dummy-key"
+          CLOUDINARY_API_SECRET: "dummy-secret"
         run: |
           pytest
 
