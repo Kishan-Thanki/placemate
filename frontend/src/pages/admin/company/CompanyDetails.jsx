@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay, useAlert } from "../../../components/ui";
+import { Button, useAlert } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
@@ -36,6 +36,7 @@ export default function CompanyDetails() {
 
   useEffect(() => {
     fetchCompanyDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchCompanyDetails = async () => {
@@ -58,7 +59,7 @@ export default function CompanyDetails() {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = async () => {
     const confirmed = await showConfirm({
       title: "Delete Company",
       message: `Are you sure you want to delete "${company.name}"? This action cannot be undone.`,
@@ -91,7 +92,35 @@ export default function CompanyDetails() {
     return (
       <DashboardLayout title="Company Details">
         <PageContainer>
-          <LoadingOverlay message="Loading company details..." />
+          <Section>
+            <div className="space-y-6">
+              {/* Company Header Skeleton */}
+              <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                <div className="flex items-start gap-6">
+                  <div className={`w-24 h-24 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  <div className="flex-1 space-y-3">
+                    <div className={`h-8 w-64 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    <div className={`h-4 w-48 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    <div className="flex gap-2 mt-4">
+                      <div className={`h-10 w-24 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      <div className={`h-10 w-24 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Details Cards Skeleton */}
+              {[1, 2].map((i) => (
+                <div key={i} className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div className={`h-6 w-48 rounded mb-4 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((j) => (
+                      <div key={j} className={`h-4 w-full rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
         </PageContainer>
       </DashboardLayout>
     );

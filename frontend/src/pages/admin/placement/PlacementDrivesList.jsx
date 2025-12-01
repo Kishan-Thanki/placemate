@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay, useAlert } from "../../../components/ui";
+import { Button, useAlert } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import {
   CalendarDays,
@@ -277,7 +277,29 @@ export default function PlacementDrivesList() {
           )}
 
           {loading ? (
-            <LoadingOverlay message="Loading placement drives..." />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className={`p-6 rounded-xl border ${
+                  isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+                }`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1 space-y-3">
+                      <div className={`h-6 w-3/4 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                      <div className={`h-4 w-1/2 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                    </div>
+                    <div className={`h-8 w-20 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                  </div>
+                  <div className="space-y-2">
+                    <div className={`h-4 w-full rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                    <div className={`h-4 w-full rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <div className={`h-10 w-24 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                    <div className={`h-10 w-24 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : error ? (
             <div
               className={`p-8 text-center rounded-xl border ${

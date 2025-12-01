@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
-import { LoadingOverlay } from "../../components/ui/Spinner";
+
 import logoUrl from "../../assets/placemate.png";
 import { authService } from "../../services/authService";
 
@@ -84,16 +84,6 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      {/* Loading Overlay */}
-      {(loading || validatingToken) && (
-        <LoadingOverlay
-          message={
-            validatingToken
-              ? "Validating reset link..."
-              : "Resetting password..."
-          }
-        />
-      )}
 
       <div className="w-full lg:w-full flex items-center justify-center p-8">
         <div className="max-w-md w-full">

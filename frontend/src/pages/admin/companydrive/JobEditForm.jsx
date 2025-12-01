@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DashboardLayout, PageContainer, Section } from '../../../components/layout';
-import { Button, LoadingOverlay, RichTextEditor } from '../../../components/ui';
+import { Button, RichTextEditor } from '../../../components/ui';
+import { LoadingOverlay } from '../../../components/ui/Spinner';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ArrowLeft } from 'lucide-react';
 import { companyDriveService, lookupService } from '../../../services';
@@ -259,7 +260,40 @@ export default function JobEditForm() {
     return (
       <DashboardLayout title="Edit Job">
         <PageContainer>
-          <LoadingOverlay message="Loading job data..." />
+          <Section>
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Header Skeleton */}
+              <div className={`h-8 w-48 rounded mb-6 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+              {/* Form Card Skeleton */}
+              <div className={`p-6 rounded-lg border space-y-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                {/* Text Fields */}
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <div className={`h-4 w-32 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  </div>
+                ))}
+                {/* Rich Text Editor Skeleton */}
+                <div className="space-y-2">
+                  <div className={`h-4 w-32 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  <div className={`h-64 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                </div>
+                {/* More Fields */}
+                {[1, 2].map((i) => (
+                  <div key={i} className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className={`h-4 w-24 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className={`h-4 w-24 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                      <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Section>
         </PageContainer>
       </DashboardLayout>
     );

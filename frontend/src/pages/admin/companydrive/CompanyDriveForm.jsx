@@ -5,7 +5,8 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay, DateTimePicker } from "../../../components/ui";
+import { Button, DateTimePicker } from "../../../components/ui";
+import { LoadingOverlay } from "../../../components/ui/Spinner";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import { companyService, placementService, lookupService, companyDriveService } from "../../../services";
@@ -293,7 +294,27 @@ export default function CompanyDriveForm() {
     return (
       <DashboardLayout title="Add Company Drive">
         <PageContainer>
-          <LoadingOverlay message="Loading form data..." />
+          <Section>
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Form Header Skeleton */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-12 h-12 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                <div className="flex-1 space-y-2">
+                  <div className={`h-8 w-64 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  <div className={`h-4 w-96 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                </div>
+              </div>
+              {/* Form Fields Skeleton */}
+              <div className={`p-6 rounded-lg border space-y-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <div className={`h-4 w-32 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                    <div className={`h-10 w-full rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-200'} animate-pulse`} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Section>
         </PageContainer>
       </DashboardLayout>
     );

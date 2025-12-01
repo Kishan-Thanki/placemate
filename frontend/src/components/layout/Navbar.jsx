@@ -6,7 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Bell } from "lucide-react";
 import { fetchJSON } from "../../lib/api";
 import { performLogout } from "../../lib/auth";
-import { LoadingOverlay } from "../ui/Spinner";
+
 
 /**
  * Main navigation bar for the dashboard
@@ -321,8 +321,6 @@ export function Navbar({ onMenuClick }) {
         />
       )}
 
-      {/* Loading overlay during logout */}
-      {isLoggingOut && <LoadingOverlay message="Logging out..." />}
     </nav>
   );
 }

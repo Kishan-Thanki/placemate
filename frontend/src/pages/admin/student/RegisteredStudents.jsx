@@ -8,7 +8,6 @@ import {
 import {
   Button,
   Card,
-  LoadingOverlay,
   ToastContainer,
 } from "../../../components/ui";
 import { useToast } from "../../../hooks/useToast";
@@ -304,50 +303,58 @@ export function RegisteredStudents() {
         </Section>
 
         <Section>
-          {loading ? (
-            <LoadingOverlay message="Loading students..." />
-          ) : (
-            <div
-              className={`overflow-x-auto rounded-lg border ${
-                isDark ? "border-gray-700" : "border-gray-200"
+          <div
+            className={`overflow-x-auto rounded-lg border ${
+              isDark ? "border-gray-700" : "border-gray-200"
+            }`}
+          >
+            <table
+              className={`min-w-full text-sm ${
+                isDark ? "text-gray-300" : "text-gray-700"
               }`}
             >
-              <table
-                className={`min-w-full text-sm ${
-                  isDark ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                <thead className={`${isDark ? "bg-gray-800" : "bg-gray-50"}`}>
+              <thead className={`${isDark ? "bg-gray-800" : "bg-gray-50"}`}>
+                <tr>
+                  {[
+                    "S.No",
+                    "Enrollment No",
+                    "Full Name",
+                    "Batch",
+                    "Course",
+                    "Email",
+                    "Placement Status",
+                    "Action",
+                  ].filter(h => {
+                    // Hide Placement Status column for SPC users
+                    if (h === "Placement Status" && user?.activeRole === "Student Placement Cell") {
+                      return false;
+                    }
+                    return true;
+                  }).map((h) => (
+                    <th key={h} className="px-4 py-3 text-left font-semibold">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  // Skeleton rows
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className={`border-t ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+                      {Array.from({ length: user?.activeRole === "Student Placement Cell" ? 7 : 8 }).map((_, j) => (
+                        <td key={j} className="px-4 py-4">
+                          <div className={`h-4 rounded ${isDark ? "bg-gray-700" : "bg-gray-200"} animate-pulse`} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : error ? (
                   <tr>
-                    {[
-                      "S.No",
-                      "Enrollment No",
-                      "Full Name",
-                      "Batch",
-                      "Course",
-                      "Email",
-                      "Placement Status",
-                      "Action",
-                    ].filter(h => {
-                      // Hide Placement Status column for SPC users
-                      if (h === "Placement Status" && user?.activeRole === "Student Placement Cell") {
-                        return false;
-                      }
-                      return true;
-                    }).map((h) => (
-                      <th key={h} className="px-4 py-3 text-left font-semibold">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {error ? (
-                    <tr>
-                      <td colSpan={user?.activeRole === "Student Placement Cell" ? "7" : "8"} className="px-4 py-8 text-center">
-                        <div
-                          className={`text-${isDark ? "red-400" : "red-600"}`}
-                        >
+                    <td colSpan={user?.activeRole === "Student Placement Cell" ? "7" : "8"} className="px-4 py-8 text-center">
+                      <div
+                        className={`text-${isDark ? "red-400" : "red-600"}`}
+                      >
                           <p className="font-medium">❌ {error}</p>
                           <Button
                             onClick={() =>
@@ -500,10 +507,9 @@ export function RegisteredStudents() {
                       </tr>
                     ))
                   )}
-                </tbody>
-              </table>
-            </div>
-          )}
+              </tbody>
+            </table>
+          </div>
 
           {/* Pagination */}
           {!loading &&
