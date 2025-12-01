@@ -213,7 +213,7 @@ export function StudentDashboard() {
               {upcomingDrives.map((drive, idx) => (
                 <div
                   key={idx}
-                  onClick={() => navigate(`/student/drives/${drive.id}`)}
+                  onClick={() => navigate(`/student/company-drives/${drive.id}`)}
                   className={`
                     p-4 md:p-5 rounded-lg border cursor-pointer transition-all hover:shadow-lg
                     ${isDark 

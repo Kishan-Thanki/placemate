@@ -110,7 +110,7 @@ export default function PlacementDriveDetails() {
         <PageContainer>
           <Section>
             <div className="space-y-6">
-              {/* Header Skeleton */}
+              {/* Header Card Skeleton */}
               <div
                 className={`p-6 rounded-xl border ${
                   isDark
@@ -119,26 +119,155 @@ export default function PlacementDriveDetails() {
                 }`}
               >
                 <div className="flex flex-col md:flex-row gap-6">
-                  <div
-                    className={`w-16 h-16 rounded-xl animate-pulse ${
-                      isDark ? "bg-gray-700" : "bg-gray-200"
-                    }`}
-                  />
+                  {/* Icon Skeleton */}
+                  <div className="flex-shrink-0">
+                    <div
+                      className={`w-16 h-16 rounded-xl animate-pulse ${
+                        isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
+                    />
+                  </div>
+                  {/* Info Skeleton */}
                   <div className="flex-1 space-y-3">
                     <div
                       className={`h-8 w-2/3 rounded animate-pulse ${
                         isDark ? "bg-gray-700" : "bg-gray-200"
                       }`}
                     />
-                    <ShimmerPlaceholder lines={2} />
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-4 w-4 rounded animate-pulse ${
+                          isDark ? "bg-gray-700" : "bg-gray-200"
+                        }`}
+                      />
+                      <div
+                        className={`h-4 w-48 rounded animate-pulse ${
+                          isDark ? "bg-gray-700" : "bg-gray-200"
+                        }`}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Content Skeletons */}
+              {/* Details Grid Skeleton */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <CardSkeleton />
-                <CardSkeleton />
+                {/* Drive Schedule Card Skeleton */}
+                <div
+                  className={`p-6 rounded-xl border ${
+                    isDark
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <div
+                      className={`h-5 w-5 rounded animate-pulse ${
+                        isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
+                    />
+                    <div
+                      className={`h-6 w-32 rounded animate-pulse ${
+                        isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <div
+                          className={`h-4 w-20 rounded animate-pulse ${
+                            isDark ? "bg-gray-700" : "bg-gray-200"
+                          }`}
+                        />
+                        <div
+                          className={`h-5 w-full rounded animate-pulse ${
+                            isDark ? "bg-gray-700" : "bg-gray-200"
+                          }`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Drive Information Card Skeleton */}
+                <div
+                  className={`p-6 rounded-xl border ${
+                    isDark
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <div
+                      className={`h-5 w-5 rounded animate-pulse ${
+                        isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
+                    />
+                    <div
+                      className={`h-6 w-40 rounded animate-pulse ${
+                        isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <div
+                          className={`h-4 w-24 rounded animate-pulse ${
+                            isDark ? "bg-gray-700" : "bg-gray-200"
+                          }`}
+                        />
+                        <div
+                          className={`h-5 w-full rounded animate-pulse ${
+                            isDark ? "bg-gray-700" : "bg-gray-200"
+                          }`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Associated Companies Section Skeleton */}
+              <div
+                className={`p-6 rounded-xl border ${
+                  isDark
+                    ? "bg-gray-800 border-gray-700"
+                    : "bg-white border-gray-200"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`h-5 w-5 rounded animate-pulse ${
+                        isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
+                    />
+                    <div
+                      className={`h-6 w-48 rounded animate-pulse ${
+                        isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
+                    />
+                  </div>
+                  <div
+                    className={`h-9 w-40 rounded animate-pulse ${
+                      isDark ? "bg-gray-700" : "bg-gray-200"
+                    }`}
+                  />
+                </div>
+                <div className="text-center py-8">
+                  <div
+                    className={`w-12 h-12 mx-auto mb-3 rounded animate-pulse ${
+                      isDark ? "bg-gray-700" : "bg-gray-200"
+                    }`}
+                  />
+                  <div
+                    className={`h-4 w-64 mx-auto rounded animate-pulse ${
+                      isDark ? "bg-gray-700" : "bg-gray-200"
+                    }`}
+                  />
+                </div>
               </div>
             </div>
           </Section>
