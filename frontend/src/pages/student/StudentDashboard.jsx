@@ -9,6 +9,7 @@ import { BookOpen, Calendar, Briefcase, Award, ArrowRight, Building2, MapPin, Cl
 import { StatCard, CardSkeleton } from "../../components/ui";
 import { companyDriveService } from "../../services/companyDriveService";
 import { applicationService } from "../../services/applicationService";
+import { fetchJSON } from "../../lib/api";
 
 export function StudentDashboard() {
   const { isDark } = useTheme();
@@ -18,6 +19,7 @@ export function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [upcomingDrives, setUpcomingDrives] = useState([]);
   const [myApplications, setMyApplications] = useState([]);
+  const [studentProfile, setStudentProfile] = useState(null);
   const [stats, setStats] = useState({
     eligibleDrives: 0,
     appliedDrives: 0,
@@ -31,6 +33,19 @@ export function StudentDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      
+      // Fetch student profile
+      try {
+        const { ok, data: profileResponse } = await fetchJSON("/api/v1/students/me/", {
+          method: "GET",
+          credentials: "include",
+        });
+        if (ok && profileResponse?.data) {
+          setStudentProfile(profileResponse.data);
+        }
+      } catch (err) {
+        console.error("Error fetching student profile:", err);
+      }
       
       // Fetch upcoming drives (status: Open)
       const drivesResponse = await companyDriveService.getAllDrives({ status: 'Open' });
@@ -129,10 +144,10 @@ export function StudentDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               <StatCard 
                 title="Program" 
-                value={user?.studentProfile?.program || "N/A"} 
+                value={studentProfile?.program || "N/A"} 
                 icon={<BookOpen />} 
                 color="blue" 
-                trend={`CGPA: ${user?.studentProfile?.current_cgpa || "N/A"}`} 
+                trend={`CGPA: ${studentProfile?.current_cgpa || "N/A"}`} 
               />
               <StatCard 
                 title="Open Drives" 
