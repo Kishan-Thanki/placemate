@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay } from "../../../components/ui";
+import { Button, LoadingOverlay, useAlert } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
@@ -29,6 +29,7 @@ import { lookupService } from "../../../services";
 export default function CompaniesList() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { showAlert, AlertComponent } = useAlert();
   const { user } = useAuth();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -158,7 +159,11 @@ export default function CompaniesList() {
       setDeleteModal({ isOpen: false, company: null });
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete company. Please try again.");
+      await showAlert({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to delete company. Please try again.',
+      });
     }
   };
 
@@ -690,6 +695,8 @@ export default function CompaniesList() {
           </div>
         </>
       )}
+
+      <AlertComponent />
     </DashboardLayout>
   );
 }

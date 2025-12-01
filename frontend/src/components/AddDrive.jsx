@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Section } from "./layout";
-import { Card, Button } from "./ui";
+import { Card, Button, DateTimePicker } from "./ui";
 import { useTheme } from "../contexts/ThemeContext";
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -162,12 +162,23 @@ export default function AddDrive() {
               optionValue="value"
               optionLabel="label"
             />
-            <Input 
-              label="Application Deadline" 
-              type="datetime-local"
-              value={form.application_deadline} 
-              onChange={(v) => update("application_deadline", v)} 
-            />
+            <div>
+              <FieldLabel>Application Deadline</FieldLabel>
+              <DateTimePicker
+                selected={form.application_deadline ? new Date(form.application_deadline) : null}
+                onChange={(date) => {
+                  if (date) {
+                    const isoString = date.toISOString().slice(0, 16);
+                    update("application_deadline", isoString);
+                  } else {
+                    update("application_deadline", "");
+                  }
+                }}
+                showTimeSelect={true}
+                placeholderText="Select application deadline"
+                minDate={new Date()}
+              />
+            </div>
             <Select 
               label="Status" 
               required 

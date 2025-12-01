@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StudentLayout } from "../../components/layout/StudentLayout";
 import { PageContainer, Section } from "../../components/layout";
-import { Card, Button } from "../../components/ui";
+import { Card, Button, DateTimePicker } from "../../components/ui";
 import { LoadingOverlay } from "../../components/ui/Spinner";
 import { ToastContainer } from "../../components/ui/Toast";
 import { useToast } from "../../hooks/useToast";
@@ -417,15 +417,27 @@ const StudentProfile = () => {
             {/* Personal Details */}
             <Card title="Personal Details">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  label="Date of Birth"
-                  name="date_of_birth"
-                  type="date"
-                  value={formData.date_of_birth}
-                  onChange={handleInputChange}
-                  disabled={!isEditMode}
-                  isDark={isDark}
-                />
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+                    Date of Birth
+                  </label>
+                  <DateTimePicker
+                    selected={formData.date_of_birth ? new Date(formData.date_of_birth) : null}
+                    onChange={(date) => {
+                      if (date) {
+                        const dateString = date.toISOString().split('T')[0];
+                        handleInputChange({ target: { name: 'date_of_birth', value: dateString } });
+                      } else {
+                        handleInputChange({ target: { name: 'date_of_birth', value: "" } });
+                      }
+                    }}
+                    showTimeSelect={false}
+                    dateFormat="MMM d, yyyy"
+                    placeholderText="Select date of birth"
+                    maxDate={new Date()}
+                    disabled={!isEditMode}
+                  />
+                </div>
                 <FormField
                   label="Gender"
                   name="gender"

@@ -9,6 +9,7 @@ import {
   Button,
   CardSkeleton,
   ShimmerPlaceholder,
+  useAlert,
 } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import {
@@ -26,6 +27,7 @@ export default function PlacementDriveDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { showAlert, showConfirm, AlertComponent } = useAlert();
   const [drive, setDrive] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,17 +57,30 @@ export default function PlacementDriveDetails() {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!window.confirm(`Delete "${drive.title}"? This cannot be undone.`))
-      return;
+    const confirmed = await showConfirm({
+      title: "Delete Placement Drive",
+      message: `Are you sure you want to delete "${drive.title}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
 
     try {
-      await placementService.deleteDrive(id);
-      navigate("/admin/placement-drives", {
-        state: { message: "Placement drive deleted successfully!" },
+      await placementDriveService.deletePlacementDrive(id);
+      await showAlert({
+        type: "success",
+        title: "Success",
+        message: "Placement drive deleted successfully!",
       });
+      navigate("/admin/placement-drives");
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete placement drive. Please try again.");
+      await showAlert({
+        type: "error",
+        title: "Error",
+        message: "Failed to delete placement drive. Please try again.",
+      });
     }
   };
 
@@ -383,6 +398,8 @@ export default function PlacementDriveDetails() {
           </div>
         </Section>
       </PageContainer>
+
+      <AlertComponent />
     </DashboardLayout>
   );
 }

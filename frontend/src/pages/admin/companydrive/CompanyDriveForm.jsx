@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Button, LoadingOverlay } from "../../../components/ui";
+import { Button, LoadingOverlay, DateTimePicker } from "../../../components/ui";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import { companyService, placementService, lookupService, companyDriveService } from "../../../services";
@@ -473,17 +473,19 @@ export default function CompanyDriveForm() {
                   >
                     Application Deadline
                   </label>
-                  <input
-                    type="datetime-local"
-                    id="application_deadline"
-                    name="application_deadline"
-                    value={formData.application_deadline}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 rounded-lg border ${
-                      isDark
-                        ? "bg-gray-700 border-gray-600 text-white"
-                        : "bg-white border-gray-300 text-gray-900"
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  <DateTimePicker
+                    selected={formData.application_deadline ? new Date(formData.application_deadline) : null}
+                    onChange={(date) => {
+                      if (date) {
+                        const isoString = date.toISOString().slice(0, 16);
+                        setFormData((prev) => ({ ...prev, application_deadline: isoString }));
+                      } else {
+                        setFormData((prev) => ({ ...prev, application_deadline: "" }));
+                      }
+                    }}
+                    showTimeSelect={true}
+                    placeholderText="Select application deadline"
+                    minDate={new Date()}
                   />
                 </div>
 

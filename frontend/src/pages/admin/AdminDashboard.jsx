@@ -8,6 +8,7 @@ import {
 } from "../../components/layout";
 import { StatCard, CardSkeleton } from "../../components/ui";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { companyService } from "../../services/companyService";
 import { companyDriveService } from "../../services/companyDriveService";
 import { applicationService } from "../../services/applicationService";
@@ -19,6 +20,7 @@ import { studentService } from "../../services/studentService";
  */
 export function AdminDashboard() {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -123,6 +125,7 @@ export function AdminDashboard() {
       const sortedApps = [...applications].sort((a, b) => 
         new Date(b.created_at) - new Date(a.created_at)
       ).slice(0, 5);
+      console.log("📊 Recent Applications Sample:", sortedApps[0]);
       setRecentApplications(sortedApps);
       
     } catch (error) {
@@ -198,7 +201,7 @@ export function AdminDashboard() {
           } text-white`}
         >
           <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2">
-            {getGreeting()}, Admin!
+            {getGreeting()}, {user?.activeRole === "Student Placement Cell" ? "SPC" : user?.activeRole || "Admin"}!
           </h2>
           <p className="text-xs md:text-sm opacity-90">
             {stats.openDrives > 0 
@@ -257,31 +260,33 @@ export function AdminDashboard() {
           )}
         </Section>
 
-        {/* Quick Actions */}
-        <Section title="Quick Actions" description="Frequently used actions">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {quickActions.map((action) => (
-              <button
-                key={action.id}
-                onClick={() => navigate(action.to)}
-                className={`
-                  p-3 md:p-4 rounded-lg border transition-all hover:shadow-lg flex items-center gap-2 md:gap-3
-                  ${isDark 
-                    ? "bg-gray-800 border-gray-700 hover:border-blue-600" 
-                    : "bg-white border-gray-200 hover:border-blue-400"
-                  }
-                `}
-              >
-                <div className={`p-1.5 md:p-2 rounded-lg flex-shrink-0 ${isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-600"}`}>
-                  {action.icon}
-                </div>
-                <span className={`font-medium text-xs md:text-sm text-left ${isDark ? "text-white" : "text-gray-900"}`}>
-                  {action.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </Section>
+        {/* Quick Actions - Only for Admin */}
+        {user?.activeRole === "admin" && (
+          <Section title="Quick Actions" description="Frequently used actions">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+              {quickActions.map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() => navigate(action.to)}
+                  className={`
+                    p-3 md:p-4 rounded-lg border transition-all hover:shadow-lg flex items-center gap-2 md:gap-3
+                    ${isDark 
+                      ? "bg-gray-800 border-gray-700 hover:border-blue-600" 
+                      : "bg-white border-gray-200 hover:border-blue-400"
+                    }
+                  `}
+                >
+                  <div className={`p-1.5 md:p-2 rounded-lg flex-shrink-0 ${isDark ? "bg-blue-900 text-blue-300" : "bg-blue-100 text-blue-600"}`}>
+                    {action.icon}
+                  </div>
+                  <span className={`font-medium text-xs md:text-sm text-left ${isDark ? "text-white" : "text-gray-900"}`}>
+                    {action.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Section>
+        )}
 
         {/* Recent Activities */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
@@ -390,49 +395,62 @@ export function AdminDashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {recentApplications.map((app, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => navigate(`/admin/applications/${app.id}`)}
-                    className={`
-                      group relative p-4 rounded-lg border cursor-pointer transition-all
-                      ${isDark 
-                        ? "bg-gray-800 border-gray-700 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10" 
-                        : "bg-white border-gray-200 hover:border-purple-400 hover:shadow-lg"
-                      }
-                    `}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-lg ${
-                        isDark ? "bg-gradient-to-br from-purple-900 to-blue-900 text-purple-300" : "bg-gradient-to-br from-purple-100 to-blue-100 text-purple-700"
-                      }`}>
-                        {(app.student?.user?.first_name?.[0] || "S").toUpperCase()}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h4 className={`font-semibold truncate ${isDark ? "text-white group-hover:text-purple-400" : "text-gray-900 group-hover:text-purple-600"} transition-colors`}>
-                            {app.student?.user?.first_name || "Student"} {app.student?.user?.last_name || ""}
-                          </h4>
-                          <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getStatusBadge(app.status)}`}>
-                            {app.status}
-                          </span>
+                {recentApplications.map((app, idx) => {
+                  // API returns serialized fields directly
+                  const studentName = app.student_name || "Unknown Student";
+                  const companyName = app.company_name || "";
+                  const driveTitle = app.drive_title || "";
+                  
+                  // Get first letter for avatar
+                  const firstLetter = studentName?.[0] || "S";
+                  
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => navigate(`/admin/applications/${app.id}`)}
+                      className={`
+                        group relative p-4 rounded-lg border cursor-pointer transition-all
+                        ${isDark 
+                          ? "bg-gray-800 border-gray-700 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10" 
+                          : "bg-white border-gray-200 hover:border-purple-400 hover:shadow-lg"
+                        }
+                      `}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-lg ${
+                          isDark ? "bg-gradient-to-br from-purple-900 to-blue-900 text-purple-300" : "bg-gradient-to-br from-purple-100 to-blue-100 text-purple-700"
+                        }`}>
+                          {(studentName?.[0] || "S").toUpperCase()}
                         </div>
                         
-                        <div className="flex items-center gap-4 text-xs">
-                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                            <GraduationCap className="w-3.5 h-3.5" />
-                            <span>{app.student?.enrollment_number || "N/A"}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h4 className={`font-semibold truncate ${isDark ? "text-white group-hover:text-purple-400" : "text-gray-900 group-hover:text-purple-600"} transition-colors`}>
+                                {studentName}
+                              </h4>
+                              {companyName && (
+                                <p className={`text-xs truncate mt-0.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                                  {companyName}
+                                </p>
+                              )}
+                            </div>
+                            <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getStatusBadge(app.status)}`}>
+                              {app.status}
+                            </span>
                           </div>
-                          <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                            <CalendarDays className="w-3.5 h-3.5" />
-                            <span>{formatDate(app.created_at)}</span>
+                          
+                          <div className="flex items-center gap-4 text-xs">
+                            <div className={`flex items-center gap-1.5 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                              <CalendarDays className="w-3.5 h-3.5" />
+                              <span>{formatDate(app.applied_at || app.created_at)}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </Section>

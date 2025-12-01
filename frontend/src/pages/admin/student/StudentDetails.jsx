@@ -5,7 +5,7 @@ import {
   PageContainer,
   Section,
 } from "../../../components/layout";
-import { Card, Button } from "../../../components/ui";
+import { Card, Button, DateTimePicker } from "../../../components/ui";
 import { LoadingOverlay } from "../../../components/ui/Spinner";
 import { ToastContainer } from "../../../components/ui/Toast";
 import { useToast } from "../../../hooks/useToast";
@@ -609,14 +609,31 @@ const StudentDetails = () => {
               />
               {isEditMode ? (
                 <>
-                  <EditableInfoItem
-                    icon={<Calendar size={16} />}
-                    label="Date of Birth"
-                    name="date_of_birth"
-                    type="date"
-                    value={formData.date_of_birth}
-                    onChange={handleInputChange}
-                  />
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className={isDark ? "text-gray-400" : "text-gray-500"}>
+                        <Calendar size={16} />
+                      </span>
+                      <label className={`text-xs font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                        Date of Birth
+                      </label>
+                    </div>
+                    <DateTimePicker
+                      selected={formData.date_of_birth ? new Date(formData.date_of_birth) : null}
+                      onChange={(date) => {
+                        if (date) {
+                          const dateString = date.toISOString().split('T')[0];
+                          handleInputChange({ target: { name: 'date_of_birth', value: dateString } });
+                        } else {
+                          handleInputChange({ target: { name: 'date_of_birth', value: "" } });
+                        }
+                      }}
+                      showTimeSelect={false}
+                      dateFormat="MMM d, yyyy"
+                      placeholderText="Select date of birth"
+                      maxDate={new Date()}
+                    />
+                  </div>
                   <EditableInfoItem
                     icon={<User size={16} />}
                     label="Gender"
